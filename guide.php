@@ -1,18 +1,27 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 include("config.php");
 include("includes/header.php");
 include("includes/navbar.php");
 
-$slug = $_GET['slug'] ?? '';
+$slug = $_GET["slug"] ?? "";
 
-$sql = "SELECT guides.*, categories.name AS category_name, categories.slug AS category_slug
-        FROM guides
-        JOIN categories ON guides.category_id = categories.id
-        WHERE guides.slug = ?";
+$sql = "
+    SELECT guides.*,
+           categories.name AS category_name,
+           categories.slug AS category_slug
+    FROM guides
+    JOIN categories ON guides.category_id = categories.id
+    WHERE guides.slug = ?
+";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $slug);
 $stmt->execute();
+
 $result = $stmt->get_result();
 $guide = $result->fetch_assoc();
 
@@ -22,18 +31,49 @@ if (!$guide) {
     exit;
 }
 
+/*
+ * Count one view per guide during the current browser session.
+ * Refreshing the same guide will not repeatedly increase the counter.
+ */
+if (!isset($_SESSION["viewed_guides"])) {
+    $_SESSION["viewed_guides"] = [];
+}
+
+$guideId = (int) $guide["id"];
+
+if (!in_array($guideId, $_SESSION["viewed_guides"], true)) {
+    $viewStmt = $conn->prepare("
+        UPDATE guides
+        SET views = views + 1
+        WHERE id = ?
+    ");
+
+    $viewStmt->bind_param("i", $guideId);
+    $viewStmt->execute();
+    $viewStmt->close();
+
+    $_SESSION["viewed_guides"][] = $guideId;
+
+    $guide["views"] = (int) $guide["views"] + 1;
+}
+
 $userId = $_SESSION["user_id"] ?? 0;
 
 $isFavorite = false;
 
 if ($userId) {
     $favStmt = $conn->prepare("
-        SELECT id FROM favorites
+        SELECT id
+        FROM favorites
         WHERE user_id = ? AND guide_id = ?
     ");
+
     $favStmt->bind_param("ii", $userId, $guide["id"]);
     $favStmt->execute();
+
     $isFavorite = $favStmt->get_result()->num_rows > 0;
+
+    $favStmt->close();
 }
 
 $stepsSql = "
@@ -50,6 +90,7 @@ $stepsSql = "
 $stepsStmt = $conn->prepare($stepsSql);
 $stepsStmt->bind_param("ii", $userId, $guide["id"]);
 $stepsStmt->execute();
+
 $stepsResult = $stepsStmt->get_result();
 
 $ratingStmt = $conn->prepare("
@@ -58,44 +99,70 @@ $ratingStmt = $conn->prepare("
     FROM guide_ratings
     WHERE guide_id = ?
 ");
+
 $ratingStmt->bind_param("i", $guide["id"]);
 $ratingStmt->execute();
+
 $ratingData = $ratingStmt->get_result()->fetch_assoc();
 
 $userRating = 0;
 
-if (isset($_SESSION["user_id"])) {
+if ($userId) {
     $userRatingStmt = $conn->prepare("
         SELECT rating
         FROM guide_ratings
         WHERE guide_id = ? AND user_id = ?
     ");
-    $userRatingStmt->bind_param("ii", $guide["id"], $_SESSION["user_id"]);
+
+    $userRatingStmt->bind_param("ii", $guide["id"], $userId);
     $userRatingStmt->execute();
+
     $userRatingResult = $userRatingStmt->get_result();
 
     if ($userRatingResult->num_rows > 0) {
-        $userRating = $userRatingResult->fetch_assoc()["rating"];
+        $userRating = (int) $userRatingResult->fetch_assoc()["rating"];
     }
+
+    $userRatingStmt->close();
 }
 ?>
 
 <section class="guide-page">
-    <a class="back-link" href="guides.php?category=<?php echo $guide['category_slug']; ?>">
-        ← Back to <?php echo $guide['category_name']; ?> Guides
+    <a
+        class="back-link"
+        href="guides.php?category=<?php echo urlencode($guide["category_slug"]); ?>"
+    >
+        ← Back to
+        <?php echo htmlspecialchars($guide["category_name"]); ?>
+        Guides
     </a>
 
-    <p class="section-label"><?php echo $guide['category_name']; ?> Guide</p>
-
-    <h1><?php echo $guide['title']; ?></h1>
-
-    <p class="guide-description">
-        <?php echo $guide['description']; ?>
+    <p class="section-label">
+        <?php echo htmlspecialchars($guide["category_name"]); ?> Guide
     </p>
 
-    <?php if(isset($_SESSION["user_id"])): ?>
-        <a class="favorite-btn" href="toggle_favorite.php?guide_id=<?php echo $guide["id"]; ?>&slug=<?php echo urlencode($guide["slug"]); ?>">
-            <?php echo $isFavorite ? "💔 Remove from Favorites" : "❤️ Add to Favorites"; ?>
+    <h1>
+        <?php echo htmlspecialchars($guide["title"]); ?>
+    </h1>
+
+    <p class="guide-description">
+        <?php echo htmlspecialchars($guide["description"]); ?>
+    </p>
+
+    <?php if ($userId): ?>
+        <a
+            class="favorite-btn"
+            href="toggle_favorite.php?guide_id=<?php
+                echo (int) $guide["id"];
+            ?>&slug=<?php
+                echo urlencode($guide["slug"]);
+            ?>"
+        >
+            <?php
+            echo $isFavorite
+                ? "💔 Remove from Favorites"
+                : "❤️ Add to Favorites";
+            ?>
         </a>
     <?php else: ?>
         <p class="meta">Login to save this guide to favorites.</p>
@@ -104,17 +171,34 @@ if (isset($_SESSION["user_id"])) {
     <div class="guide-meta-grid">
         <div class="meta-card">
             <span>Difficulty</span>
-            <strong><?php echo $guide['difficulty']; ?></strong>
+
+            <strong>
+                <?php echo htmlspecialchars($guide["difficulty"]); ?>
+            </strong>
         </div>
 
         <div class="meta-card">
             <span>Estimated Time</span>
-            <strong><?php echo $guide['estimated_time']; ?></strong>
+
+            <strong>
+                <?php echo htmlspecialchars($guide["estimated_time"]); ?>
+            </strong>
         </div>
 
         <div class="meta-card">
             <span>Risk Level</span>
-            <strong><?php echo $guide['risk_level']; ?></strong>
+
+            <strong>
+                <?php echo htmlspecialchars($guide["risk_level"]); ?>
+            </strong>
+        </div>
+
+        <div class="meta-card">
+            <span>Views</span>
+
+            <strong>
+                👁️ <?php echo number_format((int) $guide["views"]); ?>
+            </strong>
         </div>
     </div>
 
@@ -123,25 +207,40 @@ if (isset($_SESSION["user_id"])) {
 
         <p>
             ⭐ <?php echo $ratingData["average_rating"] ?? "0"; ?> / 5
-            (<?php echo $ratingData["total_ratings"]; ?> Ratings)
+            (<?php echo (int) $ratingData["total_ratings"]; ?> Ratings)
         </p>
 
-        <?php if(isset($_SESSION["user_id"])): ?>
+        <?php if ($userId): ?>
             <form action="rate_guide.php" method="POST">
-                <input type="hidden" name="guide_id" value="<?php echo $guide["id"]; ?>">
-                <input type="hidden" name="slug" value="<?php echo htmlspecialchars($guide["slug"]); ?>">
+                <input
+                    type="hidden"
+                    name="guide_id"
+                    value="<?php echo (int) $guide["id"]; ?>"
+                >
+
+                <input
+                    type="hidden"
+                    name="slug"
+                    value="<?php echo htmlspecialchars($guide["slug"]); ?>"
+                >
 
                 <select name="rating" required>
                     <option value="">Rate this guide</option>
 
-                    <?php for($i = 1; $i <= 5; $i++): ?>
-                        <option value="<?php echo $i; ?>" <?php echo $userRating == $i ? "selected" : ""; ?>>
-                            <?php echo $i; ?> Star<?php echo $i > 1 ? "s" : ""; ?>
+                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                        <option
+                            value="<?php echo $i; ?>"
+                            <?php echo $userRating === $i ? "selected" : ""; ?>
+                        >
+                            <?php echo $i; ?>
+                            Star<?php echo $i > 1 ? "s" : ""; ?>
                         </option>
                     <?php endfor; ?>
                 </select>
 
-                <button type="submit">Save Rating</button>
+                <button type="submit">
+                    Save Rating
+                </button>
             </form>
         <?php else: ?>
             <p class="meta">Login to rate this guide.</p>
@@ -159,7 +258,11 @@ if (isset($_SESSION["user_id"])) {
         </div>
     </div>
 
-    <div id="completedMessage" class="completed-message" style="display:none;">
+    <div
+        id="completedMessage"
+        class="completed-message"
+        style="display: none;"
+    >
         🎉 Guide Completed! Great job completing all steps.
     </div>
 
@@ -169,28 +272,49 @@ if (isset($_SESSION["user_id"])) {
         <?php if ($stepsResult && $stepsResult->num_rows > 0): ?>
             <div class="steps-list">
                 <?php while ($step = $stepsResult->fetch_assoc()): ?>
-                    <div class="step-card <?php echo $step['progress_id'] ? 'completed' : ''; ?>">
+                    <div
+                        class="step-card <?php
+                            echo $step["progress_id"] ? "completed" : "";
+                        ?>"
+                    >
                         <span class="step-title">
-                            Step <?php echo $step['step_number']; ?>
+                            Step <?php echo (int) $step["step_number"]; ?>
                         </span>
 
                         <p>
-                            <?php echo htmlspecialchars($step['step_text']); ?>
+                            <?php echo htmlspecialchars($step["step_text"]); ?>
                         </p>
 
                         <button
                             class="complete-btn"
-                            data-step-id="<?php echo $step['id']; ?>"
-                            onclick="toggleStep(this)">
-                            <?php echo $step['progress_id'] ? '✓ Completed' : 'Mark as Completed'; ?>
+                            data-step-id="<?php echo (int) $step["id"]; ?>"
+                            onclick="toggleStep(this)"
+                        >
+                            <?php
+                            echo $step["progress_id"]
+                                ? "✓ Completed"
+                                : "Mark as Completed";
+                            ?>
                         </button>
                     </div>
                 <?php endwhile; ?>
             </div>
         <?php else: ?>
-            <p><?php echo nl2br($guide['content']); ?></p>
+            <p>
+                <?php
+                echo nl2br(
+                    htmlspecialchars($guide["content"] ?? "")
+                );
+                ?>
+            </p>
         <?php endif; ?>
     </div>
 </section>
 
-<?php include("includes/footer.php"); ?>
+<?php
+$stmt->close();
+$stepsStmt->close();
+$ratingStmt->close();
+
+include("includes/footer.php");
+?>

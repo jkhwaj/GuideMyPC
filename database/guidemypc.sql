@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 10, 2026 at 11:41 PM
+-- Generation Time: Jul 11, 2026 at 01:09 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -153,19 +153,20 @@ CREATE TABLE `guides` (
   `estimated_time` varchar(50) DEFAULT NULL,
   `risk_level` varchar(50) DEFAULT NULL,
   `content` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `views` int(10) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `guides`
 --
 
-INSERT INTO `guides` (`id`, `category_id`, `title`, `slug`, `description`, `difficulty`, `estimated_time`, `risk_level`, `content`, `created_at`) VALUES
-(1, 1, 'Slow Computer', 'slow-computer', 'Speed up startup, remove junk files, and improve performance.', 'Beginner', '15-30 Minutes', 'Low', '1. Restart your computer.\r\n\r\n2. Open Task Manager and check CPU, Memory and Disk usage.\r\n\r\n3. Disable unnecessary startup programs.\r\n\r\n4. Run Windows Disk Cleanup.\r\n\r\n5. Remove unused software.\r\n\r\n6. Scan for malware using Windows Defender.\r\n\r\n7. Install Windows Updates.\r\n\r\n8. Restart your PC and test performance.', '2026-07-06 19:44:43'),
-(2, 1, 'Blue Screen', 'blue-screen', 'Fix Blue Screen crashes and common Windows stop errors.', 'Intermediate', '20 Minutes', 'Medium', 'Step-by-step guide', '2026-07-06 19:44:43'),
-(3, 1, 'Windows Update Problems', 'windows-update', 'Fix failed or stuck Windows updates.', 'Beginner', '15 Minutes', 'Low', 'Step-by-step guide', '2026-07-06 19:44:43'),
-(4, 1, 'Driver Issues', 'driver-issues', 'Troubleshoot missing or outdated drivers.', 'Intermediate', '20 Minutes', 'Medium', 'Step-by-step guide', '2026-07-06 19:44:43'),
-(5, 1, 'Virus Removal', 'virus-removal', 'Remove malware using trusted tools.', 'Beginner', '30 Minutes', 'Low', 'Step-by-step guide', '2026-07-06 19:44:43');
+INSERT INTO `guides` (`id`, `category_id`, `title`, `slug`, `description`, `difficulty`, `estimated_time`, `risk_level`, `content`, `created_at`, `views`) VALUES
+(1, 1, 'Slow Computer', 'slow-computer', 'Speed up startup, remove junk files, and improve performance.', 'Beginner', '15-30 Minutes', 'Low', '1. Restart your computer.\r\n\r\n2. Open Task Manager and check CPU, Memory and Disk usage.\r\n\r\n3. Disable unnecessary startup programs.\r\n\r\n4. Run Windows Disk Cleanup.\r\n\r\n5. Remove unused software.\r\n\r\n6. Scan for malware using Windows Defender.\r\n\r\n7. Install Windows Updates.\r\n\r\n8. Restart your PC and test performance.', '2026-07-06 19:44:43', 0),
+(2, 1, 'Blue Screen', 'blue-screen', 'Fix Blue Screen crashes and common Windows stop errors.', 'Intermediate', '20 Minutes', 'Medium', 'Step-by-step guide', '2026-07-06 19:44:43', 1),
+(3, 1, 'Windows Update Problems', 'windows-update', 'Fix failed or stuck Windows updates.', 'Beginner', '15 Minutes', 'Low', 'Step-by-step guide', '2026-07-06 19:44:43', 1),
+(4, 1, 'Driver Issues', 'driver-issues', 'Troubleshoot missing or outdated drivers.', 'Intermediate', '20 Minutes', 'Medium', 'Step-by-step guide', '2026-07-06 19:44:43', 1),
+(5, 1, 'Virus Removal', 'virus-removal', 'Remove malware using trusted tools.', 'Beginner', '30 Minutes', 'Low', 'Step-by-step guide', '2026-07-06 19:44:43', 0);
 
 -- --------------------------------------------------------
 
