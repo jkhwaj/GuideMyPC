@@ -27,3 +27,16 @@ INSERT INTO downloads (name, description, official_url, category) VALUES
     ('Apple Support', 'Official Apple support resources.', 'https://support.apple.com/', 'macOS'),
     ('Android Help', 'Official Android help resources.', 'https://support.google.com/android/', 'Android')
 ON DUPLICATE KEY UPDATE id = id;
+
+INSERT INTO search_aliases (alias, replacement) VALUES
+    ('bsod', 'blue screen'),
+    ('wifi', 'wi-fi'),
+    ('mac book', 'macbook')
+ON DUPLICATE KEY UPDATE replacement = VALUES(replacement);
+
+INSERT INTO search_related_queries (query_text, related_query) VALUES
+    ('blue screen', 'driver issues'),
+    ('blue screen', 'windows update'),
+    ('wi-fi', 'router restart'),
+    ('wi-fi', 'slow internet')
+ON DUPLICATE KEY UPDATE related_query = VALUES(related_query);

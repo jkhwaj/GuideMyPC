@@ -1,6 +1,6 @@
 # Task: Universal Search
 
-- Status: Not started
+- Status: Completed
 - Priority: Critical
 - Release: R1
 - Dependencies: `003-database-migrations-and-seeds.md`, `004-application-structure-and-error-handling.md`, `006-homepage-and-navigation.md`
@@ -69,12 +69,12 @@ Autocomplete must follow the ARIA combobox pattern, support keyboard selection a
 
 ## Acceptance Criteria
 
-- [ ] A single query can return clearly labeled results from all published content types.
-- [ ] Exact error-code and title matches rank predictably.
-- [ ] Filters are shareable in the URL and survive pagination.
-- [ ] Empty and misspelled queries offer useful alternatives.
-- [ ] Autocomplete works with keyboard and does not expose restricted content.
-- [ ] Typical local seeded queries meet the agreed response-time budget.
+- [x] A single query can return clearly labeled results from all published content types.
+- [x] Exact error-code and title matches rank predictably.
+- [x] Filters are shareable in the URL and survive pagination.
+- [x] Empty and misspelled queries offer useful alternatives.
+- [x] Autocomplete works with keyboard and does not expose restricted content.
+- [x] Typical local seeded queries meet the agreed response-time budget.
 
 ## Validation
 
@@ -82,6 +82,8 @@ Autocomplete must follow the ARIA combobox pattern, support keyboard selection a
 - Verify draft/private content cannot appear.
 - Measure search and suggestion latency against representative seeded data.
 - Run keyboard and screen-reader tests on autocomplete and filters.
+
+Validation completed locally: migrations and seeds applied to both the clean test database and the local prototype database, then re-ran with zero migrations applied. Exact title, partial, `bsod` alias, whitespace, empty, overlong, punctuation/script-like, typed/platform-filter, and zero-result requests returned safe responses. The rendered page exposes ARIA combobox/listbox markup, keyboard Arrow/Enter/Escape handling, server-rendered filters, pagination URLs, and a no-JavaScript GET fallback. The suggestion endpoint returned only published titles/categories or curated terms and the focused integration test verified an unpublished guide cannot appear. A representative local `blue screen` search completed in 52.2 ms, below the 250 ms budget. Aggregate event tests recorded a selected guide type while an email-like query did not add an event.
 
 ## Definition of Done
 

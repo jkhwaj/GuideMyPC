@@ -131,8 +131,132 @@ function initializeNavigation() {
     }
 }
 
+function initializeSearchAutocomplete() {
+    document.querySelectorAll("[data-search-autocomplete]").forEach((form) => {
+        const input = form.querySelector('input[name="q"]');
+        const list = document.getElementById(form.dataset.suggestionList || "");
+        const endpoint = form.dataset.suggestionUrl;
+        let suggestions = [];
+        let selectedIndex = -1;
+        let timer = null;
+
+        if (input === null || list === null || endpoint === undefined) {
+            return;
+        }
+
+        const close = () => {
+            suggestions = [];
+            selectedIndex = -1;
+            list.replaceChildren();
+            list.hidden = true;
+            input.setAttribute("aria-expanded", "false");
+        };
+
+        const select = (index) => {
+            const suggestion = suggestions[index];
+
+            if (suggestion === undefined) {
+                return;
+            }
+
+            window.location.assign(suggestion.url);
+        };
+
+        const render = () => {
+            list.replaceChildren();
+            suggestions.forEach((suggestion, index) => {
+                const option = document.createElement("button");
+                option.type = "button";
+                option.className = "search-suggestion";
+                option.setAttribute("role", "option");
+                option.setAttribute("aria-selected", String(index === selectedIndex));
+                option.textContent = `${suggestion.label} (${suggestion.type})`;
+                option.addEventListener("mousedown", (event) => {
+                    event.preventDefault();
+                    select(index);
+                });
+                list.append(option);
+            });
+            list.hidden = suggestions.length === 0;
+            input.setAttribute("aria-expanded", String(suggestions.length > 0));
+        };
+
+        const load = () => {
+            const query = input.value.trim();
+
+            if (query.length < 2) {
+                close();
+                return;
+            }
+
+            const url = new URL(endpoint, window.location.href);
+            url.searchParams.set("q", query);
+            fetch(url, { headers: { Accept: "application/json" } })
+                .then((response) => response.ok ? response.json() : null)
+                .then((payload) => {
+                    suggestions = Array.isArray(payload?.data?.suggestions) ? payload.data.suggestions : [];
+                    selectedIndex = -1;
+                    render();
+                })
+                .catch(close);
+        };
+
+        input.addEventListener("input", () => {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(load, 180);
+        });
+
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                close();
+            } else if (event.key === "ArrowDown" && suggestions.length > 0) {
+                event.preventDefault();
+                selectedIndex = (selectedIndex + 1) % suggestions.length;
+                render();
+            } else if (event.key === "ArrowUp" && suggestions.length > 0) {
+                event.preventDefault();
+                selectedIndex = (selectedIndex - 1 + suggestions.length) % suggestions.length;
+                render();
+            } else if (event.key === "Enter" && selectedIndex >= 0) {
+                event.preventDefault();
+                select(selectedIndex);
+            }
+        });
+
+        input.addEventListener("blur", () => window.setTimeout(close, 150));
+    });
+}
+
+function initializeSearchSelectionTracking() {
+    document.querySelectorAll("[data-search-event-url]").forEach((container) => {
+        const endpoint = container.dataset.searchEventUrl;
+        const query = container.dataset.searchQuery;
+
+        if (endpoint === undefined || query === undefined) {
+            return;
+        }
+
+        container.querySelectorAll("[data-search-selection]").forEach((link) => {
+            link.addEventListener("click", () => {
+                const data = new URLSearchParams({
+                    query,
+                    result_type: link.dataset.searchResultType || "search",
+                });
+                fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+                    body: data,
+                    keepalive: true,
+                }).catch(() => {});
+            });
+        });
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initializeNavigation();
+    initializeSearchAutocomplete();
+    initializeSearchSelectionTracking();
     updateProgress();
 
     document.querySelectorAll(".step-progress-form").forEach((form) => {

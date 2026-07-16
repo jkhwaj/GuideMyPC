@@ -56,12 +56,13 @@ include __DIR__ . '/includes/navbar.php';
         <h1 id="home-heading">Find a calm next step for your tech problem.</h1>
         <p>Describe what is happening, then start with trustworthy guides and official resources designed for everyday devices.</p>
 
-        <form class="home-search" action="<?php echo e(application_url('search.php')); ?>" method="GET" role="search">
+        <form class="home-search" action="<?php echo e(application_url('search.php')); ?>" method="GET" role="search" data-search-autocomplete data-suggestion-list="home-search-suggestions" data-suggestion-url="<?php echo e(application_url('search_suggestions.php')); ?>">
             <label for="problem-search">Describe your problem</label>
             <div class="home-search-controls">
-                <input id="problem-search" name="q" type="search" maxlength="120" placeholder="My Wi-Fi keeps disconnecting" autocomplete="off">
+                <input id="problem-search" name="q" type="search" maxlength="120" placeholder="My Wi-Fi keeps disconnecting" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="home-search-suggestions">
                 <button class="primary-btn" type="submit">Search support</button>
             </div>
+            <div id="home-search-suggestions" class="search-suggestions" role="listbox" hidden></div>
         </form>
 
         <div class="hero-buttons">
