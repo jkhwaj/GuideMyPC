@@ -22,6 +22,7 @@ The current prototype will be improved incrementally. A React or Node.js rewrite
 | R2 | Personalized troubleshooting | `010`-`013` |
 | R3 | Trusted AI and download assistance | `014`-`016` |
 | R4 | Community, operations, and launch | `017`-`021` |
+| Submission | Academic documentation and verified evidence | `022` |
 | Future | Post-MVP product expansion | `100` |
 
 ## Execution Order
@@ -31,6 +32,8 @@ The current prototype will be improved incrementally. A React or Node.js rewrite
 3. Treat each release boundary as a usable, testable product increment.
 4. Run the validation listed in every task before marking it complete.
 5. Update task status and record material decisions in the task file during implementation.
+6. Maintain team ownership, architecture decisions, dependency inventory, Git/GitHub evidence, test evidence, and screenshot notes during development rather than reconstructing them at submission time.
+7. Finalize task `022` against the exact commit that passes task `020`.
 
 ## Task Index
 
@@ -56,6 +59,7 @@ The current prototype will be improved incrementally. A React or Node.js rewrite
 - [`019-accessibility-seo-and-performance.md`](019-accessibility-seo-and-performance.md): WCAG, discoverability, and speed
 - [`020-testing-security-and-release.md`](020-testing-security-and-release.md): automated checks and MVP release gate
 - [`021-production-deployment.md`](021-production-deployment.md): secure production operations and rollback
+- [`022-documentation-and-submission-package.md`](022-documentation-and-submission-package.md): academic report, diagrams, screenshots, evidence, and clean submission archive
 - [`100-future-roadmap.md`](100-future-roadmap.md): deferred Phase 2 and Phase 3 capabilities
 
 ## Standard Status Values
@@ -68,4 +72,4 @@ The current prototype will be improved incrementally. A React or Node.js rewrite
 
 ## Definition of MVP
 
-The MVP is complete when R0 through R4 pass the release gate in task `020`. Future-roadmap work is not required for MVP launch.
+The runtime MVP is complete when R0 through R4 pass the release gate in task `020`. Task `022` is a separate academic submission gate and does not add runtime features or authorize an architecture rewrite. Future-roadmap work is not required for MVP launch or submission.

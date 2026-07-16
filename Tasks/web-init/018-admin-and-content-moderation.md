@@ -22,6 +22,8 @@ The prototype has separate admin pages for categories, guides, downloads, users,
 - Add an immutable audit trail for security, publication, moderation, and role changes.
 - Distinguish administrator, editor, and moderator capabilities if operational staffing requires it.
 - Add stale-content and broken-resource review queues.
+- Build reusable list/table, search, filter, sort, pagination, empty-state, error, confirmation, flash/toast, and bulk-action patterns.
+- Add an operational dashboard for pending reviews, user reports, stale content, broken links, failed jobs, and moderation backlog without exposing private content.
 
 ## Non-Goals
 
@@ -39,6 +41,8 @@ The prototype has separate admin pages for categories, guides, downloads, users,
 5. Add safe preview that uses the public renderer without public publication.
 6. Add audit search/export with sensitive-value redaction.
 7. Remove or redirect obsolete duplicate admin routes after migration.
+8. Apply shared list and feedback components to representative content, user, download, diagnostic, and moderation screens before removing one-off implementations.
+9. Add aggregate operational metrics and drill-down links to their owning queues.
 
 ## Database Changes
 
@@ -55,7 +59,7 @@ The prototype has separate admin pages for categories, guides, downloads, users,
 
 ## Accessibility
 
-Admin tables require captions/headers and responsive alternatives; forms require labels and error summaries; confirmations are keyboard accessible; queue state and audit changes are understandable without color.
+Admin tables require captions/headers and responsive alternatives; forms require labels and error summaries; confirmations are keyboard accessible; queue state and audit changes are understandable without color. Flash/toast messages must be announced appropriately and remain available after server redirects without depending only on JavaScript.
 
 ## Affected Files
 
@@ -72,6 +76,8 @@ Admin tables require captions/headers and responsive alternatives; forms require
 - [ ] Security-sensitive, publication, role, and moderation actions create redacted audit records.
 - [ ] Stale content, broken downloads, reports, and pending reviews have visible queues.
 - [ ] Obsolete routes cannot bypass the unified controls.
+- [ ] Representative admin screens use the shared list, filtering, pagination, confirmation, and feedback patterns.
+- [ ] The operational dashboard reports current queue/backlog counts and links to filtered records without leaking sensitive data.
 
 ## Validation
 
@@ -80,6 +86,7 @@ Admin tables require captions/headers and responsive alternatives; forms require
 - Verify audit records for create/edit/publish/delete/restore/role/moderation actions.
 - Test pagination, filters, validation, concurrent edits, and transaction rollback.
 - Run keyboard and screen-reader checks on representative admin workflows.
+- Compare dashboard counts with direct queue queries and verify empty, stale, failed-job, and high-volume states.
 
 ## Definition of Done
 

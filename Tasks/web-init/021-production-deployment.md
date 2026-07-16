@@ -24,6 +24,7 @@ The repository has no production environment definition, deployment process, sec
 - Add Sentry or equivalent error monitoring, uptime checks, structured logs, alert ownership, and privacy-friendly analytics.
 - Add encrypted database/file backups, retention, off-site storage, and restoration drills.
 - Document incident response and provider outage degradation for AI, mail, storage, and analytics.
+- Maintain a named, versioned production checklist that records the release commit, migration version, operator, timestamps, outcome, and rollback decision.
 
 ## Non-Goals
 
@@ -41,6 +42,7 @@ The repository has no production environment definition, deployment process, sec
 5. Configure monitoring, uptime, alerting, dashboards, and retention.
 6. Configure and test backup/restore for database and private files.
 7. Deploy a release candidate to staging, complete task `020`, then use the same process for production.
+8. Complete and retain the versioned production checklist for staging rehearsal and the production release.
 
 ## Database Changes
 
@@ -64,6 +66,7 @@ Maintenance and outage pages must be accessible and provide status/recovery info
 - server/web-root configuration
 - monitoring, backup, health-check, and incident runbooks
 - privacy/subprocessor documentation
+- versioned production checklist covering deployment, migration, smoke test, rollback, backup restoration, monitoring, scheduled jobs, private paths, and debug-utility removal
 
 ## Acceptance Criteria
 
@@ -75,6 +78,7 @@ Maintenance and outage pages must be accessible and provide status/recovery info
 - [ ] Health, error, uptime, job, disk, and backup failures alert an assigned owner.
 - [ ] AI/provider outages degrade to guides, search, diagnostics, or community rather than breaking the site.
 - [ ] The release version and migration version are observable.
+- [ ] A signed/versioned production checklist records deployment, migration, smoke test, rollback readiness, backup restoration, monitoring, scheduled jobs, private-path checks, and absence of public debug utilities.
 
 ## Validation
 
@@ -83,6 +87,7 @@ Maintenance and outage pages must be accessible and provide status/recovery info
 - Restore production-like backups into an isolated environment.
 - Simulate AI, mail, storage, database, and scheduled-job failures.
 - Review logs and monitoring for sensitive-data leakage.
+- Compare the completed checklist with the deployed release commit and migration history.
 
 ## Definition of Done
 

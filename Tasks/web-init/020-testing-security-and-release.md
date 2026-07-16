@@ -23,6 +23,10 @@ There is no automated test suite, CI configuration, static analysis, code style 
 - Define supported browsers and responsive devices.
 - Create data backup/restore, outage, degraded-provider, and rollback checks.
 - Produce a release checklist and known-risk register.
+- Record manual acceptance evidence with build/commit, environment, tester, date, steps, expected result, actual result, status, and evidence reference.
+- Reconcile every third-party runtime, development, browser, CDN, font, icon, test, and documentation dependency against lockfiles and source references.
+- Verify GitHub checks, reviews, issues, and release evidence refer to the exact release/submission commit.
+- Run submission preflight against a fresh extraction of the clean source archive defined by task `022`.
 
 ## Non-Goals
 
@@ -40,6 +44,9 @@ There is no automated test suite, CI configuration, static analysis, code style 
 5. Create manual exploratory charters for beginner comprehension and support safety.
 6. Run a release candidate through the full matrix and document defects/risks.
 7. Require sign-off for product, security, accessibility, content safety, and operations.
+8. Save manual test evidence in a consistent format and link screenshots/logs without including secrets or private user data.
+9. Compare the dependency inventory with Composer metadata, vendored files, CDN references, fonts/icons, test tools, and diagram/export tools.
+10. Extract the proposed submission archive into a clean temporary directory and repeat setup, migration, and fast verification from its tracked documentation.
 
 ## Database Changes
 
@@ -59,6 +66,7 @@ Automated and manual accessibility checks are part of the release gate, includin
 - Composer development configuration
 - CI workflow/configuration
 - release checklist and risk register
+- manual acceptance evidence and dependency inventory
 - scripts for lint, migration, static analysis, browser, accessibility, and link checks
 
 ## Acceptance Criteria
@@ -70,6 +78,10 @@ Automated and manual accessibility checks are part of the release gate, includin
 - [ ] Backup restoration and migration from the current schema have been exercised.
 - [ ] No unresolved critical/high security, data-loss, or accessibility defect remains.
 - [ ] Product, content safety, security, accessibility, and operations release checks are signed off.
+- [ ] Manual evidence identifies the exact tested commit, environment, tester, expected outcome, actual outcome, and status.
+- [ ] Every included dependency is documented with exact version, purpose, canonical source, and license; no undocumented dependency remains.
+- [ ] GitHub and review evidence corresponds to the release commit and does not claim work that did not occur.
+- [ ] A fresh extraction of the submission archive can be configured, migrated, and verified using only included documentation and declared dependencies.
 
 ## Validation
 
@@ -77,6 +89,8 @@ Automated and manual accessibility checks are part of the release gate, includin
 - Deliberately introduce representative syntax, migration, authorization, and accessibility failures to confirm CI catches them.
 - Execute manual guest, user, moderator/editor, and admin journeys.
 - Restore a backup into an isolated database and run smoke tests.
+- Compare dependency inventory records against the release tree and network-loaded assets.
+- Run the complete submission preflight and secret scan against the archive, not only the working tree.
 
 ## Definition of Done
 

@@ -22,6 +22,7 @@ Pages include `config.php`, layout fragments, and endpoint-specific database cod
 - Introduce transaction helpers for multi-statement writes.
 - Add Composer autoloading and PHPUnit only if adopted by implementation; avoid a framework migration.
 - Establish file naming and endpoint conventions for subsequent tasks.
+- Define one bounded JSON response contract for interactions that benefit from progressive enhancement; keep server-rendered POST/redirect/GET flows usable where practical.
 
 ## Non-Goals
 
@@ -39,6 +40,8 @@ Pages include `config.php`, layout fragments, and endpoint-specific database cod
 5. Introduce application logs outside public access and a request correlation ID.
 6. Refactor representative public, account, and admin routes, then apply the pattern throughout.
 7. Add a basic automated test harness for pure helpers and database integration.
+8. Document a JSON contract containing a stable HTTP status, `ok`, `data`, bounded `error.code` and user-safe `error.message`, optional `meta`, and the request/correlation ID.
+9. Route JSON validation, authorization, error logging, and redaction through the same application services used by server-rendered actions.
 
 ## Database Changes
 
@@ -49,6 +52,7 @@ No product tables. Database initialization and transactions must use the migrati
 - Browser errors must never include SQL, file paths, stack traces, secrets, or private content in production.
 - Logs must redact credentials, tokens, cookies, and upload contents.
 - Correlation IDs must not encode user data.
+- JSON responses must not reveal exception messages, SQL, file paths, draft content, or another user's resources.
 
 ## Accessibility
 
@@ -71,6 +75,8 @@ Error pages need unique titles, semantic headings, clear recovery links, keyboar
 - [ ] Shared validation and flash messages are used by representative forms.
 - [ ] Unknown and unauthorized routes render consistent accessible errors.
 - [ ] No framework or unnecessary abstraction is introduced.
+- [ ] Representative account, admin, and interactive endpoints conform to the documented JSON contract.
+- [ ] Core forms retain a server-rendered POST/redirect/GET path where practical instead of requiring JavaScript.
 
 ## Validation
 
@@ -78,6 +84,7 @@ Error pages need unique titles, semantic headings, clear recovery links, keyboar
 - Trigger controlled 404, 403, validation, and database failures in local mode.
 - Verify production-mode responses reveal no diagnostics while logs retain enough context.
 - Confirm redirects work with output buffering disabled.
+- Test success, validation, authentication, authorization, rate-limit, not-found, and unexpected-failure JSON responses against the contract.
 
 ## Definition of Done
 

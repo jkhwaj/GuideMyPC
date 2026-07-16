@@ -24,6 +24,9 @@ Database credentials are hard-coded, sessions start inside the navbar, state-cha
 - Protect `.git`, environment files, database assets, task files, logs, and private storage from HTTP access.
 - Add security headers suitable for the current site and a Content Security Policy rollout path.
 - Enforce prepared statements for all user-influenced queries.
+- Keep secrets, logs, backups, database files, and private uploads outside the public document root where possible; Apache deny rules are defense in depth, not the only control.
+- Prohibit untrusted values in `innerHTML`; use contextual server escaping, `textContent`, safe DOM construction, or a reviewed constrained renderer.
+- Keep setup, migration, health-check, and debug utilities CLI-only or unreachable in production.
 
 ## Non-Goals
 
@@ -42,6 +45,8 @@ Database credentials are hard-coded, sessions start inside the navbar, state-cha
 6. Add access-deny rules and verify that private paths return 403 or 404.
 7. Add rate-limit storage suitable for a single-node MVP, with a later Redis migration path.
 8. Set production-safe error-display defaults while preserving local diagnostics in logs.
+9. Audit browser JavaScript for DOM-based XSS and replace unsafe HTML interpolation.
+10. Verify that production cannot serve `phpinfo`, test, setup, migration, or diagnostic scripts.
 
 ## Database Changes
 
@@ -51,6 +56,11 @@ Database credentials are hard-coded, sessions start inside the navbar, state-cha
 ## Security and Privacy
 
 This task defines the baseline. Use OWASP guidance for sessions, CSRF, password handling, authorization, output encoding, and headers. Avoid logging passwords, CSRF tokens, session IDs, API keys, or uploaded file contents.
+
+- Do not add or depend on the obsolete `X-XSS-Protection` header. Use contextual encoding, CSP, safe DOM construction, and modern headers.
+- Never seed or document a shared default administrator password. Create privileged accounts through an explicit local CLI/admin process.
+- Failed-login logging is detective evidence, not brute-force prevention; combine it with rate limits, generic errors, secure passwords, session controls, and monitoring.
+- Do not rely on `.htaccess` alone to protect sensitive data because overrides can be disabled or hosting behavior can change.
 
 ## Accessibility
 
@@ -74,6 +84,10 @@ Security failures must return understandable messages, preserve keyboard focus w
 - [ ] Login regenerates the session ID and uses hardened cookie settings.
 - [ ] User-controlled output is contextually escaped.
 - [ ] Basic rate limits cover authentication and public content creation.
+- [ ] Private data remains protected even if Apache override rules are unavailable.
+- [ ] Client-side rendering does not insert untrusted values through `innerHTML`.
+- [ ] No shared default administrator credential or public debug/setup utility exists.
+- [ ] Security headers use current controls and do not depend on `X-XSS-Protection`.
 
 ## Validation
 
@@ -81,6 +95,8 @@ Security failures must return understandable messages, preserve keyboard focus w
 - Request `.env`, `.git/config`, `database/guidemypc.sql`, and logs over HTTP.
 - Inspect session cookies and response security headers.
 - Run PHP syntax checks across all changed PHP files.
+- Disable Apache overrides in a representative local check and confirm sensitive data is still outside public reach or otherwise blocked by the web-root design.
+- Search PHP and JavaScript for public debug utilities, default credentials, and unsafe HTML insertion.
 
 ## Definition of Done
 
