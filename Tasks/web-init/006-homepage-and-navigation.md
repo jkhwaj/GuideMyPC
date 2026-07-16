@@ -1,6 +1,6 @@
 # Task: Homepage and Navigation
 
-- Status: Not started
+- Status: Completed
 - Priority: High
 - Release: R1
 - Dependencies: `005-responsive-design-system-and-layout.md`
@@ -64,12 +64,12 @@ Use one primary heading, a labeled search field, descriptive link text, an acces
 
 ## Acceptance Criteria
 
-- [ ] The first viewport clearly presents product purpose and functional search.
-- [ ] Every primary navigation link reaches a useful page.
-- [ ] Common problems are hidden initially but keyboard and screen-reader accessible.
-- [ ] All required homepage sections have published-content and empty states.
-- [ ] Footer legal and contact links are complete.
-- [ ] Homepage remains usable without JavaScript.
+- [x] The first viewport clearly presents product purpose and functional search.
+- [x] Every primary navigation link reaches a useful page.
+- [x] Common problems are hidden initially but keyboard and screen-reader accessible.
+- [x] All required homepage sections have published-content and empty states.
+- [x] Footer legal and contact links are complete.
+- [x] Homepage remains usable without JavaScript.
 
 ## Validation
 
@@ -77,6 +77,8 @@ Use one primary heading, a labeled search field, descriptive link text, an acces
 - Test all header/footer links as guest, user, and admin.
 - Test mobile navigation and common-problem disclosure with keyboard and touch.
 - Disable JavaScript and confirm core navigation/search still works.
+
+Validation completed locally: the homepage, all-guides library, category view, normal search, empty search, special-character search, and every new legal/footer route returned their expected HTTP status. A missing category returned 404. The native `details` common-problem disclosure and GET search form remain usable without JavaScript. The special-character query rendered as an escaped input value, migration history recorded the curation fields and indexes, and the existing helper test suite passed.
 
 ## Definition of Done
 

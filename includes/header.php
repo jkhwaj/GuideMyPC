@@ -13,6 +13,11 @@ $pageDetails = [
     'about.php' => ['About | GuideMyPC', 'Learn about GuideMyPC and its approach to practical technology support.'],
     'contact.php' => ['Contact | GuideMyPC', 'Find the current support options for GuideMyPC.'],
     'ai.php' => ['AI Assistant | GuideMyPC', 'Learn about the planned GuideMyPC AI troubleshooting assistant.'],
+    'search.php' => ['Search Support | GuideMyPC', 'Search GuideMyPC troubleshooting guides by problem, device, or error.'],
+    'privacy.php' => ['Privacy | GuideMyPC', 'Read how GuideMyPC handles account and support information.'],
+    'terms.php' => ['Terms | GuideMyPC', 'Read the terms for using GuideMyPC.'],
+    'disclaimer.php' => ['Disclaimer | GuideMyPC', 'Understand the limits of GuideMyPC troubleshooting guidance.'],
+    'donate.php' => ['Support GuideMyPC | GuideMyPC', 'Learn how to support the continued development of GuideMyPC.'],
 ];
 $pageTitle = $pageTitle ?? ($pageDetails[$pageKey][0] ?? 'GuideMyPC | Practical Tech Support');
 $pageDescription = $pageDescription ?? ($pageDetails[$pageKey][1] ?? 'Practical, trustworthy technology support from GuideMyPC.');

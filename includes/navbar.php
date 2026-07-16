@@ -16,7 +16,7 @@
 
     <div class="nav-links" id="primary-navigation">
         <a href="<?php echo e(application_url('index.php')); ?>">Home</a>
-        <a href="<?php echo e(application_url('index.php#categories')); ?>">Guides</a>
+        <a href="<?php echo e(application_url('guides.php')); ?>">Guides</a>
         <a href="<?php echo e(application_url('downloads.php')); ?>">Downloads</a>
         <a href="<?php echo e(application_url('community.php')); ?>">Community</a>
         <a href="<?php echo e(application_url('ai.php')); ?>">AI Assistant</a>

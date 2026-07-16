@@ -7,7 +7,11 @@
     <nav aria-label="Footer navigation">
         <a href="<?php echo e(application_url('about.php')); ?>">About</a>
         <a href="<?php echo e(application_url('contact.php')); ?>">Contact</a>
-        <a href="<?php echo e(application_url('index.php#categories')); ?>">Guides</a>
+        <a href="<?php echo e(application_url('guides.php')); ?>">Guides</a>
+        <a href="<?php echo e(application_url('privacy.php')); ?>">Privacy</a>
+        <a href="<?php echo e(application_url('terms.php')); ?>">Terms</a>
+        <a href="<?php echo e(application_url('disclaimer.php')); ?>">Disclaimer</a>
+        <a href="<?php echo e(application_url('donate.php')); ?>">Donate</a>
     </nav>
 </footer>
 <script src="<?php echo e(asset_url('js/script.js')); ?>"></script>

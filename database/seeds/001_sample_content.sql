@@ -1,8 +1,10 @@
 INSERT INTO categories (name, slug, description, icon) VALUES
     ('Windows', 'windows', 'Practical help for common Windows issues.', 'fa-brands fa-windows'),
     ('macOS', 'macos', 'Practical help for common Mac issues.', 'fa-brands fa-apple'),
+    ('Linux', 'linux', 'Practical help for common Linux issues.', 'fa-brands fa-linux'),
     ('Android', 'android', 'Practical help for common Android issues.', 'fa-brands fa-android'),
-    ('Wi-Fi', 'wifi', 'Practical help for home network troubleshooting.', 'fa-solid fa-wifi')
+    ('iPhone / iPad', 'iphone', 'Practical help for common iPhone and iPad issues.', 'fa-brands fa-apple'),
+    ('Wi-Fi & Routers', 'wifi', 'Practical help for home network troubleshooting.', 'fa-solid fa-wifi')
 ON DUPLICATE KEY UPDATE id = id;
 
 INSERT INTO guides (category_id, title, slug, description, difficulty, estimated_time, risk_level, content)

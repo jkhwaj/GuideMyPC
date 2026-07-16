@@ -9,7 +9,9 @@ $sql = "
            categories.slug AS category_slug
     FROM guides
     JOIN categories ON guides.category_id = categories.id
-    WHERE guides.slug = ?
+     WHERE guides.slug = ?
+       AND guides.is_published = 1
+       AND categories.is_published = 1
 ";
 
 $stmt = $conn->prepare($sql);
