@@ -25,3 +25,7 @@
 Thumbs.db
 Desktop.ini
 .DS_Store
+# Added by code-review-graph
+.code-review-graph/
+*.pdf
+screenshot giudes/*
