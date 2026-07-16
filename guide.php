@@ -1,7 +1,5 @@
 <?php
 require_once __DIR__ . '/config.php';
-include("includes/header.php");
-include("includes/navbar.php");
 
 $slug = $_GET["slug"] ?? "";
 
@@ -22,9 +20,7 @@ $result = $stmt->get_result();
 $guide = $result->fetch_assoc();
 
 if (!$guide) {
-    echo "<section class='section'><h2>Guide not found</h2></section>";
-    include("includes/footer.php");
-    exit;
+    abort_request(404, 'guide_not_found', 'The requested guide was not found.');
 }
 
 /*
@@ -121,6 +117,9 @@ if ($userId) {
 
     $userRatingStmt->close();
 }
+
+include("includes/header.php");
+include("includes/navbar.php");
 ?>
 
 <section class="guide-page">
@@ -276,19 +275,23 @@ if ($userId) {
                             <?php echo htmlspecialchars($step["step_text"]); ?>
                         </p>
 
-                        <button
-                            class="complete-btn"
-                            data-step-id="<?php echo (int) $step["id"]; ?>"
-                            data-csrf-token="<?php echo e(csrf_token()); ?>"
-                            onclick="toggleStep(this)"
-                            <?php echo $userId ? '' : 'disabled'; ?>
-                        >
-                            <?php
-                            echo $step["progress_id"]
-                                ? "✓ Completed"
-                                : "Mark as Completed";
-                            ?>
-                        </button>
+                        <?php if ($userId): ?>
+                            <form action="save_progress.php" method="POST" class="step-progress-form">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="step_id" value="<?php echo (int) $step["id"]; ?>">
+                                <input type="hidden" name="guide_slug" value="<?php echo e($guide["slug"]); ?>">
+                                <input
+                                    type="hidden"
+                                    name="completed"
+                                    value="<?php echo $step["progress_id"] ? '0' : '1'; ?>"
+                                >
+                                <button class="complete-btn" type="submit">
+                                    <?php echo $step["progress_id"] ? "Mark as Incomplete" : "Mark as Completed"; ?>
+                                </button>
+                            </form>
+                        <?php else: ?>
+                            <button class="complete-btn" type="button" disabled>Sign in to save progress</button>
+                        <?php endif; ?>
                     </div>
                 <?php endwhile; ?>
             </div>

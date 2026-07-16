@@ -1,0 +1,15 @@
+<?php
+
+require_once __DIR__ . '/config.php';
+include 'includes/header.php';
+include 'includes/navbar.php';
+?>
+
+<main class="error-page" aria-labelledby="ai-title">
+    <p class="section-label">AI Assistant</p>
+    <h1 id="ai-title">AI troubleshooting is not available yet</h1>
+    <p>Use a guide or the community area for help while the AI assistant is developed and reviewed for safe use.</p>
+    <a class="primary-btn" href="guides.php?category=windows">Browse guides</a>
+</main>
+
+<?php include 'includes/footer.php'; ?>

@@ -1,7 +1,5 @@
 <?php
-include("config.php");
-include("includes/header.php");
-include("includes/navbar.php");
+require_once __DIR__ . '/config.php';
 
 $categorySlug = $_GET['category'] ?? '';
 $search = trim($_GET['search'] ?? '');
@@ -14,9 +12,7 @@ $categoryResult = $stmt->get_result();
 $category = $categoryResult->fetch_assoc();
 
 if (!$category) {
-    echo "<section class='section'><h2>Category not found</h2></section>";
-    include("includes/footer.php");
-    exit;
+    abort_request(404, 'category_not_found', 'The requested guide category was not found.');
 }
 
 if ($search !== '') {
@@ -52,6 +48,9 @@ if ($search !== '') {
 
 $stmt->execute();
 $guidesResult = $stmt->get_result();
+
+include("includes/header.php");
+include("includes/navbar.php");
 ?>
 
 <section class="section">

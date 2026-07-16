@@ -3,25 +3,16 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/security.php';
+require_once __DIR__ . '/includes/errors.php';
+require_once __DIR__ . '/includes/db.php';
 
-$host = config_value('DB_HOST');
-$user = config_value('DB_USER');
-$password = config_value('DB_PASSWORD');
-$database = config_value('DB_NAME');
-$port = config_value('DB_PORT', '3306');
+configure_application_error_handling();
 
-if ($host === null || $host === '' || $user === null || $database === null || $database === '' || !ctype_digit($port)) {
-    http_response_code(500);
-    exit('Application configuration is incomplete. See README.md for local setup.');
+try {
+    $conn = application_database_connection();
+} catch (Throwable $exception) {
+    application_log('error', 'Database connection failed.', ['message' => $exception->getMessage()]);
+    abort_request(500, 'database_unavailable', 'The application is temporarily unavailable. Please try again later.');
 }
-
-mysqli_report(MYSQLI_REPORT_OFF);
-$conn = mysqli_init();
-
-if ($conn === false || !@mysqli_real_connect($conn, $host, $user, $password ?? '', $database, (int) $port)) {
-    http_response_code(500);
-    exit('The application database is unavailable. Please try again later.');
-}
-
-$conn->set_charset('utf8mb4');

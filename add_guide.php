@@ -2,67 +2,54 @@
 require_once __DIR__ . '/config.php';
 require_admin();
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
     require_csrf();
 
-    $category = $_POST["category"];
-    $title = $_POST["title"];
-    $slug = $_POST["slug"];
-    $description = $_POST["description"];
-    $difficulty = $_POST["difficulty"];
-    $time = $_POST["estimated_time"];
-    $risk = $_POST["risk_level"];
+    $category = filter_var($_POST['category'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    $title = required_string($_POST['title'] ?? null, 150);
+    $slug = required_string($_POST['slug'] ?? null, 150);
 
-    $sql = "INSERT INTO guides
-    (category_id,title,slug,description,difficulty,estimated_time,risk_level,content)
-    VALUES (?,?,?,?,?,?,?,?)";
+    if ($category === false || $title === null || $slug === null) {
+        remember_old_input($_POST, ['title', 'slug', 'description', 'difficulty', 'estimated_time', 'risk_level']);
+        flash('error', 'Choose a category and provide a title and slug of up to 150 characters.');
+        redirect('add_guide.php');
+    }
 
-    $stmt = $conn->prepare($sql);
+    $description = trim((string) ($_POST['description'] ?? ''));
+    $difficulty = trim((string) ($_POST['difficulty'] ?? ''));
+    $time = trim((string) ($_POST['estimated_time'] ?? ''));
+    $risk = trim((string) ($_POST['risk_level'] ?? ''));
+    $steps = is_array($_POST['steps'] ?? null) ? $_POST['steps'] : [];
 
-    $emptyContent = "";
-
-    $stmt->bind_param(
-        "isssssss",
-        $category,
-        $title,
-        $slug,
-        $description,
-        $difficulty,
-        $time,
-        $risk,
-        $emptyContent
-    );
-
-    $stmt->execute();
-
-    $guideId = $stmt->insert_id;
-
-    if (!empty($_POST["steps"])) {
+    in_transaction($conn, static function () use ($conn, $category, $title, $slug, $description, $difficulty, $time, $risk, $steps): void {
+        $statement = $conn->prepare(
+            'INSERT INTO guides (category_id, title, slug, description, difficulty, estimated_time, risk_level, content) '
+            . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        $content = '';
+        $statement->bind_param('isssssss', $category, $title, $slug, $description, $difficulty, $time, $risk, $content);
+        $statement->execute();
+        $guideId = $statement->insert_id;
+        $statement->close();
 
         $stepNumber = 1;
 
-        foreach ($_POST["steps"] as $step) {
+        foreach ($steps as $step) {
+            $stepText = required_string($step, 10000);
 
-            if (trim($step) == "") continue;
+            if ($stepText === null) {
+                continue;
+            }
 
-            $insertStep = $conn->prepare(
-                "INSERT INTO guide_steps (guide_id,step_number,step_text)
-                 VALUES (?,?,?)"
-            );
-
-            $insertStep->bind_param(
-                "iis",
-                $guideId,
-                $stepNumber,
-                $step
-            );
-
+            $insertStep = $conn->prepare('INSERT INTO guide_steps (guide_id, step_number, step_text) VALUES (?, ?, ?)');
+            $insertStep->bind_param('iis', $guideId, $stepNumber, $stepText);
             $insertStep->execute();
-
+            $insertStep->close();
             $stepNumber++;
         }
-    }
+    });
 
+    flash('success', 'Guide created.');
     redirect('admin_guides.php');
 }
 
@@ -97,22 +84,22 @@ include("includes/navbar.php");
 </select>
 
 <label>Title</label>
-<input type="text" name="title" required>
+<input type="text" name="title" value="<?php echo e(old_input('title')); ?>" required>
 
 <label>Slug</label>
-<input type="text" name="slug" required>
+<input type="text" name="slug" value="<?php echo e(old_input('slug')); ?>" required>
 
 <label>Description</label>
-<textarea name="description"></textarea>
+<textarea name="description"><?php echo e(old_input('description')); ?></textarea>
 
 <label>Difficulty</label>
-<input type="text" name="difficulty">
+<input type="text" name="difficulty" value="<?php echo e(old_input('difficulty')); ?>">
 
 <label>Estimated Time</label>
-<input type="text" name="estimated_time">
+<input type="text" name="estimated_time" value="<?php echo e(old_input('estimated_time')); ?>">
 
 <label>Risk Level</label>
-<input type="text" name="risk_level">
+<input type="text" name="risk_level" value="<?php echo e(old_input('risk_level')); ?>">
 
 <hr>
 

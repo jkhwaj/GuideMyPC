@@ -124,6 +124,16 @@ Rerun the documented migration and optional seed commands. Do not store the back
 | Setup check cannot connect | `.env`, XAMPP MySQL status, database name | Confirm MySQL is running, `guidemypc` exists, and the local account can access it. The checker intentionally does not reveal credential values. |
 | Browser shows the wrong site | Checkout location or virtual host | Confirm the folder is `C:\xampp\htdocs\GuideMyPC` and use `http://localhost/GuideMyPC/`, or review the optional virtual-host setup. |
 
+## Validation
+
+Run the dependency-free helper checks after changing shared application code:
+
+```powershell
+C:\xampp\php\php.exe tests\helpers_test.php
+```
+
+Feature-specific validation commands and the browser/JSON response conventions are documented in [`docs/application-conventions.md`](docs/application-conventions.md).
+
 ## Development Roadmap
 
 - [`001-xampp-local-setup.md`](Tasks/web-init/001-xampp-local-setup.md): local setup and this documentation

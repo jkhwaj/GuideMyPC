@@ -77,10 +77,9 @@ function private_storage_path(string $directory = ''): ?string
 
 function configure_error_handling(): void
 {
-    $isLocal = config_value('APP_ENV', 'production') === 'local';
     error_reporting(E_ALL);
-    ini_set('display_errors', $isLocal ? '1' : '0');
-    ini_set('display_startup_errors', $isLocal ? '1' : '0');
+    ini_set('display_errors', '0');
+    ini_set('display_startup_errors', '0');
     ini_set('log_errors', '1');
 
     $logDirectory = private_storage_path('logs');

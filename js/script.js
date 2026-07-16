@@ -1,39 +1,46 @@
-function toggleStep(button) {
-    if (button.disabled) {
+function toggleStep(form) {
+    const button = form.querySelector("button");
+
+    if (button === null || button.disabled) {
         return;
     }
 
     const card = button.closest(".step-card");
-    const stepId = button.dataset.stepId;
-    const csrfToken = button.dataset.csrfToken;
+    const completedInput = form.querySelector('input[name="completed"]');
+
+    if (card === null || completedInput === null) {
+        return;
+    }
+
     const wasCompleted = card.classList.contains("completed");
+    const completed = wasCompleted ? 0 : 1;
 
-    card.classList.toggle("completed", !wasCompleted);
+    card.classList.toggle("completed", completed === 1);
+    button.textContent = completed === 1 ? "Mark as Incomplete" : "Mark as Completed";
+    button.disabled = true;
 
-    const completed = card.classList.contains("completed") ? 1 : 0;
-
-    button.textContent = completed ? "✓ Completed" : "Mark as Completed";
-
-    fetch("save_progress.php", {
+    fetch(form.action, {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
         },
-        body: new URLSearchParams({
-            step_id: stepId,
-            completed: completed,
-            csrf_token: csrfToken,
-        }),
+        body: new URLSearchParams(new FormData(form)),
     }).then((response) => {
-        if (!response.ok) {
+        return response.json().catch(() => null).then((payload) => ({ response, payload }));
+    }).then(({ response, payload }) => {
+        if (!response.ok || payload === null || payload.ok !== true) {
             throw new Error("Progress update failed.");
         }
 
+        completedInput.value = completed === 1 ? "0" : "1";
         updateProgress();
     }).catch(() => {
         card.classList.toggle("completed", wasCompleted);
-        button.textContent = wasCompleted ? "✓ Completed" : "Mark as Completed";
+        button.textContent = wasCompleted ? "Mark as Incomplete" : "Mark as Completed";
         updateProgress();
+    }).finally(() => {
+        button.disabled = false;
     });
 }
 
@@ -58,4 +65,13 @@ function updateProgress() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", updateProgress);
+document.addEventListener("DOMContentLoaded", () => {
+    updateProgress();
+
+    document.querySelectorAll(".step-progress-form").forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            toggleStep(form);
+        });
+    });
+});

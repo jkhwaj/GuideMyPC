@@ -14,5 +14,5 @@ Options -Indexes
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteRule ^(?:\.git|Tasks|database|includes|scripts|logs|uploads|storage)(?:/|$) - [F,L,NC]
+    RewriteRule ^(?:\.git|Tasks|database|includes|scripts|tests|logs|uploads|storage)(?:/|$) - [F,L,NC]
 </IfModule>

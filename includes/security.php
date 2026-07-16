@@ -9,6 +9,10 @@ function e(?string $value): string
 
 function redirect(string $location): never
 {
+    if (str_contains($location, "\r") || str_contains($location, "\n")) {
+        abort_request(400, 'invalid_redirect', 'The requested destination is invalid.');
+    }
+
     header('Location: ' . $location, true, 303);
     exit;
 }
@@ -19,9 +23,8 @@ function require_post(): void
         return;
     }
 
-    http_response_code(405);
     header('Allow: POST');
-    exit('Method not allowed.');
+    abort_request(405, 'method_not_allowed', 'This action requires a form submission.');
 }
 
 function csrf_token(): string
@@ -43,8 +46,7 @@ function require_csrf(): void
     $token = $_POST['csrf_token'] ?? '';
 
     if (!is_string($token) || !hash_equals(csrf_token(), $token)) {
-        http_response_code(403);
-        exit('Your form session has expired. Refresh the page and try again.');
+        abort_request(419, 'invalid_csrf_token', 'Your form session has expired. Refresh the page and try again.');
     }
 }
 
@@ -66,6 +68,11 @@ function is_admin(): bool
 function require_login(): void
 {
     if (!is_logged_in()) {
+        if (expects_json()) {
+            abort_request(401, 'authentication_required', 'Sign in before continuing.');
+        }
+
+        flash('error', 'Sign in before continuing.');
         redirect('login.php');
     }
 }
@@ -73,7 +80,7 @@ function require_login(): void
 function require_admin(): void
 {
     if (!is_admin()) {
-        redirect('index.php');
+        abort_request(403, 'admin_required', 'You do not have permission to access this page.');
     }
 }
 

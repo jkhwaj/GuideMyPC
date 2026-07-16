@@ -8,8 +8,9 @@
 
 <title>GuideMyPC</title>
 
-<link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo e(application_url('css/style.css')); ?>">
 
 </head>
 
 <body>
+<?php render_flash_messages(); ?>

@@ -1,6 +1,6 @@
 # Task: Application Structure and Error Handling
 
-- Status: Not started
+- Status: Completed
 - Priority: High
 - Release: R0
 - Dependencies: `002-security-bootstrap.md`, `003-database-migrations-and-seeds.md`
@@ -64,19 +64,20 @@ Error pages need unique titles, semantic headings, clear recovery links, keyboar
 - `includes/db.php`
 - `includes/functions.php`
 - new bootstrap, logging, and error-page files
+- `docs/application-conventions.md`
 - all root PHP routes as they adopt the lifecycle
 - optional `composer.json` and test configuration
 
 ## Acceptance Criteria
 
-- [ ] Every route initializes through the same bootstrap before output.
-- [ ] Database failures display a generic response and write an actionable redacted log.
-- [ ] Multi-query writes use transactions where partial completion would corrupt state.
-- [ ] Shared validation and flash messages are used by representative forms.
-- [ ] Unknown and unauthorized routes render consistent accessible errors.
-- [ ] No framework or unnecessary abstraction is introduced.
-- [ ] Representative account, admin, and interactive endpoints conform to the documented JSON contract.
-- [ ] Core forms retain a server-rendered POST/redirect/GET path where practical instead of requiring JavaScript.
+- [x] Every route initializes through the same bootstrap before output.
+- [x] Database failures display a generic response and write an actionable redacted log.
+- [x] Multi-query writes use transactions where partial completion would corrupt state.
+- [x] Shared validation and flash messages are used by representative forms.
+- [x] Unknown and unauthorized routes render consistent accessible errors.
+- [x] No framework or unnecessary abstraction is introduced.
+- [x] Representative account, admin, and interactive endpoints conform to the documented JSON contract.
+- [x] Core forms retain a server-rendered POST/redirect/GET path where practical instead of requiring JavaScript.
 
 ## Validation
 
@@ -85,6 +86,8 @@ Error pages need unique titles, semantic headings, clear recovery links, keyboar
 - Verify production-mode responses reveal no diagnostics while logs retain enough context.
 - Confirm redirects work with output buffering disabled.
 - Test success, validation, authentication, authorization, rate-limit, not-found, and unexpected-failure JSON responses against the contract.
+
+Validation completed locally with PHP syntax checks, `tests/helpers_test.php`, public guide pages, accessible 404 and 403 responses, and a JSON progress request returning the documented 401 contract. The progress form remains usable as POST/redirect/GET without JavaScript, while its enhancement requests JSON.
 
 ## Definition of Done
 
