@@ -65,7 +65,74 @@ function updateProgress() {
     }
 }
 
+function activeTheme() {
+    if (document.documentElement.dataset.theme === "light" || document.documentElement.dataset.theme === "dark") {
+        return document.documentElement.dataset.theme;
+    }
+
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function updateThemeToggle(button) {
+    const theme = activeTheme();
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    const visibleLabel = button.querySelector("[aria-hidden='true']");
+
+    button.setAttribute("aria-pressed", String(theme === "dark"));
+    button.setAttribute("aria-label", `Switch to ${nextTheme} theme`);
+
+    if (visibleLabel) {
+        visibleLabel.textContent = nextTheme === "dark" ? "Dark" : "Light";
+    }
+}
+
+function initializeNavigation() {
+    const menuButton = document.querySelector(".menu-toggle");
+    const navigation = document.querySelector("#primary-navigation");
+    const themeButton = document.querySelector(".theme-toggle");
+
+    if (themeButton) {
+        updateThemeToggle(themeButton);
+        themeButton.addEventListener("click", () => {
+            const nextTheme = activeTheme() === "dark" ? "light" : "dark";
+            document.documentElement.dataset.theme = nextTheme;
+
+            try {
+                localStorage.setItem("guidemypc-theme", nextTheme);
+            } catch (error) {
+                // The visual preference still works when browser storage is unavailable.
+            }
+
+            updateThemeToggle(themeButton);
+        });
+    }
+
+    if (menuButton && navigation) {
+        menuButton.addEventListener("click", () => {
+            const isOpen = menuButton.getAttribute("aria-expanded") === "true";
+            menuButton.setAttribute("aria-expanded", String(!isOpen));
+            navigation.classList.toggle("is-open", !isOpen);
+        });
+
+        navigation.querySelectorAll("a").forEach((link) => {
+            link.addEventListener("click", () => {
+                menuButton.setAttribute("aria-expanded", "false");
+                navigation.classList.remove("is-open");
+            });
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                menuButton.setAttribute("aria-expanded", "false");
+                navigation.classList.remove("is-open");
+                menuButton.focus();
+            }
+        });
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    initializeNavigation();
     updateProgress();
 
     document.querySelectorAll(".step-progress-form").forEach((form) => {

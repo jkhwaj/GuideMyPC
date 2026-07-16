@@ -49,6 +49,10 @@ if ($search !== '') {
 $stmt->execute();
 $guidesResult = $stmt->get_result();
 
+$pageTitle = $category['name'] . ' Guides | GuideMyPC';
+$pageDescription = $category['description'] ?: 'Browse step-by-step technology troubleshooting guides.';
+$canonicalPath = 'guides.php?category=' . rawurlencode($categorySlug);
+
 include("includes/header.php");
 include("includes/navbar.php");
 ?>
@@ -61,7 +65,9 @@ include("includes/navbar.php");
     <form method="GET" class="guide-search">
         <input type="hidden" name="category" value="<?php echo htmlspecialchars($categorySlug); ?>">
 
+        <label class="sr-only" for="guide-search">Search guides</label>
         <input
+            id="guide-search"
             type="text"
             name="search"
             value="<?php echo htmlspecialchars($search); ?>"

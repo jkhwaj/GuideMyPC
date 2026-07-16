@@ -1,9 +1,11 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_login();
+
+$pageTitle = 'My Profile | GuideMyPC';
+$pageDescription = 'Review your saved troubleshooting progress and favorite guides.';
 include("includes/header.php");
 include("includes/navbar.php");
-
-require_login();
 
 $userId = current_user_id();
 

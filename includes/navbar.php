@@ -1,43 +1,55 @@
-<nav class="navbar">
-    <div class="logo">
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<header class="site-header">
+<nav class="navbar" aria-label="Primary navigation">
+    <a class="logo" href="<?php echo e(application_url('index.php')); ?>" aria-label="GuideMyPC home">
         <div class="logo-box">G</div>
         <div>
             <h3>GuideMyPC</h3>
             <span>Your Trusted Tech Support</span>
         </div>
-    </div>
+    </a>
 
-    <div class="nav-links">
-        <a href="index.php">Home</a>
-        <a href="guides.php">Guides</a>
-        <a href="downloads.php">Downloads</a>
-        <a href="community.php">Community</a>
-        <a href="ai.php">AI Assistant</a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">
+        <span class="sr-only">Toggle navigation</span>
+        <span aria-hidden="true">Menu</span>
+    </button>
+
+    <div class="nav-links" id="primary-navigation">
+        <a href="<?php echo e(application_url('index.php')); ?>">Home</a>
+        <a href="<?php echo e(application_url('index.php#categories')); ?>">Guides</a>
+        <a href="<?php echo e(application_url('downloads.php')); ?>">Downloads</a>
+        <a href="<?php echo e(application_url('community.php')); ?>">Community</a>
+        <a href="<?php echo e(application_url('ai.php')); ?>">AI Assistant</a>
     </div>
 
     <div class="auth-buttons">
+        <button class="theme-toggle" type="button" aria-pressed="false">
+            <span aria-hidden="true">Theme</span><span class="sr-only">Toggle color theme</span>
+        </button>
         <?php if (isset($_SESSION["user_id"])): ?>
 
             <span class="user-name">
                 Hello, <?php echo htmlspecialchars($_SESSION["full_name"]); ?>
             </span>
 
-            <a class="secondary-btn" href="profile.php">Profile</a>
+            <a class="secondary-btn" href="<?php echo e(application_url('profile.php')); ?>">Profile</a>
 
             <?php if (isset($_SESSION["role"]) && $_SESSION["role"] === "admin"): ?>
-                <a class="secondary-btn" href="admin.php">Admin</a>
+                <a class="secondary-btn" href="<?php echo e(application_url('admin.php')); ?>">Admin</a>
             <?php endif; ?>
 
-            <form action="logout.php" method="POST" class="logout-form">
+            <form action="<?php echo e(application_url('logout.php')); ?>" method="POST" class="logout-form">
                 <?php echo csrf_field(); ?>
                 <button class="login-btn" type="submit">Logout</button>
             </form>
 
         <?php else: ?>
 
-            <a class="secondary-btn" href="register.php">Register</a>
-            <a class="login-btn" href="login.php">Login</a>
+            <a class="secondary-btn" href="<?php echo e(application_url('register.php')); ?>">Register</a>
+            <a class="login-btn" href="<?php echo e(application_url('login.php')); ?>">Login</a>
 
         <?php endif; ?>
     </div>
 </nav>
+</header>
+<main id="main-content" tabindex="-1">

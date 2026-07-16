@@ -48,11 +48,11 @@ include("includes/navbar.php");
 
         <form method="POST">
             <?php echo csrf_field(); ?>
-            <label>Email</label>
-            <input type="email" name="email" required>
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" name="email" autocomplete="email" required>
 
-            <label>Password</label>
-            <input type="password" name="password" required>
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" name="password" autocomplete="current-password" required>
 
             <button type="submit">Login</button>
         </form>

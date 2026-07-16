@@ -42,14 +42,14 @@ include("includes/navbar.php");
 
         <form method="POST">
             <?php echo csrf_field(); ?>
-            <label>Full Name</label>
-            <input type="text" name="full_name" required>
+            <label for="register-name">Full Name</label>
+            <input id="register-name" type="text" name="full_name" autocomplete="name" required>
 
-            <label>Email</label>
-            <input type="email" name="email" required>
+            <label for="register-email">Email</label>
+            <input id="register-email" type="email" name="email" autocomplete="email" required>
 
-            <label>Password</label>
-            <input type="password" name="password" minlength="12" required>
+            <label for="register-password">Password</label>
+            <input id="register-password" type="password" name="password" autocomplete="new-password" minlength="12" required>
 
             <button type="submit">Register</button>
         </form>

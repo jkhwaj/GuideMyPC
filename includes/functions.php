@@ -24,6 +24,13 @@ function application_url(string $path = ''): string
     return $baseUrl . '/' . ltrim($path, '/');
 }
 
+function asset_url(string $path): string
+{
+    $version = config_value('APP_ASSET_VERSION', '1') ?? '1';
+
+    return application_url($path) . '?v=' . rawurlencode($version);
+}
+
 function expects_json(): bool
 {
     return str_contains(strtolower($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json');

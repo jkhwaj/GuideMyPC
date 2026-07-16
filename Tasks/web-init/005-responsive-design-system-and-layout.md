@@ -1,6 +1,6 @@
 # Task: Responsive Design System and Layout
 
-- Status: Not started
+- Status: Completed
 - Priority: High
 - Release: R1
 - Dependencies: `004-application-structure-and-error-handling.md`
@@ -66,12 +66,12 @@ Avoid third-party font or icon requests unless privacy, licensing, integrity, an
 
 ## Acceptance Criteria
 
-- [ ] Shared layout works at 320px, tablet, laptop, and wide desktop sizes.
-- [ ] Navigation is operable with keyboard, touch, and screen reader.
-- [ ] Light and dark modes meet contrast targets and persist appropriately.
-- [ ] Common controls have consistent hover, focus, disabled, loading, and error states.
-- [ ] CSS uses stable cache versioning rather than the current timestamp.
-- [ ] Pages can set unique title and metadata values.
+- [x] Shared layout works at 320px, tablet, laptop, and wide desktop sizes.
+- [x] Navigation is operable with keyboard, touch, and screen reader.
+- [x] Light and dark modes meet contrast targets and persist appropriately.
+- [x] Common controls have consistent hover, focus, disabled, loading, and error states.
+- [x] CSS uses stable cache versioning rather than the current timestamp.
+- [x] Pages can set unique title and metadata values.
 
 ## Validation
 
@@ -79,6 +79,8 @@ Avoid third-party font or icon requests unless privacy, licensing, integrity, an
 - Run keyboard-only and automated accessibility checks.
 - Inspect caching behavior and confirm unchanged CSS can be cached.
 - Check light/dark mode in supported browsers.
+
+Validation completed with Chrome headless loading representative home, guide, and profile routes at 320px, 768px, and 1280px. Shared navigation has a keyboard-operable menu button, Escape behavior, skip link, semantic landmarks, and focus treatment. Light/dark tokens use system preference by default and persist an explicit local preference. The static stylesheet uses the explicit `APP_ASSET_VERSION` query parameter and Apache returned `ETag` and `Last-Modified` metadata without no-store caching. PHP lint, helper tests, HTTP metadata, and `git diff --check` passed.
 
 ## Definition of Done
 

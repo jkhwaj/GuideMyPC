@@ -118,6 +118,10 @@ if ($userId) {
     $userRatingStmt->close();
 }
 
+$pageTitle = $guide['title'] . ' | GuideMyPC';
+$pageDescription = $guide['description'] ?: 'Follow clear, safety-conscious troubleshooting steps.';
+$canonicalPath = 'guide.php?slug=' . rawurlencode($guide['slug']);
+
 include("includes/header.php");
 include("includes/navbar.php");
 ?>
@@ -214,7 +218,8 @@ include("includes/navbar.php");
                     value="<?php echo htmlspecialchars($guide["slug"]); ?>"
                 >
 
-                <select name="rating" required>
+                <label class="sr-only" for="guide-rating">Your rating</label>
+                <select id="guide-rating" name="rating" required>
                     <option value="">Rate this guide</option>
 
                     <?php for ($i = 1; $i <= 5; $i++): ?>

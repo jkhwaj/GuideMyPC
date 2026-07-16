@@ -15,16 +15,17 @@ include("includes/navbar.php");
     </p>
 
     <div class="search-box">
-        <input type="text" placeholder="Describe your problem... example: My Wi-Fi keeps disconnecting">
+        <label class="sr-only" for="problem-search">Describe your problem</label>
+        <input id="problem-search" type="text" placeholder="Describe your problem... example: My Wi-Fi keeps disconnecting">
     </div>
 
     <div class="hero-buttons">
         <a href="ai.php" class="primary-btn">Ask GuideMyPC AI</a>
-        <a href="guides.php" class="secondary-btn">Browse Guides</a>
+        <a href="#categories" class="secondary-btn">Browse Guides</a>
     </div>
 </section>
 
-<section class="section">
+<section class="section" id="categories">
     <p class="section-label">Support Categories</p>
     <h2>Choose what you need help with</h2>
     <p class="section-desc">Start with your device or problem area, then follow guided troubleshooting.</p>
