@@ -56,7 +56,7 @@ include __DIR__ . '/includes/navbar.php';
 <section class="section" aria-labelledby="search-heading">
     <p class="section-label">Support Search</p>
     <h1 id="search-heading">Find a trusted next step</h1>
-    <p class="section-desc">Search published guides, official downloads, and community questions. Exact titles and error codes appear before broader matches.</p>
+    <p class="section-desc">Search published guides, knowledge articles, official downloads, and community questions. Exact titles and error codes appear before broader matches.</p>
 
     <form class="home-search search-page-form" action="<?php echo e(application_url('search.php')); ?>" method="GET" role="search" data-search-autocomplete data-suggestion-list="search-suggestions" data-suggestion-url="<?php echo e(application_url('search_suggestions.php')); ?>">
         <label for="support-search">Describe your problem</label>
@@ -76,6 +76,7 @@ include __DIR__ . '/includes/navbar.php';
                 <option value="guide"<?php echo $filters['type'] === 'guide' ? ' selected' : ''; ?>>Guides</option>
                 <option value="download"<?php echo $filters['type'] === 'download' ? ' selected' : ''; ?>>Official downloads</option>
                 <option value="community"<?php echo $filters['type'] === 'community' ? ' selected' : ''; ?>>Community questions</option>
+                <option value="article"<?php echo $filters['type'] === 'article' ? ' selected' : ''; ?>>Knowledge articles</option>
             </select>
         </div>
         <div>

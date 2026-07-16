@@ -40,3 +40,42 @@ INSERT INTO search_related_queries (query_text, related_query) VALUES
     ('wi-fi', 'router restart'),
     ('wi-fi', 'slow internet')
 ON DUPLICATE KEY UPDATE related_query = VALUES(related_query);
+
+INSERT INTO knowledge_articles (category_id, article_type, title, slug, error_code, summary, content, publication_state, published_at, reviewed_at, last_reviewed_at)
+SELECT categories.id, seeded.article_type, seeded.title, seeded.slug, seeded.error_code, seeded.summary, seeded.content, 'published', UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_DATE()
+FROM (
+    SELECT 'windows' AS category_slug, 'error_code' AS article_type, 'Windows stop code 0x0000007B' AS title, 'windows-stop-code-0x0000007b' AS slug, '0x0000007B' AS error_code, 'This stop code can point to a Windows startup-storage problem.' AS summary, 'Start by disconnecting newly added storage devices and restarting the computer. If the code returns, use Microsoft recovery guidance before changing storage controller settings.' AS content
+    UNION ALL SELECT 'windows', 'explanation', 'Why restarting can fix a Windows problem', 'windows-restart-explanation', NULL, 'A restart clears temporary system state and finishes pending updates.', 'Restarting is a safe first step for many temporary problems. Save open work first, then use the normal Restart option instead of holding the power button.'
+    UNION ALL SELECT 'macos', 'faq', 'What does a full startup disk mean on a Mac?', 'macos-startup-disk-faq', NULL, 'A full startup disk can prevent updates and make a Mac slow.', 'Remove files you no longer need, then empty the Bin. Avoid deleting system folders when freeing space.'
+    UNION ALL SELECT 'macos', 'hardware', 'Check a Mac laptop power connection', 'macos-power-hardware', NULL, 'A damaged cable or unsupported charger can prevent reliable charging.', 'Inspect the cable and adapter for damage. Try a known-good compatible charger before changing battery settings or opening the device.'
+    UNION ALL SELECT 'linux', 'glossary', 'Package manager', 'linux-package-manager-glossary', NULL, 'A package manager installs and updates trusted software for a Linux distribution.', 'Use the package manager provided by your distribution when possible. It tracks updates and dependencies for installed software.'
+    UNION ALL SELECT 'android', 'maintenance', 'Free safe storage space on Android', 'android-storage-maintenance', NULL, 'Freeing storage can help Android install updates and run reliably.', 'Review large downloads and unused apps first. Back up photos before removing them, and avoid cleaner apps that request unnecessary permissions.'
+    UNION ALL SELECT 'android', 'software', 'Review Android app permissions', 'android-app-permissions-software', NULL, 'Permissions should match what an app needs to do its job.', 'Open the app permission settings and remove permissions that do not make sense for the app. Do not disable required permissions if the app needs them for a feature you use.'
+    UNION ALL SELECT 'iphone', 'security', 'Recognize Apple ID sign-in prompts', 'iphone-apple-id-security', NULL, 'Unexpected sign-in prompts can indicate a password or device-security issue.', 'Do not share a verification code. Review signed-in devices in Apple ID settings and change your password if a device is unfamiliar.'
+    UNION ALL SELECT 'wifi', 'networking', 'Choose a better Wi-Fi router location', 'wifi-router-location', NULL, 'Router placement affects coverage and connection stability.', 'Place the router in an open central location, away from thick walls and large metal objects. Change one setting at a time and test the connection.'
+) AS seeded
+JOIN categories ON categories.slug = seeded.category_slug
+ON DUPLICATE KEY UPDATE title = VALUES(title), summary = VALUES(summary), content = VALUES(content), publication_state = VALUES(publication_state), reviewed_at = VALUES(reviewed_at), last_reviewed_at = VALUES(last_reviewed_at);
+
+INSERT INTO knowledge_tags (name, slug) VALUES
+    ('updates', 'updates'), ('startup', 'startup'), ('storage', 'storage'), ('security', 'security'), ('wi-fi', 'wifi')
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+INSERT INTO knowledge_article_tags (article_id, tag_id)
+SELECT articles.id, tags.id FROM knowledge_articles AS articles JOIN knowledge_tags AS tags ON articles.slug = 'windows-stop-code-0x0000007b' AND tags.slug IN ('startup', 'storage')
+ON DUPLICATE KEY UPDATE tag_id = VALUES(tag_id);
+
+INSERT INTO knowledge_sources (article_id, title, official_url, sort_order)
+SELECT articles.id, 'Microsoft stop error troubleshooting', 'https://support.microsoft.com/', 1 FROM knowledge_articles AS articles WHERE articles.slug = 'windows-stop-code-0x0000007b'
+ON DUPLICATE KEY UPDATE title = VALUES(title), sort_order = VALUES(sort_order);
+
+INSERT INTO knowledge_sources (article_id, title, official_url, sort_order)
+SELECT articles.id, 'Apple Support', 'https://support.apple.com/', 1 FROM knowledge_articles AS articles WHERE articles.slug = 'iphone-apple-id-security'
+ON DUPLICATE KEY UPDATE title = VALUES(title), sort_order = VALUES(sort_order);
+
+INSERT INTO knowledge_relations (article_id, guide_id, relation_type, label, sort_order)
+SELECT articles.id, guides.id, 'guide', 'Check a Windows update issue', 1
+FROM knowledge_articles AS articles JOIN guides ON guides.slug = 'check-windows-update-issue'
+WHERE articles.slug = 'windows-stop-code-0x0000007b' AND NOT EXISTS (
+    SELECT 1 FROM knowledge_relations AS relations WHERE relations.article_id = articles.id AND relations.guide_id = guides.id
+);

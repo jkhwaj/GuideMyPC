@@ -1,6 +1,6 @@
 # Task: Knowledge Base
 
-- Status: Not started
+- Status: Completed
 - Priority: High
 - Release: R1
 - Dependencies: `005-responsive-design-system-and-layout.md`, `007-universal-search.md`
@@ -64,12 +64,12 @@ Articles use semantic headings, descriptive links, accessible tables, alt text f
 
 ## Acceptance Criteria
 
-- [ ] Users can browse and search each required article type.
-- [ ] Draft and archived content is unavailable to public users.
-- [ ] Every published article shows platform, review date, sources, and related help where applicable.
-- [ ] Content rendering cannot execute stored scripts.
-- [ ] Error-code URLs are stable and exact-code searches resolve correctly.
-- [ ] Editorial guidance requires plain language and safety warnings.
+- [x] Users can browse and search each required article type.
+- [x] Draft and archived content is unavailable to public users.
+- [x] Every published article shows platform, review date, sources, and related help where applicable.
+- [x] Content rendering cannot execute stored scripts.
+- [x] Error-code URLs are stable and exact-code searches resolve correctly.
+- [x] Editorial guidance requires plain language and safety warnings.
 
 ## Validation
 
@@ -77,6 +77,8 @@ Articles use semantic headings, descriptive links, accessible tables, alt text f
 - Attempt direct and search access to drafts.
 - Test unsafe markup and URL schemes.
 - Run accessibility checks against representative long-form, FAQ, glossary, and error-code pages.
+
+Validation completed locally: clean and prototype database migrations/seeds created representative Windows, macOS, Linux, Android, iPhone/iPad, and Wi-Fi records, including an exact `0x0000007B` error-code reference. Public knowledge index, article, glossary, exact error-code, universal search, and article suggestions returned HTTP 200; a missing article returned 404. The focused integration test temporarily changed a seeded article to draft in a rolled-back transaction and confirmed both direct lookup and search exclude it. Helper tests confirm stored markup is escaped and unsafe URL schemes are rejected. PHP lint, existing search tests, and `git diff --check` passed.
 
 ## Definition of Done
 

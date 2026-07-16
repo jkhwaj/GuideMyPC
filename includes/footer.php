@@ -8,6 +8,7 @@
         <a href="<?php echo e(application_url('about.php')); ?>">About</a>
         <a href="<?php echo e(application_url('contact.php')); ?>">Contact</a>
         <a href="<?php echo e(application_url('guides.php')); ?>">Guides</a>
+        <a href="<?php echo e(application_url('knowledge.php')); ?>">Knowledge</a>
         <a href="<?php echo e(application_url('privacy.php')); ?>">Privacy</a>
         <a href="<?php echo e(application_url('terms.php')); ?>">Terms</a>
         <a href="<?php echo e(application_url('disclaimer.php')); ?>">Disclaimer</a>

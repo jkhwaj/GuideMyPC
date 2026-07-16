@@ -12,6 +12,7 @@ require_once dirname(__DIR__) . '/includes/functions.php';
 require_once dirname(__DIR__) . '/includes/security.php';
 require_once dirname(__DIR__) . '/includes/errors.php';
 require_once dirname(__DIR__) . '/includes/search.php';
+require_once dirname(__DIR__) . '/includes/knowledge.php';
 
 function assert_same(mixed $expected, mixed $actual, string $message): void
 {
@@ -28,5 +29,8 @@ assert_same(['password' => '[redacted]', 'title' => 'Guide'], redact_log_context
 assert_same('blue screen', normalize_search_query('  Blue   Screen  '), 'normalize_search_query folds case and whitespace.');
 assert_same(false, search_query_is_aggregate_safe('name@example.test'), 'search aggregation rejects email-like queries.');
 assert_same(true, search_query_is_aggregate_safe('wifi keeps disconnecting'), 'search aggregation accepts ordinary support queries.');
+assert_same('&lt;script&gt;alert(1)&lt;/script&gt;', knowledge_render_content('<script>alert(1)</script>'), 'knowledge rendering escapes stored markup.');
+assert_same(null, knowledge_safe_reference_url('javascript:alert(1)'), 'knowledge sources reject non-HTTPS schemes.');
+assert_same('https://support.example.test/', knowledge_safe_reference_url('https://support.example.test/'), 'knowledge sources allow HTTPS references.');
 
 fwrite(STDOUT, "PASS: helper tests completed.\n");

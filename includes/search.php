@@ -12,7 +12,7 @@ function search_filters(array $input): array
 
     return [
         'query' => normalize_search_query($input['q'] ?? null),
-        'type' => in_array($type, ['guide', 'download', 'community'], true) ? $type : '',
+        'type' => in_array($type, ['guide', 'download', 'community', 'article'], true) ? $type : '',
         'platform' => required_string($input['platform'] ?? null, 100) ?? '',
         'difficulty' => required_string($input['difficulty'] ?? null, 50) ?? '',
         'safety' => required_string($input['safety'] ?? null, 50) ?? '',
@@ -140,6 +140,41 @@ function search_documents(mysqli $connection, array $filters): array
                 'type' => 'community', 'label' => 'Community question', 'title' => $row['title'], 'platform' => 'Community',
                 'excerpt' => $row['content'], 'url' => application_url('community.php'), 'rank' => (float) $row['rank_score'],
                 'created_at' => $row['created_at'], 'difficulty' => '', 'safety' => '',
+            ];
+        }
+        $statement->close();
+    }
+
+    if (($filters['type'] === '' || $filters['type'] === 'article') && $filters['difficulty'] === '' && $filters['safety'] === '') {
+        $where = ["knowledge_articles.publication_state = 'published'", 'categories.is_published = 1'];
+        $types = 'ssss';
+        $values = [$query, $query, $prefix, $query];
+        $where[] = '(MATCH(knowledge_articles.title, knowledge_articles.error_code, knowledge_articles.summary, knowledge_articles.content) AGAINST (? IN NATURAL LANGUAGE MODE) OR knowledge_articles.title LIKE ? OR knowledge_articles.summary LIKE ? OR knowledge_articles.content LIKE ? OR knowledge_articles.error_code LIKE ? OR categories.name LIKE ?)';
+        $types .= 'ssssss';
+        array_push($values, $query, $like, $like, $like, $like, $like);
+
+        if ($filters['platform'] !== '') {
+            $where[] = 'categories.slug = ?';
+            $types .= 's';
+            $values[] = $filters['platform'];
+        }
+
+        search_append_recency_filter($where, $filters['recency'], 'knowledge_articles');
+        $statement = $connection->prepare(
+            'SELECT knowledge_articles.title, knowledge_articles.slug, knowledge_articles.error_code, knowledge_articles.summary, knowledge_articles.content, knowledge_articles.article_type, knowledge_articles.created_at, categories.name AS platform_name, '
+            . '(CASE WHEN LOWER(knowledge_articles.title) = ? OR LOWER(knowledge_articles.error_code) = ? THEN 10000 WHEN LOWER(knowledge_articles.title) LIKE ? THEN 8000 ELSE 0 END '
+            . '+ COALESCE(MATCH(knowledge_articles.title, knowledge_articles.error_code, knowledge_articles.summary, knowledge_articles.content) AGAINST (? IN NATURAL LANGUAGE MODE), 0) * 100) AS rank_score '
+            . 'FROM knowledge_articles JOIN categories ON knowledge_articles.category_id = categories.id WHERE ' . implode(' AND ', $where) . ' LIMIT 60'
+        );
+        $statement->bind_param($types, ...$values);
+        $statement->execute();
+        $result = $statement->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+            $documents[] = [
+                'type' => 'article', 'label' => $row['article_type'] === 'error_code' ? 'Error code' : 'Knowledge article', 'title' => $row['title'], 'platform' => $row['platform_name'],
+                'excerpt' => $row['summary'] ?: $row['content'], 'url' => application_url('knowledge_article.php?slug=' . rawurlencode($row['slug'])),
+                'rank' => (float) $row['rank_score'], 'created_at' => $row['created_at'], 'difficulty' => '', 'safety' => '',
             ];
         }
         $statement->close();
@@ -278,7 +313,7 @@ function record_search_event(mysqli $connection, string $query, int $resultCount
 function record_search_event_hash(mysqli $connection, string $queryHash, int $resultCount, string $type = 'search', string $state = 'results'): void
 {
     if (preg_match('/^[a-f0-9]{64}$/', $queryHash) !== 1
-        || !in_array($type, ['search', 'guide', 'download', 'community'], true)
+        || !in_array($type, ['search', 'guide', 'download', 'community', 'article'], true)
         || !in_array($state, ['results', 'zero', 'selection'], true)) {
         return;
     }
@@ -324,6 +359,20 @@ function search_suggestions(mysqli $connection, string $query): array
 
         while (($row = $result->fetch_assoc()) && count($suggestions) < 8) {
             $suggestions[] = ['label' => $row['name'], 'type' => 'Category', 'url' => application_url('guides.php?category=' . rawurlencode($row['slug']))];
+        }
+        $statement->close();
+    }
+
+    if (count($suggestions) < 8) {
+        $statement = $connection->prepare(
+            "SELECT title, slug, error_code FROM knowledge_articles WHERE publication_state = 'published' AND (title LIKE ? OR error_code LIKE ?) ORDER BY title LIMIT 5"
+        );
+        $statement->bind_param('ss', $like, $like);
+        $statement->execute();
+        $result = $statement->get_result();
+
+        while (($row = $result->fetch_assoc()) && count($suggestions) < 8) {
+            $suggestions[] = ['label' => $row['error_code'] ?: $row['title'], 'type' => 'Knowledge article', 'url' => application_url('knowledge_article.php?slug=' . rawurlencode($row['slug']))];
         }
         $statement->close();
     }
