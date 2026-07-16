@@ -17,6 +17,39 @@ SELECT id, 1, 'Restart the computer and try Windows Update again.'
 FROM guides WHERE slug = 'check-windows-update-issue'
 ON DUPLICATE KEY UPDATE step_text = VALUES(step_text);
 
+UPDATE guides
+SET platform_version = 'Windows 10 or Windows 11',
+    required_tools = 'Stable internet connection\nAt least 10 GB free storage',
+    prerequisites = 'Save open work and connect the device to power before installing updates.',
+    backup_warning = 'Back up important files before troubleshooting an update that has repeatedly failed.',
+    last_reviewed_at = UTC_DATE(),
+    next_actions = 'If the update still fails after these checks, use official Microsoft recovery guidance or contact a qualified technician.'
+WHERE slug = 'check-windows-update-issue';
+
+INSERT INTO guide_tools (guide_id, name, sort_order)
+SELECT guides.id, seeded.name, seeded.sort_order
+FROM guides
+JOIN (
+    SELECT 'Stable internet connection' AS name, 1 AS sort_order
+    UNION ALL SELECT 'At least 10 GB free storage', 2
+) AS seeded
+WHERE guides.slug = 'check-windows-update-issue'
+ON DUPLICATE KEY UPDATE sort_order = VALUES(sort_order);
+
+INSERT INTO guide_sources (guide_id, title, official_url, sort_order)
+SELECT guides.id, 'Microsoft Windows Update support', 'https://support.microsoft.com/', 1
+FROM guides
+WHERE guides.slug = 'check-windows-update-issue'
+ON DUPLICATE KEY UPDATE title = VALUES(title), sort_order = VALUES(sort_order);
+
+UPDATE guide_steps
+JOIN guides ON guide_steps.guide_id = guides.id
+SET guide_steps.step_title = CASE guide_steps.step_number WHEN 1 THEN 'Restart before changing settings' ELSE 'Check connection and storage' END,
+    guide_steps.expected_result = CASE guide_steps.step_number WHEN 1 THEN 'Windows starts normally and Windows Update can be tried again.' ELSE 'The device has a reliable connection and enough room for the update.' END,
+    guide_steps.warning_text = CASE guide_steps.step_number WHEN 1 THEN 'Save unsaved work before restarting.' ELSE 'Do not delete system files to create storage space.' END,
+    guide_steps.recovery_text = CASE guide_steps.step_number WHEN 1 THEN 'If Windows cannot restart normally, stop and use official recovery guidance.' ELSE 'If storage cannot be freed safely, back up files before removing personal content.' END
+WHERE guides.slug = 'check-windows-update-issue';
+
 INSERT INTO guide_steps (guide_id, step_number, step_text)
 SELECT id, 2, 'Confirm that the device has a stable internet connection and enough free storage.'
 FROM guides WHERE slug = 'check-windows-update-issue'

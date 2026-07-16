@@ -1,6 +1,6 @@
 # Task: Structured Repair Guides
 
-- Status: Not started
+- Status: Completed
 - Priority: Critical
 - Release: R1
 - Dependencies: `003-database-migrations-and-seeds.md`, `005-responsive-design-system-and-layout.md`, `008-knowledge-base.md`
@@ -69,13 +69,13 @@ Use semantic ordered steps, descriptive image alt text, captions/transcripts or 
 
 ## Acceptance Criteria
 
-- [ ] Every guide displays difficulty, time, tools, warnings, platform, and review date.
-- [ ] Every step can state the action, expected result, and recovery path.
-- [ ] Progress works for guests during the session and persists for signed-in users.
-- [ ] Videos have accessible fallback information and use approved embeds.
-- [ ] Print output includes all steps and safety warnings without navigation clutter.
-- [ ] Guide edits are transactional and cannot leave partial step data.
-- [ ] Existing guide URLs remain valid after migration.
+- [x] Every guide displays difficulty, time, tools, warnings, platform, and review date.
+- [x] Every step can state the action, expected result, and recovery path.
+- [x] Progress works for guests during the session and persists for signed-in users.
+- [x] Videos have accessible fallback information and use approved embeds.
+- [x] Print output includes all steps and safety warnings without navigation clutter.
+- [x] Guide edits are transactional and cannot leave partial step data.
+- [x] Existing guide URLs remain valid after migration.
 
 ## Validation
 
@@ -83,6 +83,8 @@ Use semantic ordered steps, descriptive image alt text, captions/transcripts or 
 - Complete a guide as guest and signed-in user, including reload and print flows.
 - Test missing images, blocked video embeds, no-JavaScript behavior, and dangerous-step warnings.
 - Run accessibility tests against summary, checklist, video, and print presentations.
+
+Validation completed locally: migration `011_structured_guides.sql` applied to the live local database and the fresh knowledge test database, then both reported eleven migrations with zero new changes on rerun. The safe seed added structured metadata, two ordered steps, tools, warning/recovery/expected-result text, and an official source for the Windows update guide. The public guide route returned HTTP 200 with the structured summary, warning, source, guest checklist, and existing slug; the missing-guide route returned 404; and GET progress returned 405. A browser-session request completed a guest step through the real POST/CSRF/redirect flow and retained it after redirect. Helper tests verify approved media handling; the focused integration test writes structured step/tool data inside a transaction then rolls it back. PHP lint, `git diff --check`, and an unsafe-DOM scan passed. Print CSS hides navigation while retaining step and source content.
 
 ## Definition of Done
 

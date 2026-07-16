@@ -253,10 +253,34 @@ function initializeSearchSelectionTracking() {
     });
 }
 
+function initializeGuideVideoConsent() {
+    document.querySelectorAll("[data-video-consent]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const url = button.dataset.videoUrl;
+            const frame = button.parentElement?.querySelector("[data-video-frame]");
+
+            if (url === undefined || frame === null) {
+                return;
+            }
+
+            const iframe = document.createElement("iframe");
+            iframe.src = url;
+            iframe.title = "Guide video walkthrough";
+            iframe.loading = "lazy";
+            iframe.referrerPolicy = "strict-origin-when-cross-origin";
+            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+            iframe.allowFullscreen = true;
+            frame.replaceChildren(iframe);
+            button.remove();
+        });
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initializeNavigation();
     initializeSearchAutocomplete();
     initializeSearchSelectionTracking();
+    initializeGuideVideoConsent();
     updateProgress();
 
     document.querySelectorAll(".step-progress-form").forEach((form) => {
