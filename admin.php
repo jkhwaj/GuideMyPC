@@ -1,12 +1,6 @@
 <?php
-session_start();
-
-include("config.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
-    header("Location: index.php");
-    exit;
-}
+require_once __DIR__ . '/config.php';
+require_admin();
 
 include("includes/header.php");
 include("includes/navbar.php");

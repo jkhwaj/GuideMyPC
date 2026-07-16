@@ -1,18 +1,14 @@
 <?php
-session_start();
-include("config.php");
+require_once __DIR__ . '/config.php';
+require_post();
+require_login();
+require_csrf();
 
-if (!isset($_SESSION["user_id"])) {
-    header("Location: login.php");
-    exit;
-}
-
-$user_id = $_SESSION["user_id"];
-$post_id = intval($_GET["post_id"] ?? 0);
+$user_id = current_user_id();
+$post_id = (int) ($_POST["post_id"] ?? 0);
 
 if ($post_id <= 0) {
-    header("Location: community.php");
-    exit;
+    redirect('community.php');
 }
 
 $stmt = $conn->prepare("
@@ -39,5 +35,4 @@ if ($existing) {
     $insert->execute();
 }
 
-header("Location: community.php");
-exit;
+redirect('community.php');

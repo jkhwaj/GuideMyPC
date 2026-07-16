@@ -1,29 +1,22 @@
 <?php
-session_start();
+require_once __DIR__ . '/config.php';
+require_post();
+require_admin();
+require_csrf();
 
-include("config.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
-    header("Location: index.php");
-    exit;
-}
-
-$id = intval($_GET["id"] ?? 0);
+$id = (int) ($_POST["id"] ?? 0);
 
 if ($id <= 0) {
-    header("Location: admin_users.php");
-    exit;
+    redirect('admin_users.php');
 }
 
 // לא לאפשר לאדמין למחוק את עצמו
 if ($id == $_SESSION["user_id"]) {
-    header("Location: admin_users.php");
-    exit;
+    redirect('admin_users.php');
 }
 
 $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
 
-header("Location: admin_users.php?success=user_deleted");
-exit;
+redirect('admin_users.php?success=user_deleted');

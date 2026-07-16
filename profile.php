@@ -1,16 +1,11 @@
 <?php
-session_start();
-
-include("config.php");
+require_once __DIR__ . '/config.php';
 include("includes/header.php");
 include("includes/navbar.php");
 
-if (!isset($_SESSION["user_id"])) {
-    header("Location: login.php");
-    exit;
-}
+require_login();
 
-$userId = $_SESSION["user_id"];
+$userId = current_user_id();
 
 $userStmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $userStmt->bind_param("i", $userId);

@@ -1,9 +1,3 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-?>
-
 <nav class="navbar">
     <div class="logo">
         <div class="logo-box">G</div>
@@ -34,7 +28,10 @@ if (session_status() === PHP_SESSION_NONE) {
                 <a class="secondary-btn" href="admin.php">Admin</a>
             <?php endif; ?>
 
-            <a class="login-btn" href="logout.php">Logout</a>
+            <form action="logout.php" method="POST" class="logout-form">
+                <?php echo csrf_field(); ?>
+                <button class="login-btn" type="submit">Logout</button>
+            </form>
 
         <?php else: ?>
 

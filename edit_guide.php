@@ -1,14 +1,6 @@
 <?php
-session_start();
-
-include("config.php");
-include("includes/header.php");
-include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] != "admin") {
-    header("Location: index.php");
-    exit;
-}
+require_once __DIR__ . '/config.php';
+require_admin();
 
 $id = intval($_GET["id"] ?? 0);
 
@@ -18,6 +10,7 @@ if ($id <= 0) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    require_csrf();
     $category = $_POST["category"];
     $title = $_POST["title"];
     $slug = $_POST["slug"];
@@ -46,7 +39,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $stmt->execute();
 
-    $conn->query("DELETE FROM guide_steps WHERE guide_id = $id");
+    $deleteSteps = $conn->prepare('DELETE FROM guide_steps WHERE guide_id = ?');
+    $deleteSteps->bind_param('i', $id);
+    $deleteSteps->execute();
 
     if (!empty($_POST["steps"])) {
         $stepNumber = 1;
@@ -66,8 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    header("Location: admin_guides.php");
-    exit;
+    redirect('admin_guides.php');
 }
 
 $guideStmt = $conn->prepare("SELECT * FROM guides WHERE id = ?");
@@ -75,9 +69,19 @@ $guideStmt->bind_param("i", $id);
 $guideStmt->execute();
 $guide = $guideStmt->get_result()->fetch_assoc();
 
+if (!$guide) {
+    redirect('admin_guides.php');
+}
+
 $categories = $conn->query("SELECT * FROM categories");
 
-$steps = $conn->query("SELECT * FROM guide_steps WHERE guide_id = $id ORDER BY step_number ASC");
+$stepsStmt = $conn->prepare('SELECT * FROM guide_steps WHERE guide_id = ? ORDER BY step_number ASC');
+$stepsStmt->bind_param('i', $id);
+$stepsStmt->execute();
+$steps = $stepsStmt->get_result();
+
+include("includes/header.php");
+include("includes/navbar.php");
 ?>
 
 <section class="auth-page">
@@ -85,11 +89,12 @@ $steps = $conn->query("SELECT * FROM guide_steps WHERE guide_id = $id ORDER BY s
         <h1>Edit Guide</h1>
 
         <form method="POST">
+            <?php echo csrf_field(); ?>
             <label>Category</label>
             <select name="category">
                 <?php while($cat = $categories->fetch_assoc()): ?>
-                    <option value="<?php echo $cat["id"]; ?>" <?php echo $cat["id"] == $guide["category_id"] ? "selected" : ""; ?>>
-                        <?php echo $cat["name"]; ?>
+                    <option value="<?php echo (int) $cat["id"]; ?>" <?php echo $cat["id"] == $guide["category_id"] ? "selected" : ""; ?>>
+                        <?php echo e($cat["name"]); ?>
                     </option>
                 <?php endwhile; ?>
             </select>

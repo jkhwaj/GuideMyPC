@@ -1,6 +1,6 @@
 # Task: Security Bootstrap
 
-- Status: Not started
+- Status: Completed
 - Priority: Critical
 - Release: R0
 - Dependencies: `001-xampp-local-setup.md`
@@ -24,6 +24,7 @@ Database credentials are hard-coded, sessions start inside the navbar, state-cha
 - Protect `.git`, environment files, database assets, task files, logs, and private storage from HTTP access.
 - Add security headers suitable for the current site and a Content Security Policy rollout path.
 - Enforce prepared statements for all user-influenced queries.
+- Remove the legacy public database dump rather than relying on web-server denial rules for its seeded data.
 - Keep secrets, logs, backups, database files, and private uploads outside the public document root where possible; Apache deny rules are defense in depth, not the only control.
 - Prohibit untrusted values in `innerHTML`; use contextual server escaping, `textContent`, safe DOM construction, or a reviewed constrained renderer.
 - Keep setup, migration, health-check, and debug utilities CLI-only or unreachable in production.

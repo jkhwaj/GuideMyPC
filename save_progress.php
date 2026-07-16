@@ -1,18 +1,17 @@
 <?php
-session_start();
-include("config.php");
+require_once __DIR__ . '/config.php';
+require_post();
+require_login();
+require_csrf();
 
-if (!isset($_SESSION["user_id"])) {
-    exit("Not logged in");
-}
+$user_id = current_user_id();
 
-$user_id = $_SESSION["user_id"];
+$step_id = (int) ($_POST["step_id"] ?? 0);
+$completed = (int) ($_POST["completed"] ?? 0);
 
-$step_id = intval($_POST["step_id"] ?? 0);
-$completed = intval($_POST["completed"] ?? 0);
-
-if ($step_id <= 0) {
-    exit("Invalid step");
+if ($step_id <= 0 || !in_array($completed, [0, 1], true)) {
+    http_response_code(422);
+    exit('Invalid progress request.');
 }
 
 if ($completed == 1) {
@@ -32,4 +31,4 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("ii", $user_id, $step_id);
 $stmt->execute();
 
-echo "success";
+http_response_code(204);

@@ -1,14 +1,8 @@
 <?php
-session_start();
-
-include("config.php");
+require_once __DIR__ . '/config.php';
+require_admin();
 include("includes/header.php");
 include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] != "admin") {
-    header("Location: index.php");
-    exit;
-}
 
 $sql = "
 SELECT community_comments.*,
@@ -59,10 +53,11 @@ $result = $conn->query($sql);
                     <td><?php echo $comment["created_at"]; ?></td>
 
                     <td>
-                        <a href="delete_comment.php?id=<?php echo $comment["id"]; ?>"
-                           onclick="return confirm('Delete this comment?')">
-                            Delete
-                        </a>
+                        <form class="inline-action" action="delete_comment.php" method="POST" onsubmit="return confirm('Delete this comment?');">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="id" value="<?php echo (int) $comment["id"]; ?>">
+                            <button type="submit">Delete</button>
+                        </form>
                     </td>
 
                 </tr>

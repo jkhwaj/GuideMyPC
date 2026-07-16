@@ -1,18 +1,13 @@
 <?php
-session_start();
+require_once __DIR__ . '/config.php';
+require_post();
+require_admin();
+require_csrf();
 
-include("config.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
-    header("Location: index.php");
-    exit;
-}
-
-$postId = intval($_GET["id"] ?? 0);
+$postId = (int) ($_POST["id"] ?? 0);
 
 if ($postId <= 0) {
-    header("Location: admin_community.php");
-    exit;
+    redirect('admin_community.php');
 }
 
 // Delete likes
@@ -39,5 +34,4 @@ $stmt = $conn->prepare("
 $stmt->bind_param("i", $postId);
 $stmt->execute();
 
-header("Location: admin_community.php");
-exit;
+redirect('admin_community.php');

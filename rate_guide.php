@@ -1,19 +1,15 @@
 <?php
-session_start();
-include("config.php");
+require_once __DIR__ . '/config.php';
+require_post();
+require_login();
+require_csrf();
 
-if (!isset($_SESSION["user_id"])) {
-    header("Location: login.php");
-    exit;
-}
-
-$user_id = $_SESSION["user_id"];
-$guide_id = intval($_POST["guide_id"] ?? 0);
-$rating = intval($_POST["rating"] ?? 0);
+$user_id = current_user_id();
+$guide_id = (int) ($_POST["guide_id"] ?? 0);
+$rating = (int) ($_POST["rating"] ?? 0);
 
 if ($guide_id <= 0 || $rating < 1 || $rating > 5) {
-    header("Location: guides.php");
-    exit;
+    redirect('guides.php');
 }
 
 $stmt = $conn->prepare("
@@ -25,6 +21,5 @@ $stmt = $conn->prepare("
 $stmt->bind_param("iii", $guide_id, $user_id, $rating);
 $stmt->execute();
 
-$slug = $_POST["slug"] ?? "";
-header("Location: guide.php?slug=" . urlencode($slug));
-exit;
+$slug = (string) ($_POST["slug"] ?? '');
+redirect('guide.php?slug=' . urlencode($slug));

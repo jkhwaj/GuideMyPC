@@ -1,0 +1,18 @@
+Options -Indexes
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^(?:config\.php|composer\.(?:json|lock)|phpunit\.xml(?:\.dist)?)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "\.(?:sql|sqlite|log|bak|backup|dist|env)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(?:\.git|Tasks|database|includes|scripts|logs|uploads|storage)(?:/|$) - [F,L,NC]
+</IfModule>

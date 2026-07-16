@@ -1,14 +1,8 @@
 <?php
-session_start();
-
-include("config.php");
+require_once __DIR__ . '/config.php';
+require_admin();
 include("includes/header.php");
 include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
-    header("Location: index.php");
-    exit;
-}
 
 $result = $conn->query("SELECT * FROM categories ORDER BY id DESC");
 ?>
@@ -48,11 +42,11 @@ $result = $conn->query("SELECT * FROM categories ORDER BY id DESC");
                         <td>
                             <a href="edit_category.php?id=<?php echo $category["id"]; ?>">Edit</a>
                             |
-                            <a
-                                href="delete_category.php?id=<?php echo $category["id"]; ?>"
-                                onclick="return confirm('Delete this category?');">
-                                Delete
-                            </a>
+                            <form class="inline-action" action="delete_category.php" method="POST" onsubmit="return confirm('Delete this category?');">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="id" value="<?php echo (int) $category["id"]; ?>">
+                                <button type="submit">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 <?php endwhile; ?>

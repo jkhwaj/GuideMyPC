@@ -1,14 +1,8 @@
 <?php
-session_start();
-
-include("config.php");
+require_once __DIR__ . '/config.php';
+require_admin();
 include("includes/header.php");
 include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] != "admin") {
-    header("Location: index.php");
-    exit;
-}
 
 $sql = "SELECT guides.*, categories.name AS category
         FROM guides
@@ -62,11 +56,11 @@ $result = $conn->query($sql);
                                 Edit
                             </a>
                             |
-                            <a
-                                href="delete_guide.php?id=<?php echo $guide["id"]; ?>"
-                                onclick="return confirm('Delete this guide?');">
-                                Delete
-                            </a>
+                            <form class="inline-action" action="delete_guide.php" method="POST" onsubmit="return confirm('Delete this guide?');">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="id" value="<?php echo (int) $guide["id"]; ?>">
+                                <button type="submit">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 <?php endwhile; ?>

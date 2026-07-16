@@ -1,16 +1,9 @@
 <?php
-session_start();
-
-include("config.php");
-include("includes/header.php");
-include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] != "admin") {
-    header("Location: index.php");
-    exit;
-}
+require_once __DIR__ . '/config.php';
+require_admin();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    require_csrf();
 
     $category = $_POST["category"];
     $title = $_POST["title"];
@@ -70,11 +63,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    header("Location: admin_guides.php");
-    exit;
+    redirect('admin_guides.php');
 }
 
 $categories = $conn->query("SELECT * FROM categories");
+
+include("includes/header.php");
+include("includes/navbar.php");
 ?>
 
 <section class="auth-page">
@@ -85,14 +80,16 @@ $categories = $conn->query("SELECT * FROM categories");
 
 <form method="POST">
 
+<?php echo csrf_field(); ?>
+
 <label>Category</label>
 
 <select name="category">
 
 <?php while($cat=$categories->fetch_assoc()): ?>
 
-<option value="<?php echo $cat["id"]; ?>">
-<?php echo $cat["name"]; ?>
+<option value="<?php echo (int) $cat["id"]; ?>">
+<?php echo e($cat["name"]); ?>
 </option>
 
 <?php endwhile; ?>

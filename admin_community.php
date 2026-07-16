@@ -1,14 +1,8 @@
 <?php
-session_start();
-
-include("config.php");
+require_once __DIR__ . '/config.php';
+require_admin();
 include("includes/header.php");
 include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] != "admin") {
-    header("Location: index.php");
-    exit;
-}
 
 $sql = "
 SELECT community_posts.*,
@@ -61,11 +55,11 @@ $result = $conn->query($sql);
 
                     <td>
 
-                        <a
-                            href="delete_post.php?id=<?php echo $post["id"]; ?>"
-                            onclick="return confirm('Delete this post?')">
-                            Delete
-                        </a>
+                        <form class="inline-action" action="delete_post.php" method="POST" onsubmit="return confirm('Delete this post?');">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="id" value="<?php echo (int) $post["id"]; ?>">
+                            <button type="submit">Delete</button>
+                        </form>
 
                     </td>
 

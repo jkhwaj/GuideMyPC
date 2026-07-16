@@ -1,8 +1,14 @@
 function toggleStep(button) {
+    if (button.disabled) {
+        return;
+    }
+
     const card = button.closest(".step-card");
     const stepId = button.dataset.stepId;
+    const csrfToken = button.dataset.csrfToken;
+    const wasCompleted = card.classList.contains("completed");
 
-    card.classList.toggle("completed");
+    card.classList.toggle("completed", !wasCompleted);
 
     const completed = card.classList.contains("completed") ? 1 : 0;
 
@@ -13,10 +19,22 @@ function toggleStep(button) {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: `step_id=${stepId}&completed=${completed}`,
-    });
+        body: new URLSearchParams({
+            step_id: stepId,
+            completed: completed,
+            csrf_token: csrfToken,
+        }),
+    }).then((response) => {
+        if (!response.ok) {
+            throw new Error("Progress update failed.");
+        }
 
-    updateProgress();
+        updateProgress();
+    }).catch(() => {
+        card.classList.toggle("completed", wasCompleted);
+        button.textContent = wasCompleted ? "✓ Completed" : "Mark as Completed";
+        updateProgress();
+    });
 }
 
 function updateProgress() {

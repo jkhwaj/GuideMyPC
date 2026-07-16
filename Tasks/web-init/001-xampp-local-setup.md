@@ -1,6 +1,6 @@
 # Task: XAMPP Local Setup
 
-- Status: In progress
+- Status: Completed
 - Priority: Critical
 - Release: R0
 - Dependencies: `000-product-scope-and-architecture.md`

@@ -1,14 +1,6 @@
 <?php
-session_start();
-
-include("config.php");
-include("includes/header.php");
-include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] != "admin") {
-    header("Location: index.php");
-    exit;
-}
+require_once __DIR__ . '/config.php';
+require_admin();
 
 $id = intval($_GET["id"] ?? 0);
 
@@ -18,6 +10,7 @@ if ($id <= 0) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    require_csrf();
     $name = trim($_POST["name"]);
     $description = trim($_POST["description"]);
     $official_url = trim($_POST["official_url"]);
@@ -32,8 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bind_param("ssssi", $name, $description, $official_url, $category, $id);
     $stmt->execute();
 
-    header("Location: admin_downloads.php");
-    exit;
+    redirect('admin_downloads.php');
 }
 
 $stmt = $conn->prepare("SELECT * FROM downloads WHERE id = ?");
@@ -42,9 +34,11 @@ $stmt->execute();
 $download = $stmt->get_result()->fetch_assoc();
 
 if (!$download) {
-    header("Location: admin_downloads.php");
-    exit;
+    redirect('admin_downloads.php');
 }
+
+include("includes/header.php");
+include("includes/navbar.php");
 ?>
 
 <section class="auth-page">
@@ -53,6 +47,7 @@ if (!$download) {
         <p>Update trusted download information.</p>
 
         <form method="POST">
+            <?php echo csrf_field(); ?>
             <label>Software Name</label>
             <input type="text" name="name" value="<?php echo htmlspecialchars($download["name"]); ?>" required>
 

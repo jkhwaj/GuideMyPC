@@ -1,20 +1,15 @@
 <?php
-session_start();
+require_once __DIR__ . '/config.php';
+require_post();
+require_login();
+require_csrf();
 
-include("config.php");
-
-if (!isset($_SESSION["user_id"])) {
-    header("Location: login.php");
-    exit;
-}
-
-$user_id = $_SESSION["user_id"];
-$guide_id = intval($_GET["guide_id"] ?? 0);
-$slug = $_GET["slug"] ?? "";
+$user_id = current_user_id();
+$guide_id = (int) ($_POST["guide_id"] ?? 0);
+$slug = (string) ($_POST["slug"] ?? '');
 
 if ($guide_id <= 0) {
-    header("Location: guides.php");
-    exit;
+    redirect('guides.php');
 }
 
 $stmt = $conn->prepare("
@@ -41,5 +36,4 @@ if ($existing) {
     $insert->execute();
 }
 
-header("Location: guide.php?slug=" . urlencode($slug));
-exit;
+redirect('guide.php?slug=' . urlencode($slug));

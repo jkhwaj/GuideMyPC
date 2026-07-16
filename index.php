@@ -37,10 +37,10 @@ include("includes/navbar.php");
     if ($result && $result->num_rows > 0):
         while ($category = $result->fetch_assoc()):
     ?>
-        <a class="card" href="guides.php?category=<?php echo $category['slug']; ?>">
-            <div class="icon"><?php echo $category['icon']; ?></div>
-            <h3><?php echo $category['name']; ?></h3>
-            <p><?php echo $category['description']; ?></p>
+        <a class="card" href="guides.php?category=<?php echo urlencode($category['slug']); ?>">
+            <div class="icon"><?php echo e($category['icon']); ?></div>
+            <h3><?php echo e($category['name']); ?></h3>
+            <p><?php echo e($category['description']); ?></p>
         </a>
     <?php
         endwhile;

@@ -53,7 +53,7 @@ C:\xampp\php\php.exe database\migrate.php
 C:\xampp\php\php.exe database\seed.php
 ```
 
-Those commands are not present yet. Do not treat `database/guidemypc.sql` as a fresh-install workflow: it is a legacy mutable prototype dump and will be replaced by migrations and sanitized optional seeds. Until task `003` is complete, use an existing local prototype database only for development and do not add a shared administrator account or password.
+Those commands are not present yet. The legacy mutable prototype dump was removed because it contained production-like sample data below the public web root. Until task `003` is complete, use an existing local prototype database only for development and do not add a shared administrator account or password.
 
 ## Configuration
 
@@ -69,6 +69,7 @@ The checker reads these values from `.env`:
 
 - `APP_ENV`
 - `APP_URL`
+- `APP_PRIVATE_PATH` (optional; defaults outside Apache's document root)
 - `DB_HOST`
 - `DB_PORT`
 - `DB_NAME`

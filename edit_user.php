@@ -1,14 +1,6 @@
 <?php
-session_start();
-
-include("config.php");
-include("includes/header.php");
-include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
-    header("Location: index.php");
-    exit;
-}
+require_once __DIR__ . '/config.php';
+require_admin();
 
 $id = intval($_GET["id"] ?? 0);
 
@@ -18,6 +10,7 @@ if ($id <= 0) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    require_csrf();
     $full_name = trim($_POST["full_name"]);
     $email = trim($_POST["email"]);
     $role = $_POST["role"];
@@ -34,10 +27,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($_SESSION["user_id"] == $id) {
         $_SESSION["full_name"] = $full_name;
         $_SESSION["role"] = $role;
+        session_regenerate_id(true);
     }
 
-    header("Location: admin_users.php?success=user_updated");
-    exit;
+    redirect('admin_users.php?success=user_updated');
 }
 
 $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
@@ -46,9 +39,11 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
 if (!$user) {
-    header("Location: admin_users.php");
-    exit;
+    redirect('admin_users.php');
 }
+
+include("includes/header.php");
+include("includes/navbar.php");
 ?>
 
 <section class="auth-page">
@@ -57,6 +52,7 @@ if (!$user) {
         <p>Update user details and role.</p>
 
         <form method="POST">
+            <?php echo csrf_field(); ?>
             <label>Full Name</label>
             <input type="text" name="full_name" value="<?php echo htmlspecialchars($user["full_name"]); ?>" required>
 

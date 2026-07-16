@@ -1,14 +1,6 @@
 <?php
-session_start();
-
-include("config.php");
-include("includes/header.php");
-include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
-    header("Location: index.php");
-    exit;
-}
+require_once __DIR__ . '/config.php';
+require_admin();
 
 $id = intval($_GET["id"] ?? 0);
 
@@ -22,6 +14,7 @@ if (!$category) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    require_csrf();
 
     $name = trim($_POST["name"]);
     $slug = trim($_POST["slug"]);
@@ -45,9 +38,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $update->execute();
 
-    header("Location: admin_categories.php");
-    exit;
+    redirect('admin_categories.php');
 }
+
+include("includes/header.php");
+include("includes/navbar.php");
 ?>
 
 <section class="auth-page">
@@ -57,6 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <h1>Edit Category</h1>
 
 <form method="POST">
+<?php echo csrf_field(); ?>
 
 <label>Name</label>
 

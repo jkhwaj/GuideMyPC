@@ -11,7 +11,7 @@ Replace the mutable phpMyAdmin dump with a versioned, repeatable schema process 
 
 ## Current State
 
-`database/guidemypc.sql` combines schema, sample content, and a seeded admin account. It contains 11 tables, duplicated guide content, and no migration history. Several planned features have no data model.
+The removed legacy prototype dump combined schema, sample content, and a seeded admin account. It contained 11 tables, duplicated guide content, and no migration history. Reconstruct a clean baseline from the existing application schema and previous repository history; do not restore the dump to the public web root. Several planned features have no data model.
 
 ## Scope
 
@@ -60,7 +60,6 @@ Not applicable to schema execution. Any web-facing migration error must use the 
 
 ## Affected Files
 
-- `database/guidemypc.sql`
 - new `database/migrations/` files
 - new `database/seeds/` files
 - migration runner and setup documentation

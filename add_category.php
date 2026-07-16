@@ -1,16 +1,9 @@
 <?php
-session_start();
-
-include("config.php");
-include("includes/header.php");
-include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
-    header("Location: index.php");
-    exit;
-}
+require_once __DIR__ . '/config.php';
+require_admin();
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    require_csrf();
     $name = trim($_POST["name"]);
     $slug = trim($_POST["slug"]);
     $description = trim($_POST["description"]);
@@ -24,10 +17,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->bind_param("ssss", $name, $slug, $description, $icon);
         $stmt->execute();
 
-        header("Location: admin_categories.php");
-        exit;
+        redirect('admin_categories.php');
     }
 }
+
+include("includes/header.php");
+include("includes/navbar.php");
 ?>
 
 <section class="auth-page">
@@ -36,6 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <p>Create a new troubleshooting category.</p>
 
         <form method="POST">
+            <?php echo csrf_field(); ?>
             <label>Name</label>
             <input type="text" name="name" placeholder="Example: Printers" required>
 

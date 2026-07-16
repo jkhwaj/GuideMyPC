@@ -1,17 +1,18 @@
 <?php
-include("config.php");
-include("includes/header.php");
-include("includes/navbar.php");
+require_once __DIR__ . '/config.php';
 
 $message = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $full_name = trim($_POST["full_name"]);
-    $email = trim($_POST["email"]);
-    $password = $_POST["password"];
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    require_csrf();
+    $full_name = trim((string) ($_POST["full_name"] ?? ''));
+    $email = trim((string) ($_POST["email"] ?? ''));
+    $password = (string) ($_POST["password"] ?? '');
 
-    if (empty($full_name) || empty($email) || empty($password)) {
-        $message = "All fields are required.";
+    if (!rate_limit_allows('registration', 3, 3600)) {
+        $message = "Too many registration attempts. Please try again later.";
+    } elseif ($full_name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 12) {
+        $message = "Use a valid name and email, and a password of at least 12 characters.";
     } else {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
@@ -21,10 +22,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt->execute()) {
             $message = "Account created successfully. You can now log in.";
         } else {
-            $message = "Email already exists or registration failed.";
+            $message = "Unable to create the account. Review the details and try again.";
         }
     }
 }
+
+include("includes/header.php");
+include("includes/navbar.php");
 ?>
 
 <section class="auth-page">
@@ -33,10 +37,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <p>Join GuideMyPC and save your troubleshooting progress.</p>
 
         <?php if (!empty($message)): ?>
-            <div class="auth-message"><?php echo $message; ?></div>
+            <div class="auth-message"><?php echo e($message); ?></div>
         <?php endif; ?>
 
         <form method="POST">
+            <?php echo csrf_field(); ?>
             <label>Full Name</label>
             <input type="text" name="full_name" required>
 
@@ -44,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="email" name="email" required>
 
             <label>Password</label>
-            <input type="password" name="password" required>
+            <input type="password" name="password" minlength="12" required>
 
             <button type="submit">Register</button>
         </form>

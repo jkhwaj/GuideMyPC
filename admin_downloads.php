@@ -1,14 +1,8 @@
 <?php
-session_start();
-
-include("config.php");
+require_once __DIR__ . '/config.php';
+require_admin();
 include("includes/header.php");
 include("includes/navbar.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] != "admin") {
-    header("Location: index.php");
-    exit;
-}
 
 $result = $conn->query("SELECT * FROM downloads ORDER BY id DESC");
 ?>
@@ -58,11 +52,11 @@ $result = $conn->query("SELECT * FROM downloads ORDER BY id DESC");
                         <td>
                             <a href="edit_download.php?id=<?php echo $download["id"]; ?>">Edit</a>
                             |
-                            <a
-                                href="delete_download.php?id=<?php echo $download["id"]; ?>"
-                                onclick="return confirm('Delete this download?');">
-                                Delete
-                            </a>
+                            <form class="inline-action" action="delete_download.php" method="POST" onsubmit="return confirm('Delete this download?');">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="id" value="<?php echo (int) $download["id"]; ?>">
+                                <button type="submit">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 <?php endwhile; ?>

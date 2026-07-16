@@ -1,9 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-include("config.php");
+require_once __DIR__ . '/config.php';
 include("includes/header.php");
 include("includes/navbar.php");
 
@@ -150,20 +146,14 @@ if ($userId) {
     </p>
 
     <?php if ($userId): ?>
-        <a
-            class="favorite-btn"
-            href="toggle_favorite.php?guide_id=<?php
-                echo (int) $guide["id"];
-            ?>&slug=<?php
-                echo urlencode($guide["slug"]);
-            ?>"
-        >
-            <?php
-            echo $isFavorite
-                ? "💔 Remove from Favorites"
-                : "❤️ Add to Favorites";
-            ?>
-        </a>
+        <form action="toggle_favorite.php" method="POST">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="guide_id" value="<?php echo (int) $guide["id"]; ?>">
+            <input type="hidden" name="slug" value="<?php echo e($guide["slug"]); ?>">
+            <button class="favorite-btn" type="submit">
+                <?php echo $isFavorite ? "Remove from Favorites" : "Add to Favorites"; ?>
+            </button>
+        </form>
     <?php else: ?>
         <p class="meta">Login to save this guide to favorites.</p>
     <?php endif; ?>
@@ -212,6 +202,7 @@ if ($userId) {
 
         <?php if ($userId): ?>
             <form action="rate_guide.php" method="POST">
+                <?php echo csrf_field(); ?>
                 <input
                     type="hidden"
                     name="guide_id"
@@ -288,7 +279,9 @@ if ($userId) {
                         <button
                             class="complete-btn"
                             data-step-id="<?php echo (int) $step["id"]; ?>"
+                            data-csrf-token="<?php echo e(csrf_token()); ?>"
                             onclick="toggleStep(this)"
+                            <?php echo $userId ? '' : 'disabled'; ?>
                         >
                             <?php
                             echo $step["progress_id"]

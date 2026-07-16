@@ -1,56 +1,52 @@
 <?php
-session_start();
+require_once __DIR__ . '/config.php';
 
-include("config.php");
-include("includes/header.php");
-include("includes/navbar.php");
+$message = '';
 
 /* Add new post */
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["add_post"])) {
-    if (!isset($_SESSION["user_id"])) {
-        header("Location: login.php");
-        exit;
-    }
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["add_post"])) {
+    require_csrf();
+    require_login();
 
-    $title = trim($_POST["title"]);
-    $content = trim($_POST["content"]);
-    $user_id = $_SESSION["user_id"];
+    $title = trim((string) ($_POST["title"] ?? ''));
+    $content = trim((string) ($_POST["content"] ?? ''));
+    $user_id = current_user_id();
 
-    if ($title != "" && $content != "") {
+    if (!rate_limit_allows('community-post', 5, 3600)) {
+        $message = 'Too many posts. Please try again later.';
+    } elseif ($title !== '' && $content !== '') {
         $stmt = $conn->prepare("
             INSERT INTO community_posts (user_id, title, content)
             VALUES (?, ?, ?)
         ");
         $stmt->bind_param("iss", $user_id, $title, $content);
         $stmt->execute();
-    }
 
-    header("Location: community.php");
-    exit;
+        redirect('community.php');
+    }
 }
 
 /* Add comment */
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["add_comment"])) {
-    if (!isset($_SESSION["user_id"])) {
-        header("Location: login.php");
-        exit;
-    }
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["add_comment"])) {
+    require_csrf();
+    require_login();
 
-    $post_id = intval($_POST["post_id"]);
-    $comment = trim($_POST["comment"]);
-    $user_id = $_SESSION["user_id"];
+    $post_id = (int) ($_POST["post_id"] ?? 0);
+    $comment = trim((string) ($_POST["comment"] ?? ''));
+    $user_id = current_user_id();
 
-    if ($post_id > 0 && $comment != "") {
+    if (!rate_limit_allows('community-comment', 15, 3600)) {
+        $message = 'Too many comments. Please try again later.';
+    } elseif ($post_id > 0 && $comment !== '') {
         $stmt = $conn->prepare("
             INSERT INTO community_comments (post_id, user_id, comment)
             VALUES (?, ?, ?)
         ");
         $stmt->bind_param("iis", $post_id, $user_id, $comment);
         $stmt->execute();
-    }
 
-    header("Location: community.php");
-    exit;
+        redirect('community.php');
+    }
 }
 
 $sql = "
@@ -61,6 +57,9 @@ ORDER BY community_posts.created_at DESC
 ";
 
 $result = $conn->query($sql);
+
+include("includes/header.php");
+include("includes/navbar.php");
 ?>
 
 <section class="profile-page">
@@ -68,8 +67,13 @@ $result = $conn->query($sql);
         <h1>Community</h1>
         <p>Ask questions and help other users solve technical problems.</p>
 
+        <?php if ($message !== ''): ?>
+            <div class="auth-message"><?php echo e($message); ?></div>
+        <?php endif; ?>
+
         <?php if(isset($_SESSION["user_id"])): ?>
             <form method="POST" class="auth-card" style="margin-top:30px; max-width:100%;">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="add_post" value="1">
 
                 <label>Question Title</label>
@@ -124,12 +128,16 @@ $result = $conn->query($sql);
                     }
                     ?>
 
-                    <div class="like-row">
-                        <?php if(isset($_SESSION["user_id"])): ?>
-                            <a class="like-btn" href="toggle_like.php?post_id=<?php echo $post["id"]; ?>">
-                                <?php echo $userLiked ? "👍 Liked" : "👍 Like"; ?>
-                            </a>
-                        <?php endif; ?>
+                        <div class="like-row">
+                            <?php if(isset($_SESSION["user_id"])): ?>
+                                <form action="toggle_like.php" method="POST">
+                                    <?php echo csrf_field(); ?>
+                                    <input type="hidden" name="post_id" value="<?php echo (int) $post["id"]; ?>">
+                                    <button class="like-btn" type="submit">
+                                        <?php echo $userLiked ? "Liked" : "Like"; ?>
+                                    </button>
+                                </form>
+                            <?php endif; ?>
 
                         <span><?php echo $likesCount["total"]; ?> likes</span>
                     </div>
@@ -167,6 +175,7 @@ $result = $conn->query($sql);
 
                     <?php if(isset($_SESSION["user_id"])): ?>
                         <form method="POST" class="comment-form">
+                            <?php echo csrf_field(); ?>
                             <input type="hidden" name="add_comment" value="1">
                             <input type="hidden" name="post_id" value="<?php echo $post["id"]; ?>">
 

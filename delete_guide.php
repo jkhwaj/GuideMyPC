@@ -1,14 +1,10 @@
 <?php
-session_start();
+require_once __DIR__ . '/config.php';
+require_post();
+require_admin();
+require_csrf();
 
-include("config.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
-    header("Location: index.php");
-    exit;
-}
-
-$id = intval($_GET["id"] ?? 0);
+$id = (int) ($_POST["id"] ?? 0);
 
 if ($id > 0) {
     $stmt = $conn->prepare("DELETE FROM guides WHERE id = ?");
@@ -16,5 +12,4 @@ if ($id > 0) {
     $stmt->execute();
 }
 
-header("Location: admin_guides.php?success=guide_deleted");
-exit;
+redirect('admin_guides.php?success=guide_deleted');
