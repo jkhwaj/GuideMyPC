@@ -1,0 +1,27 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime and local data
+/logs/
+/uploads/
+/storage/
+/database/backups/
+*.log
+*.sql.gz
+*.bak
+
+# Dependencies and test output
+/vendor/
+/node_modules/
+/coverage/
+/.phpunit.cache/
+
+# IDE and operating-system files
+/.idea/
+/.vscode/
+*.code-workspace
+Thumbs.db
+Desktop.ini
+.DS_Store
