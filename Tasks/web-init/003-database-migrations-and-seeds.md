@@ -1,6 +1,6 @@
 # Task: Database Migrations and Seeds
 
-- Status: Not started
+- Status: Completed
 - Priority: Critical
 - Release: R0
 - Dependencies: `002-security-bootstrap.md`
@@ -33,13 +33,13 @@ The removed legacy prototype dump combined schema, sample content, and a seeded 
 
 ## Implementation Steps
 
-1. Add `database/migrations/` and `database/seeds/` conventions.
+1. Add `database/migrations/` and `database/seeds/` conventions, documented in `database/README.md`.
 2. Create a migration-history table and CLI-only runner.
 3. Translate the current schema into a clean baseline.
 4. Resolve duplicate guide body versus guide-step ownership as part of task `009`.
 5. Add missing uniqueness and range constraints, including rating bounds and ordered guide steps.
 6. Provide safe categories, guides, and downloads as optional sample content.
-7. Provide a documented command to create an admin locally rather than shipping one.
+7. Provide a documented CLI-only command to create an admin locally rather than shipping one.
 
 ## Database Changes
 
@@ -66,12 +66,12 @@ Not applicable to schema execution. Any web-facing migration error must use the 
 
 ## Acceptance Criteria
 
-- [ ] A blank database can be fully migrated in one documented command.
-- [ ] Re-running migrations performs no duplicate changes.
-- [ ] Existing prototype data can be upgraded without manual table editing.
-- [ ] Seeds contain no personal data or reusable admin password.
-- [ ] Foreign keys, uniqueness, ranges, and search indexes are documented and tested.
-- [ ] Migration history identifies the exact installed schema version.
+- [x] A blank database can be fully migrated in one documented command.
+- [x] Re-running migrations performs no duplicate changes.
+- [x] Existing prototype data can be upgraded without manual table editing.
+- [x] Seeds contain no personal data or reusable admin password.
+- [x] Foreign keys, uniqueness, ranges, and search indexes are documented and tested.
+- [x] Migration history identifies the exact installed schema version.
 
 ## Validation
 
@@ -79,6 +79,8 @@ Not applicable to schema execution. Any web-facing migration error must use the 
 - Run the migration command a second time.
 - Upgrade a copy of the current schema and compare row counts for existing core tables.
 - Search tracked database files for emails, password hashes, and secret-like values.
+
+Validation completed locally with `guidemypc_migration_test` and the existing `guidemypc` prototype database. Both applied the three migrations, safely re-ran with zero migrations applied, and loaded the sample seed twice without duplicate rows. The existing application home, guide list, and guide detail pages returned HTTP 200 after the upgrade. The baseline's foreign keys, ordered-step uniqueness, and rating range check were verified from MariaDB table definitions.
 
 ## Definition of Done
 

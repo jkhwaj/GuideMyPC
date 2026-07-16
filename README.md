@@ -28,32 +28,33 @@ Composer is not currently required. If task `004-application-structure-and-error
 2. Clone the repository into `C:\xampp\htdocs\GuideMyPC`.
 3. Copy `.env.example` to `.env` and keep `.env` private.
 4. In the XAMPP Control Panel, start Apache and MySQL.
-5. Create the local database with UTF-8 support:
-
-   ```sql
-   CREATE DATABASE guidemypc CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
-
-6. Run the setup check:
+5. Run the setup check:
 
    ```powershell
    C:\xampp\php\php.exe scripts\check-local-setup.php
    ```
 
+6. Create the schema and, optionally, safe sample content:
+
+    ```powershell
+    C:\xampp\php\php.exe database\migrate.php
+    C:\xampp\php\php.exe database\seed.php
+    ```
+
 7. Open [http://localhost/GuideMyPC/](http://localhost/GuideMyPC/).
 
-The current prototype still reads its database settings from `config.php`. Task `002-security-bootstrap.md` will move application configuration to `.env`; the environment file and checker added now define that upcoming local configuration contract.
+`config.php` loads database settings from the untracked `.env` file. Keep that file local and use the setup checker before troubleshooting application pages.
 
 ## Database Setup
 
-Task `003-database-migrations-and-seeds.md` owns the versioned migration runner and safe sample-content seed. Once that task is implemented, a new installation will use commands equivalent to:
+Task `003-database-migrations-and-seeds.md` owns the versioned migration runner and safe sample-content seed. A new installation uses:
 
 ```powershell
 C:\xampp\php\php.exe database\migrate.php
 C:\xampp\php\php.exe database\seed.php
 ```
 
-Those commands are not present yet. The legacy mutable prototype dump was removed because it contained production-like sample data below the public web root. Until task `003` is complete, use an existing local prototype database only for development and do not add a shared administrator account or password.
+The migration command creates the configured database when the local account has permission. The seed command is optional and only adds public sample content. The legacy mutable prototype dump was removed because it contained production-like sample data below the public web root. See [`database/README.md`](database/README.md) for migration naming, idempotence, rollback, and local test-database guidance.
 
 ## Configuration
 
@@ -111,7 +112,7 @@ C:\xampp\mysql\bin\mysqldump.exe -u root -p guidemypc > local-guidemypc-backup.s
 C:\xampp\mysql\bin\mysql.exe -u root -p -e "DROP DATABASE guidemypc; CREATE DATABASE guidemypc CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
-After task `003` is complete, rerun the documented migration and optional seed commands. Do not store the backup inside this repository or commit it.
+Rerun the documented migration and optional seed commands. Do not store the backup inside this repository or commit it.
 
 ## Troubleshooting
 
