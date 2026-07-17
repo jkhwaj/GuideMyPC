@@ -13,6 +13,7 @@ require_once dirname(__DIR__) . '/includes/security.php';
 require_once dirname(__DIR__) . '/includes/errors.php';
 require_once dirname(__DIR__) . '/includes/search.php';
 require_once dirname(__DIR__) . '/includes/guides.php';
+require_once dirname(__DIR__) . '/includes/confidence.php';
 require_once dirname(__DIR__) . '/includes/accounts.php';
 require_once dirname(__DIR__) . '/includes/knowledge.php';
 
@@ -34,6 +35,18 @@ assert_same(true, search_query_is_aggregate_safe('wifi keeps disconnecting'), 's
 assert_same('https://www.youtube-nocookie.com/embed/M7lc1UVf-VE', guide_youtube_embed_url('https://youtu.be/M7lc1UVf-VE'), 'guide_youtube_embed_url permits a valid YouTube ID.');
 assert_same(null, guide_youtube_embed_url('https://example.test/video'), 'guide_youtube_embed_url rejects unapproved video hosts.');
 assert_same(null, guide_safe_url('http://support.microsoft.com/unsafe'), 'guide_safe_url requires approved HTTPS URLs.');
+$rankedConfidence = confidence_rank(
+    [
+        ['cause_key' => 'power', 'title' => 'Power', 'explanation' => '', 'minimum_evidence' => 1],
+        ['cause_key' => 'display', 'title' => 'Display', 'explanation' => '', 'minimum_evidence' => 2],
+    ],
+    [
+        ['cause_key' => 'power', 'weight' => 3, 'explanation' => 'No power indicators were observed.'],
+        ['cause_key' => 'display', 'weight' => 1, 'explanation' => 'The display is unconfirmed.'],
+    ]
+);
+assert_same('power', $rankedConfidence[0]['cause_key'], 'confidence_rank uses deterministic score ordering.');
+assert_same('Uncertain', $rankedConfidence[1]['band'], 'confidence_rank avoids a percentage with insufficient evidence.');
 assert_same('person@example.test', normalize_email(' Person@Example.Test '), 'normalize_email folds case and whitespace.');
 assert_same(null, normalize_email('not-an-email'), 'normalize_email rejects invalid addresses.');
 assert_same('&lt;script&gt;alert(1)&lt;/script&gt;', knowledge_render_content('<script>alert(1)</script>'), 'knowledge rendering escapes stored markup.');

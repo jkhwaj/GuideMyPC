@@ -18,7 +18,11 @@ function confidence_rank(array $outcomes, array $evidence): array
     foreach ($evidence as $item) {
         if (!isset($scores[$item['cause_key']])) continue;
         $scores[$item['cause_key']]['raw'] += $item['weight'];
-        ($item['weight'] >= 0 ? $scores[$item['cause_key']]['supporting'] : $scores[$item['cause_key']]['conflicting'])[] = $item['explanation'];
+        if ($item['weight'] >= 0) {
+            $scores[$item['cause_key']]['supporting'][] = $item['explanation'];
+        } else {
+            $scores[$item['cause_key']]['conflicting'][] = $item['explanation'];
+        }
     }
     $maximum = max(1, ...array_map(static fn(array $score): int => max(0, $score['raw']), $scores));
     $ranked = [];
