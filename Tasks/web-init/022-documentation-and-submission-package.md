@@ -11,7 +11,7 @@ Produce a truthful, professionally organized academic submission that documents 
 
 ## Current State
 
-The implementation roadmap contains product and technical decisions, but there is no separate team document, constrained system overview, final Word report, UML project, screenshot manifest, Git/GitHub evidence record, third-party inventory, or clean submission archive process. The root `README.md` is intended for project setup and must not be confused with the separately submitted team `Readme.docx`.
+Version-controlled submission sources now include a system overview, report outline, team-record template, test-evidence record, screenshot manifest, third-party inventory, and a tested source-archive script. Final personal team details, screenshot captures, Word files, the Visual Paradigm project, and the outer submission ZIP remain intentionally uncreated until the final tested release and instructor requirements are confirmed. The root `README.md` is intended for project setup and must not be confused with the separately submitted team `Readme.docx`.
 
 ## Reference Inputs
 
