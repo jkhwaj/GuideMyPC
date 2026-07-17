@@ -1,6 +1,6 @@
 # Task: View System and Static Pages
 
-- Status: Not started
+- Status: In progress
 - Priority: High
 - Release: M2
 - Dependencies: `002-core-security-and-compatibility-layer.md`
@@ -103,3 +103,12 @@ Migrate one page at a time. Each compatibility route can temporarily return to t
 ## Definition of Done
 
 Static pages and shared presentation use the documented rendering boundary with no database dependency, and database-backed features can adopt the same layout without relying on procedural include globals.
+
+## Implementation Evidence
+
+- Added `GuideMyPC\Core\View` with explicit view data and a plain PHP layout.
+- Added Pages controller and view templates for the About page only; `about.php` remains the legacy compatibility entry point.
+- Layout metadata, navigation state, and flash messages are passed as explicit data rather than inferred from `SCRIPT_NAME` or read from session state by templates.
+- Existing `includes/` layout templates and all other routes remain unchanged while About-page parity is characterized.
+- PHP lint passed for the renderer, Pages controller, About entry point, and new templates; `tests/helpers_test.php` passes and asserts About metadata and body output.
+- Direct CLI rendering of `about.php` produces the expected title, canonical URL, assets, navigation landmarks, and About heading without opening MariaDB.

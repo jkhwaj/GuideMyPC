@@ -31,6 +31,14 @@ assert_same([], load_environment(dirname(__DIR__) . '/missing-test-env'), 'load_
 assert_same('fallback', config_value('MISSING_TEST_VALUE', 'fallback'), 'config_value preserves its default contract.');
 assert_same(true, is_string(private_storage_path('logs')), 'private_storage_path resolves private runtime storage.');
 configure_error_handling();
+$viewOutput = (static function (): string {
+    ob_start();
+    (new GuideMyPC\Features\Pages\PageController(new GuideMyPC\Core\View()))->about();
+
+    return (string) ob_get_clean();
+})();
+assert_same(true, str_contains($viewOutput, '<title>About | GuideMyPC</title>'), 'Pages controller passes explicit metadata to the layout.');
+assert_same(true, str_contains($viewOutput, '<h1 id="about-title">Practical technology support</h1>'), 'Pages controller renders the about view.');
 assert_same(null, required_string('Long value', 3), 'required_string rejects long values.');
 assert_same(['page' => 2, 'per_page' => 20, 'offset' => 20], pagination_values('2'), 'pagination_values calculates offsets.');
 assert_same(['password' => '[redacted]', 'title' => 'Guide'], redact_log_context(['password' => 'secret', 'title' => 'Guide']), 'redact_log_context removes sensitive values.');
