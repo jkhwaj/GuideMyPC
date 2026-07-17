@@ -1,6 +1,6 @@
 # Task: Search, Home, Sitemap, and Cross-Feature Reads
 
-- Status: Not started
+- Status: In progress
 - Priority: High
 - Release: M4
 - Dependencies: `006-downloads-community-and-feature-admin.md`
@@ -102,3 +102,10 @@ Keep each aggregator behind its legacy route. Roll back the route to its prior q
 ## Definition of Done
 
 All cross-feature read paths use named, policy-consistent projections, remain compatible at their legacy routes, and no longer embed unrelated feature SQL in page scripts.
+
+## Implementation Evidence
+
+- Characterization confirms that Home, Search, Sitemap, and dashboard projections currently duplicate or disagree on Download and Community publication rules; no cross-feature SQL is moved until the task `006` policy decisions are approved.
+- Extracted pure Search query normalization and aggregate-telemetry safety checks into `GuideMyPC\Features\Search\SearchQuery`, retaining existing helper delegates and the route's current HTML/JSON/telemetry behavior.
+- Home, Sitemap, dashboard, Search ranking/filtering, suggestions, event recording, and the approved non-CSRF telemetry exception remain unchanged in this increment.
+- Added helper coverage for direct namespaced normalization of overlength input.

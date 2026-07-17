@@ -23,18 +23,12 @@ function search_filters(array $input): array
 
 function normalize_search_query(mixed $value): string
 {
-    $query = required_string($value, 120);
-
-    if ($query === null) {
-        return '';
-    }
-
-    return mb_strtolower((string) preg_replace('/\s+/u', ' ', $query));
+    return GuideMyPC\Features\Search\SearchQuery::normalize($value);
 }
 
 function search_query_is_aggregate_safe(string $query): bool
 {
-    return preg_match('/(?:@|https?:\/\/|\b\d{7,}\b)/iu', $query) !== 1;
+    return GuideMyPC\Features\Search\SearchQuery::isAggregateSafe($query);
 }
 
 /**

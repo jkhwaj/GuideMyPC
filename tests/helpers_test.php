@@ -44,6 +44,7 @@ assert_same(null, required_string('Long value', 3), 'required_string rejects lon
 assert_same(['page' => 2, 'per_page' => 20, 'offset' => 20], pagination_values('2'), 'pagination_values calculates offsets.');
 assert_same(['password' => '[redacted]', 'title' => 'Guide'], redact_log_context(['password' => 'secret', 'title' => 'Guide']), 'redact_log_context removes sensitive values.');
 assert_same('blue screen', normalize_search_query('  Blue   Screen  '), 'normalize_search_query folds case and whitespace.');
+assert_same('', GuideMyPC\Features\Search\SearchQuery::normalize(str_repeat('x', 121)), 'Search query normalization rejects values longer than 120 characters.');
 assert_same(false, search_query_is_aggregate_safe('name@example.test'), 'search aggregation rejects email-like queries.');
 assert_same(true, search_query_is_aggregate_safe('wifi keeps disconnecting'), 'search aggregation accepts ordinary support queries.');
 assert_same('https://www.youtube-nocookie.com/embed/M7lc1UVf-VE', guide_youtube_embed_url('https://youtu.be/M7lc1UVf-VE'), 'guide_youtube_embed_url permits a valid YouTube ID.');
