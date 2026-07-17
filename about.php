@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/bootstrap/web.php';
 include 'includes/header.php';
 include 'includes/navbar.php';
 ?>

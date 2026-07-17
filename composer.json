@@ -1,0 +1,15 @@
+{
+    "name": "jkhwaj/guidemypc",
+    "description": "Consumer technology support application",
+    "type": "project",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "GuideMyPC\\": "app/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

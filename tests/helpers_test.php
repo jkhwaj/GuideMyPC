@@ -7,7 +7,7 @@ if (PHP_SAPI !== 'cli') {
     exit("Not found.\n");
 }
 
-require_once dirname(__DIR__) . '/includes/bootstrap.php';
+require_once dirname(__DIR__) . '/bootstrap/test.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_once dirname(__DIR__) . '/includes/security.php';
 require_once dirname(__DIR__) . '/includes/errors.php';

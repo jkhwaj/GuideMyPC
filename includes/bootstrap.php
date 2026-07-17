@@ -123,7 +123,3 @@ function send_security_headers(): void
     header('Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=()');
     header("Content-Security-Policy-Report-Only: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self' https://www.youtube-nocookie.com; object-src 'none'");
 }
-
-configure_error_handling();
-configure_session();
-send_security_headers();

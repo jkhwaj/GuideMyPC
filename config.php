@@ -2,13 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/bootstrap.php';
-require_once __DIR__ . '/includes/functions.php';
-require_once __DIR__ . '/includes/security.php';
-require_once __DIR__ . '/includes/errors.php';
-require_once __DIR__ . '/includes/db.php';
-
-configure_application_error_handling();
+require_once __DIR__ . '/bootstrap/web.php';
 
 try {
     $conn = application_database_connection();

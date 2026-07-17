@@ -1,6 +1,6 @@
 # Task: Composer and Bootstrap Boundaries
 
-- Status: Not started
+- Status: In progress
 - Priority: Critical
 - Release: M0
 - Dependencies: `000-architecture-contract-and-route-inventory.md`
@@ -103,3 +103,11 @@ Keep the previous include path usable until every entry point passes validation.
 ## Definition of Done
 
 All entry-point types have explicit initialization boundaries, new classes can be autoloaded, existing routes remain compatible, and task `002` can extract shared behavior without relying on one universal procedural bootstrap.
+
+## Implementation Evidence
+
+- Added `composer.json` with the PHP 8.2 requirement and `GuideMyPC\` PSR-4 mapping. Composer and PHP are not available on the current command path, so `composer.lock`, installation validation, and autoload verification remain blocked pending local tooling.
+- Added `bootstrap/web.php`, `bootstrap/cli.php`, and `bootstrap/test.php`. They load shared legacy helpers without opening a database connection; only the web bootstrap starts a browser session and sends security headers.
+- `config.php` remains the compatibility facade that loads the web bootstrap and opens the legacy global `$conn` for unmigrated routes.
+- Static/legal routes now use the web bootstrap directly and therefore do not require MariaDB to initialize.
+- `database/runner.php` and the helper test use the CLI/test bootstraps, preventing direct CLI bootstrap callers from starting browser sessions.
