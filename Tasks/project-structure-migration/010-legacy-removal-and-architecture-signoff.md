@@ -1,6 +1,6 @@
 # Task: Legacy Removal and Architecture Sign-Off
 
-- Status: Not started
+- Status: Blocked
 - Priority: Critical
 - Release: M6
 - Dependencies: `009-database-tests-and-deployment-hardening.md`
@@ -105,3 +105,27 @@ Remove compatibility groups in separate reversible changes. Keep the previous de
 ## Definition of Done
 
 GuideMyPC runs solely through the approved feature-oriented structure and public document root, all temporary procedural seams are removed, the full release evidence passes, and project documentation accurately describes the implemented system.
+
+## Initial Sign-Off Audit
+
+This task was audited after the first task `009` hardening increment. Legacy removal must not begin yet.
+
+- `config.php` remains the compatibility facade and creates the global `$conn` connection for root routes.
+- Root page and action scripts still load `config.php` and/or feature files under `includes/`; only the About page is routed through the new view boundary.
+- `bootstrap/web.php` and `bootstrap/cli.php` still compose the procedural bootstrap, function, security, error, and database includes while their namespaced replacements are extracted incrementally.
+- The repository root remains the documented Apache document root. Its protection relies in part on rewrite-dependent `.htaccess` rules, and no public front controller or legacy route map is active.
+- The temporary PSR-4 fallback remains necessary until Composer is installed and the approved deploy artifact workflow is verified.
+- Task `006` still lacks approved canonical Community and Download eligibility decisions; task `007` aggregators depend on those policies; task `008` has not migrated assets or activated public-root routing.
+- The full integration suite now refuses to run without an explicit `DB_TEST_NAME`; a migrated and seeded dedicated database must be configured before final release evidence can pass.
+- The code graph still has a low-cohesion `includes-require` community and reports untested hotspots in legacy Search, Security, Diagnostics, database, and error-handling paths.
+
+## Removal Exit Gates
+
+Do not change this task to `In progress` until all of the following are true:
+
+1. Tasks `006` through `009` have completed their policy, routing, and release gates.
+2. Every legacy route is served through the public router and covered by the route-contract matrix.
+3. Public assets have moved under `public/`, and Apache/Nginx private-path probes pass without relying on repository-root rewrite protection.
+4. All root route, script, and test callers have migrated from `config.php`, global `$conn`, and procedural `includes/` dependencies.
+5. Composer is installed or otherwise available in the documented build workflow, and the locked production artifact is validated from a clean extraction.
+6. Fresh migration, representative upgrade, repeated seed, isolated integration suite, HTTP route matrix, and backup/restore checks pass with recorded evidence.
