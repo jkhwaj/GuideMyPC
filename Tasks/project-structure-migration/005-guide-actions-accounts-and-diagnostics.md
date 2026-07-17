@@ -1,6 +1,6 @@
 # Task: Guide Actions, Accounts, and Diagnostics
 
-- Status: Not started
+- Status: In progress
 - Priority: Critical
 - Release: M3
 - Dependencies: `004-knowledge-and-guide-read-models.md`
@@ -103,3 +103,11 @@ Move one command or workflow at a time behind the existing endpoint. Retain comp
 ## Definition of Done
 
 Guide mutations, account workflows, and active diagnostics are feature-owned, enforce the shared security boundary, retain legacy endpoint contracts, and have deterministic cross-user and failure-path coverage.
+
+## Implementation Evidence
+
+- Extracted account security-event, activity, guest-progress, and password-reset data commands into `GuideMyPC\Features\Accounts\AccountService`.
+- Existing account helper signatures remain compatibility delegates, preserving login, reset, diagnostic activity, and integration-test callers.
+- Session reads and guest-progress cleanup remain in `merge_guest_progress()` so the existing session contract is unchanged.
+- Guide action routes and diagnostic state/transition behavior remain unchanged in this increment.
+- PHP lint passed for the service, account helper, login route, diagnostic action route, and account integration test. `tests/helpers_test.php` and `tests/account_integration_test.php` pass against the current test database.
