@@ -1,6 +1,6 @@
 # Task: Downloads, Community, and Feature-Owned Administration
 
-- Status: Not started
+- Status: In progress
 - Priority: Critical
 - Release: M4
 - Dependencies: `005-guide-actions-accounts-and-diagnostics.md`; approved Community and Downloads decisions from task `000`
@@ -105,3 +105,11 @@ Keep route dispatch reversible per feature. Database corrections require documen
 ## Definition of Done
 
 Downloads and Community use approved, testable policy boundaries; administration is feature-owned and consistently audited; and no active runtime path depends on competing models or duplicated publication rules.
+
+## Implementation Evidence
+
+- The approved Download eligibility matrix and canonical Community model remain pending decisions from task `000`; public routes and active Community behavior are unchanged.
+- Extracted the existing unused Download HTTPS/private-IP/review-state helper behavior into `GuideMyPC\Features\Downloads\DownloadPolicy`, retaining procedural helper delegates for compatibility.
+- This extraction does not select or activate a public Download policy: `downloads.php`, Home, Search, and administrator routes still retain their current behavior until the eligibility decision is approved.
+- Added helper coverage for the preserved HTTPS, non-HTTPS, approved, and pending behaviors.
+- PHP lint passed for the policy, compatibility helpers, public Download route, Community route, and helper test. `tests/helpers_test.php` passes, and a direct autoloaded check confirms private-IP HTTPS URLs remain rejected.
