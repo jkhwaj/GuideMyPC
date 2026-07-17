@@ -1,6 +1,6 @@
 # Task: Knowledge and Guide Read Models
 
-- Status: Not started
+- Status: In progress
 - Priority: High
 - Release: M3
 - Dependencies: `003-view-system-and-static-pages.md`
@@ -98,3 +98,11 @@ Migrate routes one at a time behind their existing filenames. A route can return
 ## Definition of Done
 
 Knowledge and guide read behavior is feature-owned, rendered through the new view boundary, covered by deterministic integration tests, and still reachable through every documented legacy route contract.
+
+## Implementation Evidence
+
+- Extracted the published Knowledge article lookup into `GuideMyPC\Features\Knowledge\KnowledgeRepository`.
+- `knowledge_published_article()` remains a compatibility delegate, preserving `knowledge_article.php` and existing integration-test callers while the remaining Knowledge queries are characterized.
+- No publication policy, route, rendering, Guide behavior, or database schema changed in this increment.
+- The current Knowledge integration test still depends on seeded content and may report `SKIP`; deterministic fixture work remains required before this task can complete.
+- PHP lint passed for the repository, compatibility helper, article route, and Knowledge integration test. `tests/helpers_test.php` and `tests/knowledge_integration_test.php` pass against the current seeded database.
