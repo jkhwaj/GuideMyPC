@@ -10,16 +10,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $description = trim($_POST["description"]);
     $official_url = trim($_POST["official_url"]);
     $category = trim($_POST["category"]);
+    $reviewState = (string) ($_POST['review_state'] ?? 'pending');
+    $isPublished = isset($_POST['is_published']) ? 1 : 0;
+    $policy = new GuideMyPC\Features\Downloads\DownloadPolicy();
 
-    if ($name == "" || $official_url == "") {
-        $message = "Name and official URL are required.";
+    if ($name === '' || $policy->trustedUrl($official_url) === null) {
+        $message = 'Name and a safe HTTPS official URL are required.';
+    } elseif (!in_array($reviewState, ['pending', 'approved', 'stale', 'rejected', 'archived'], true)) {
+        $message = 'Choose a valid review state.';
     } else {
         $stmt = $conn->prepare("
-            INSERT INTO downloads (name, description, official_url, category)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO downloads (name, description, official_url, category, review_state, is_published)
+            VALUES (?, ?, ?, ?, ?, ?)
         ");
 
-        $stmt->bind_param("ssss", $name, $description, $official_url, $category);
+        $stmt->bind_param("sssssi", $name, $description, $official_url, $category, $reviewState, $isPublished);
         $stmt->execute();
 
         redirect('admin_downloads.php');
@@ -52,6 +57,17 @@ include("includes/navbar.php");
 
             <label>Category</label>
             <input type="text" name="category" placeholder="Example: Security, Browser, Utility">
+
+            <label>Review state</label>
+            <select name="review_state">
+                <option value="pending">Pending review</option>
+                <option value="approved">Approved</option>
+                <option value="stale">Stale</option>
+                <option value="rejected">Rejected</option>
+                <option value="archived">Archived</option>
+            </select>
+
+            <label><input type="checkbox" name="is_published" value="1"> Publish publicly</label>
 
             <button type="submit">Save Download</button>
         </form>

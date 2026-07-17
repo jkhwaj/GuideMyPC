@@ -105,7 +105,7 @@ All cross-feature read paths use named, policy-consistent projections, remain co
 
 ## Implementation Evidence
 
-- Characterization confirms that Home, Search, Sitemap, and dashboard projections currently duplicate or disagree on Download and Community publication rules. Task `006` must centralize the approved policies before task `007` moves cross-feature SQL.
+- Characterization found duplicated Download and Community publication rules. Task `006` now enforces the approved policy in current public projections; task `007` must retain it while replacing remaining cross-feature SQL with named read models.
 - Extracted pure Search query normalization and aggregate-telemetry safety checks into `GuideMyPC\Features\Search\SearchQuery`, retaining existing helper delegates and the route's current HTML/JSON/telemetry behavior.
 - Home, Sitemap, dashboard, Search ranking/filtering, suggestions, event recording, and the approved non-CSRF telemetry exception remain unchanged in this increment.
 - Added helper coverage for direct namespaced normalization of overlength input.

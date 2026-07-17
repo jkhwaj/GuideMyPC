@@ -28,16 +28,21 @@ try {
     $popularGuides = $result->fetch_all(MYSQLI_ASSOC);
     $recommendedGuides = array_slice($popularGuides, 0, 3);
 
+    $downloadPolicy = new GuideMyPC\Features\Downloads\DownloadPolicy();
     $result = $conn->query(
-        'SELECT name, description, official_url, category FROM downloads '
-        . 'WHERE is_published = 1 '
+        'SELECT name, description, official_url, category, is_published, review_state FROM downloads '
+        . 'WHERE ' . $downloadPolicy->publicWhereClause('downloads') . ' '
         . 'ORDER BY featured_order IS NULL, featured_order ASC, name ASC LIMIT 3'
     );
-    $downloads = $result->fetch_all(MYSQLI_ASSOC);
+    $downloads = array_values(array_filter(
+        $result->fetch_all(MYSQLI_ASSOC),
+        static fn (array $download): bool => $downloadPolicy->isPublic($download)
+    ));
 
     $result = $conn->query(
         'SELECT community_posts.title, community_posts.created_at, users.full_name '
         . 'FROM community_posts JOIN users ON community_posts.user_id = users.id '
+        . 'WHERE community_posts.is_published = 1 '
         . 'ORDER BY community_posts.created_at DESC LIMIT 3'
     );
     $communityPosts = $result->fetch_all(MYSQLI_ASSOC);

@@ -15,14 +15,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $description = trim($_POST["description"]);
     $official_url = trim($_POST["official_url"]);
     $category = trim($_POST["category"]);
+    $reviewState = (string) ($_POST['review_state'] ?? 'pending');
+    $isPublished = isset($_POST['is_published']) ? 1 : 0;
+    $policy = new GuideMyPC\Features\Downloads\DownloadPolicy();
+
+    if ($name === '' || $policy->trustedUrl($official_url) === null) {
+        abort_request(422, 'invalid_download_url', 'Provide a safe HTTPS official URL.');
+    }
+
+    if (!in_array($reviewState, ['pending', 'approved', 'stale', 'rejected', 'archived'], true)) {
+        abort_request(422, 'invalid_download_review_state', 'Choose a valid review state.');
+    }
 
     $stmt = $conn->prepare("
         UPDATE downloads
-        SET name = ?, description = ?, official_url = ?, category = ?
+        SET name = ?, description = ?, official_url = ?, category = ?, review_state = ?, is_published = ?
         WHERE id = ?
     ");
 
-    $stmt->bind_param("ssssi", $name, $description, $official_url, $category, $id);
+    $stmt->bind_param("sssssii", $name, $description, $official_url, $category, $reviewState, $isPublished, $id);
     $stmt->execute();
 
     redirect('admin_downloads.php');
@@ -59,6 +70,15 @@ include("includes/navbar.php");
 
             <label>Category</label>
             <input type="text" name="category" value="<?php echo htmlspecialchars($download["category"]); ?>">
+
+            <label>Review state</label>
+            <select name="review_state">
+                <?php foreach (['pending' => 'Pending review', 'approved' => 'Approved', 'stale' => 'Stale', 'rejected' => 'Rejected', 'archived' => 'Archived'] as $state => $label): ?>
+                    <option value="<?php echo e($state); ?>"<?php echo $download['review_state'] === $state ? ' selected' : ''; ?>><?php echo e($label); ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <label><input type="checkbox" name="is_published" value="1"<?php echo (int) $download['is_published'] === 1 ? ' checked' : ''; ?>> Publish publicly</label>
 
             <button type="submit">Save Changes</button>
         </form>

@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/community.php';
 
 $message = '';
+$communityPolicy = new GuideMyPC\Features\Community\CommunityPolicy();
 
 /* Add new post */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["add_post"])) {
@@ -38,14 +40,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["add_comment"])) {
     if (!rate_limit_allows('community-comment', 15, 3600)) {
         $message = 'Too many comments. Please try again later.';
     } elseif ($post_id > 0 && $comment !== '') {
-        $stmt = $conn->prepare("
-            INSERT INTO community_comments (post_id, user_id, comment)
-            VALUES (?, ?, ?)
-        ");
-        $stmt->bind_param("iis", $post_id, $user_id, $comment);
-        $stmt->execute();
+        $postStatement = $conn->prepare(
+            'SELECT id FROM community_posts WHERE id = ? AND ' . $communityPolicy->publicWhereClause('community_posts')
+        );
+        $postStatement->bind_param('i', $post_id);
+        $postStatement->execute();
+        $post = $postStatement->get_result()->fetch_assoc();
+        $postStatement->close();
 
-        redirect('community.php');
+        if ($post === null) {
+            $message = 'This post is no longer available for comments.';
+        } else {
+            $stmt = $conn->prepare("
+                INSERT INTO community_comments (post_id, user_id, comment)
+                VALUES (?, ?, ?)
+            ");
+            $stmt->bind_param("iis", $post_id, $user_id, $comment);
+            $stmt->execute();
+
+            redirect('community.php');
+        }
     }
 }
 
@@ -53,6 +67,7 @@ $sql = "
 SELECT community_posts.*, users.full_name
 FROM community_posts
 JOIN users ON community_posts.user_id = users.id
+WHERE " . $communityPolicy->publicWhereClause('community_posts') . "
 ORDER BY community_posts.created_at DESC
 ";
 

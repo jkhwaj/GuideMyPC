@@ -1,9 +1,23 @@
 <?php
-include("config.php");
-include("includes/header.php");
-include("includes/navbar.php");
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/downloads.php';
 
-$result = $conn->query("SELECT * FROM downloads ORDER BY category ASC, name ASC");
+$policy = new GuideMyPC\Features\Downloads\DownloadPolicy();
+$result = $conn->query(
+    'SELECT * FROM downloads WHERE ' . $policy->publicWhereClause('downloads') . ' ORDER BY category ASC, name ASC'
+);
+$downloads = [];
+
+if ($result !== false) {
+    while ($download = $result->fetch_assoc()) {
+        if ($policy->isPublic($download)) {
+            $downloads[] = $download;
+        }
+    }
+}
+
+include __DIR__ . '/includes/header.php';
+include __DIR__ . '/includes/navbar.php';
 ?>
 
 <section class="section">
@@ -14,8 +28,8 @@ $result = $conn->query("SELECT * FROM downloads ORDER BY category ASC, name ASC"
     </p>
 
     <div class="card-grid">
-        <?php if ($result && $result->num_rows > 0): ?>
-            <?php while($download = $result->fetch_assoc()): ?>
+        <?php if ($downloads !== []): ?>
+            <?php foreach ($downloads as $download): ?>
                 <div class="card">
                     <p class="section-label">
                         <?php echo htmlspecialchars($download["category"]); ?>
@@ -36,7 +50,7 @@ $result = $conn->query("SELECT * FROM downloads ORDER BY category ASC, name ASC"
                         Download
                     </a>
                 </div>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         <?php else: ?>
             <p>No downloads available yet.</p>
         <?php endif; ?>

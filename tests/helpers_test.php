@@ -18,6 +18,7 @@ require_once dirname(__DIR__) . '/includes/confidence.php';
 require_once dirname(__DIR__) . '/includes/accounts.php';
 require_once dirname(__DIR__) . '/includes/knowledge.php';
 require_once dirname(__DIR__) . '/includes/downloads.php';
+require_once dirname(__DIR__) . '/includes/community.php';
 
 function assert_same(mixed $expected, mixed $actual, string $message): void
 {
@@ -73,7 +74,10 @@ assert_same(null, knowledge_safe_reference_url('javascript:alert(1)'), 'knowledg
 assert_same('https://support.example.test/', knowledge_safe_reference_url('https://support.example.test/'), 'knowledge sources allow HTTPS references.');
 assert_same('https://downloads.example.test/tool', trusted_download_url('https://downloads.example.test/tool'), 'Download policy permits HTTPS host URLs.');
 assert_same(null, trusted_download_url('http://downloads.example.test/tool'), 'Download policy rejects non-HTTPS URLs.');
-assert_same(true, download_is_public(['review_state' => 'approved', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy preserves approved URL behavior.');
-assert_same(false, download_is_public(['review_state' => 'pending', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy preserves pending download behavior.');
+assert_same(true, download_is_public(['is_published' => 1, 'review_state' => 'approved', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy permits published, approved HTTPS URLs.');
+assert_same(false, download_is_public(['is_published' => 0, 'review_state' => 'approved', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy rejects unpublished downloads.');
+assert_same(false, download_is_public(['is_published' => 1, 'review_state' => 'pending', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy rejects pending downloads.');
+assert_same(true, community_post_is_public(['is_published' => 1]), 'Community policy permits published legacy posts.');
+assert_same(false, community_post_is_public(['is_published' => 0]), 'Community policy rejects unpublished legacy posts.');
 
 fwrite(STDOUT, "PASS: helper tests completed.\n");

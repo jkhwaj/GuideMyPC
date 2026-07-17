@@ -58,7 +58,7 @@ This baseline supports task `000` of `Tasks/project-structure-migration/`. It re
 
 | Paths | Method and response | Migration contract |
 | --- | --- | --- |
-| `community.php` | GET HTML and POST HTML/redirect | Active legacy post/comment workflow. Current publication filtering differs from Search and Home. |
+| `community.php` | GET HTML and POST HTML/redirect | Active legacy post/comment workflow. Public listing and comment targets require `is_published = 1`. |
 | `toggle_like.php` | POST redirect | Authenticated Community like action. |
 
 The active routes use `community_posts`, `community_comments`, and `community_likes`. This legacy model is canonical for the migration. The newer question/answer tables remain deferred and are not active runtime routes.
@@ -78,7 +78,7 @@ Administration moves into the feature that owns its data. The shared audit servi
 | Area | Current difference | Required decision |
 | --- | --- | --- |
 | Downloads | `downloads.php` can show records regardless of publication/review state; Home and Search check `is_published`; the unused helper also checks URL safety and approval. | Approved: public records require publication, approval, and a safe HTTPS URL. Task `006` must centralize the rule before task `007` migrates aggregators. |
-| Community | Community list and Home can show posts without the publication filter used by Search. | Approved model: legacy posts/comments/likes. Task `006` must define one publication policy before task `007` migrates aggregators. |
+| Community | Community list and Home previously showed posts without the publication filter used by Search. | Resolved: public legacy post projections require `is_published = 1`; unpublished posts cannot receive public comments or likes. |
 | Diagnostics | Non-guide resource types currently resolve to `community.php`. | Keep active behavior through migration; schedule typed resource resolution separately. |
 | Admin audit | Structured guide operations are audited, but other administrative mutations are not consistently audited. | Apply audit consistently during task `006`. |
 

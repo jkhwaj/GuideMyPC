@@ -31,7 +31,15 @@ final class DownloadPolicy
      */
     public function isPublic(array $download): bool
     {
-        return ($download['review_state'] ?? '') === 'approved'
+        return (int) ($download['is_published'] ?? 0) === 1
+            && ($download['review_state'] ?? '') === 'approved'
             && $this->trustedUrl($download['official_url'] ?? null) !== null;
+    }
+
+    public function publicWhereClause(string $table = ''): string
+    {
+        $prefix = $table === '' ? '' : $table . '.';
+
+        return $prefix . "is_published = 1 AND " . $prefix . "review_state = 'approved'";
     }
 }

@@ -189,7 +189,7 @@ See `docs/route-contracts.md` for the baseline route groups and compatibility ru
 | --- | --- | --- | --- |
 | Legacy URL compatibility | Approved | Preserve `*.php` paths and form contracts; defer clean URLs. | None |
 | Private runtime storage | Approved | Keep it configurable and external to repository/web root. | None |
-| Canonical Community model | Approved | Keep the active `community_posts`, `community_comments`, and `community_likes` model. Defer the unwired question/answer schema. | None |
+| Canonical Community model | Approved | Keep the active `community_posts`, `community_comments`, and `community_likes` model. Public projections require `is_published = 1`; defer the unwired question/answer schema. | None |
 | Public Download eligibility | Approved | Public records require `is_published`, `review_state = 'approved'`, and a safe HTTPS URL under the existing trusted-URL policy. | None |
 | Production Composer strategy | Approved | Build deploy artifacts with locked production dependencies; source archives remain clean. | `001`, `008`, `009` |
 | Trusted proxy and HTTPS policy | Approved | Support direct Apache HTTPS only; do not trust forwarded headers without a separately approved allowlist. | `002`, `008` |
