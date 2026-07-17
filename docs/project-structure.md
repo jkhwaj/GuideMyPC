@@ -191,8 +191,8 @@ See `docs/route-contracts.md` for the baseline route groups and compatibility ru
 | Private runtime storage | Approved | Keep it configurable and external to repository/web root. | None |
 | Canonical Community model | Pending | Keep active legacy behavior; do not activate or merge community-v2 code. | `006` |
 | Public Download eligibility | Pending | Preserve current behavior only for characterization; do not centralize a new policy. | `006`, `007` |
-| Production Composer strategy | Pending | Do not require Composer at runtime until artifact/install strategy is tested. | `001`, `008`, `009` |
-| Trusted proxy and HTTPS policy | Pending | Preserve direct HTTPS behavior; do not trust forwarded headers by default. | `002`, `008` |
+| Production Composer strategy | Approved | Build deploy artifacts with locked production dependencies; source archives remain clean. | `001`, `008`, `009` |
+| Trusted proxy and HTTPS policy | Approved | Support direct Apache HTTPS only; do not trust forwarded headers without a separately approved allowlist. | `002`, `008` |
 
 Each pending decision needs an owner, deadline, and decision record before its blocking task can pass.
 
