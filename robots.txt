@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /admin.php
+Disallow: /admin_
+Disallow: /add_
+Disallow: /edit_
+Disallow: /delete_
+Disallow: /profile.php
+Disallow: /settings.php
+Disallow: /forgot_password.php
+Disallow: /reset_password.php
+Disallow: /account_request.php
+Disallow: /search.php
+Disallow: /diagnostic.php
+Disallow: /ai.php
+Sitemap: http://localhost/GuideMyPC/sitemap.php
