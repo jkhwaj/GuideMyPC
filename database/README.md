@@ -15,11 +15,17 @@ C:\xampp\php\php.exe database\seed.php
 
 `seed.php` is optional and idempotent. It only adds anonymous categories, a guide, steps, and official resource links. It does not add accounts, community content, credentials, or password hashes.
 
-For an isolated local validation database, pass a name explicitly:
+For an isolated local validation database, set `DB_TEST_NAME` in `.env` to a database ending in `_test` and distinct from `DB_NAME`. Tests refuse to run against any other name. Create and seed it explicitly:
 
 ```powershell
 C:\xampp\php\php.exe database\migrate.php --database=guidemypc_test
 C:\xampp\php\php.exe database\seed.php --database=guidemypc_test
+```
+
+The integration suite requires the seeded test database:
+
+```powershell
+C:\xampp\php\php.exe scripts\verify.php
 ```
 
 ## Adding Migrations

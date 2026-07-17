@@ -1,6 +1,6 @@
 # Task: Database, Tests, and Deployment Hardening
 
-- Status: Not started
+- Status: In progress
 - Priority: Critical
 - Release: M6
 - Dependencies: `008-public-document-root-and-routing.md`
@@ -106,3 +106,12 @@ Application releases must support restoring the prior artifact and configuration
 ## Definition of Done
 
 The migrated application can be installed, upgraded, tested, packaged, deployed, restored, and rolled back through documented repeatable procedures without risking normal data or depending on skipped verification.
+
+## Implementation Evidence
+
+- Added `tests/bootstrap.php`, which requires explicit `DB_TEST_NAME`, rejects the configured application database, and requires a dedicated `_test` suffix before opening an integration-test connection.
+- Moved Search, Knowledge, Guides, and Accounts integration tests from the web bootstrap to the test bootstrap and the guarded dedicated connection.
+- Missing required seeded content now fails integration tests instead of reporting a successful skip.
+- Account integration cleanup now deletes reset-token, progress, activity, and security-event rows before deleting its test user.
+- Added `DB_TEST_NAME` to `.env.example` and documented dedicated test-database setup in `database/README.md`.
+- PHP lint and `tests/helpers_test.php` pass. `scripts/verify.php` now fails before any integration-test write when `DB_TEST_NAME` is not configured; complete integration validation is blocked until a migrated and seeded dedicated test database is configured locally.

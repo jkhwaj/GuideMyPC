@@ -8,6 +8,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require_once dirname(__DIR__) . '/bootstrap/test.php';
+require_once __DIR__ . '/bootstrap.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_once dirname(__DIR__) . '/includes/security.php';
 require_once dirname(__DIR__) . '/includes/errors.php';
@@ -27,6 +28,9 @@ function assert_same(mixed $expected, mixed $actual, string $message): void
 }
 
 assert_same('Guide', required_string(' Guide ', 10), 'required_string trims valid values.');
+assert_same(true, test_database_name_is_safe('guidemypc_test', 'guidemypc'), 'Test database names must use the dedicated suffix.');
+assert_same(false, test_database_name_is_safe('guidemypc', 'guidemypc'), 'The application database is never a safe test target.');
+assert_same(false, test_database_name_is_safe('guidemypc_preview', 'guidemypc'), 'Test database names reject non-test suffixes.');
 assert_same('value', GuideMyPC\Core\Environment::value(['KEY' => 'value'], 'KEY'), 'PSR-4 Core classes autoload without Composer.');
 assert_same([], load_environment(dirname(__DIR__) . '/missing-test-env'), 'load_environment ignores a missing file.');
 assert_same('fallback', config_value('MISSING_TEST_VALUE', 'fallback'), 'config_value preserves its default contract.');

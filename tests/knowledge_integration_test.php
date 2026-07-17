@@ -7,16 +7,18 @@ if (PHP_SAPI !== 'cli') {
     exit("Not found.\n");
 }
 
-require_once dirname(__DIR__) . '/config.php';
+require_once __DIR__ . '/bootstrap.php';
 require_once dirname(__DIR__) . '/includes/knowledge.php';
 require_once dirname(__DIR__) . '/includes/search.php';
+
+$conn = test_database_or_fail();
 
 $slug = 'windows-stop-code-0x0000007b';
 $article = knowledge_published_article($conn, $slug);
 
 if ($article === null) {
-    fwrite(STDOUT, "SKIP: seeded knowledge article is not available.\n");
-    exit(0);
+    fwrite(STDERR, "FAIL: seeded knowledge article is not available in DB_TEST_NAME.\n");
+    exit(1);
 }
 
 $conn->begin_transaction();

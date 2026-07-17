@@ -7,15 +7,17 @@ if (PHP_SAPI !== 'cli') {
     exit("Not found.\n");
 }
 
-require_once dirname(__DIR__) . '/config.php';
+require_once __DIR__ . '/bootstrap.php';
 require_once dirname(__DIR__) . '/includes/admin.php';
 require_once dirname(__DIR__) . '/includes/guides.php';
+
+$conn = test_database_or_fail();
 
 $guide = $conn->query("SELECT id FROM guides WHERE slug = 'check-windows-update-issue' LIMIT 1")->fetch_assoc();
 
 if ($guide === null) {
-    fwrite(STDOUT, "SKIP: seeded structured guide is not available.\n");
-    exit(0);
+    fwrite(STDERR, "FAIL: seeded structured guide is not available in DB_TEST_NAME.\n");
+    exit(1);
 }
 
 $guideId = (int) $guide['id'];
