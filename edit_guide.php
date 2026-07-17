@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/admin.php';
 require_once __DIR__ . '/includes/guides.php';
 
 require_admin();
@@ -13,7 +14,7 @@ if ($id === false) {
 }
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-    require_csrf();
+    require_admin_post();
     $category = filter_var($_POST['category'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
     $title = guide_text($_POST['title'] ?? '', 150);
     $slug = guide_text($_POST['slug'] ?? '', 150);
@@ -35,16 +36,36 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $backupWarning = guide_text($_POST['backup_warning'] ?? '', 5000);
     $nextActions = guide_text($_POST['next_actions'] ?? '', 5000);
 
-    in_transaction($conn, static function () use ($conn, $id, $category, $title, $slug, $description, $difficulty, $time, $risk, $platformVersion, $tools, $prerequisites, $backupWarning, $nextActions, $videoUrl, $steps): void {
-        $update = $conn->prepare(
-            'UPDATE guides SET category_id = ?, title = ?, slug = ?, description = ?, difficulty = ?, estimated_time = ?, risk_level = ?, platform_version = ?, required_tools = ?, prerequisites = ?, backup_warning = ?, last_reviewed_at = UTC_DATE(), next_actions = ?, video_url = ? WHERE id = ?'
-        );
-        $update->bind_param('issssssssssssi', $category, $title, $slug, $description, $difficulty, $time, $risk, $platformVersion, $tools, $prerequisites, $backupWarning, $nextActions, $videoUrl, $id);
-        $update->execute();
-        $update->close();
-        guide_replace_steps($conn, $id, $steps);
-        guide_replace_tools($conn, $id, $tools);
-    });
+    if (!guide_exists($conn, $id)) {
+        flash('error', 'That guide no longer exists.');
+        redirect('admin_guides.php');
+    }
+
+    if (!guide_category_exists($conn, $category)) {
+        flash('error', 'Choose an existing category.');
+        redirect('edit_guide.php?id=' . $id);
+    }
+
+    try {
+        in_transaction($conn, static function () use ($conn, $id, $category, $title, $slug, $description, $difficulty, $time, $risk, $platformVersion, $tools, $prerequisites, $backupWarning, $nextActions, $videoUrl, $steps): void {
+            $update = $conn->prepare(
+                'UPDATE guides SET category_id = ?, title = ?, slug = ?, description = ?, difficulty = ?, estimated_time = ?, risk_level = ?, platform_version = ?, required_tools = ?, prerequisites = ?, backup_warning = ?, last_reviewed_at = UTC_DATE(), next_actions = ?, video_url = ? WHERE id = ?'
+            );
+            $update->bind_param('issssssssssssi', $category, $title, $slug, $description, $difficulty, $time, $risk, $platformVersion, $tools, $prerequisites, $backupWarning, $nextActions, $videoUrl, $id);
+            $update->execute();
+            $update->close();
+            guide_replace_steps($conn, $id, $steps);
+            guide_replace_tools($conn, $id, $tools);
+            admin_audit($conn, 'guide.update', 'guide', $id, ['slug' => $slug, 'category_id' => $category]);
+        });
+    } catch (mysqli_sql_exception $exception) {
+        if ($exception->getCode() !== 1062) {
+            throw $exception;
+        }
+
+        flash('error', 'That guide slug is already in use.');
+        redirect('edit_guide.php?id=' . $id);
+    }
 
     flash('success', 'Structured guide updated.');
     redirect('admin_guides.php');

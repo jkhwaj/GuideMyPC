@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 require_once __DIR__ . '/config.php';
 require_admin();
 include("includes/header.php");
@@ -23,11 +26,7 @@ $result = $conn->query($sql);
             + Add New Guide
         </a>
 
-        <?php if (isset($_GET["success"]) && $_GET["success"] === "guide_deleted"): ?>
-            <div class="success-message">
-                Guide deleted successfully.
-            </div>
-        <?php endif; ?>
+        <?php render_flash_messages(); ?>
 
         <table class="admin-table">
             <thead>

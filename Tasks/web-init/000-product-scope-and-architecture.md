@@ -1,6 +1,6 @@
 # Task: Product Scope and Architecture
 
-- Status: Not started
+- Status: Foundation implemented
 - Priority: Critical
 - Release: R0
 - Dependencies: None
@@ -29,10 +29,10 @@ GuideMyPC combines reviewed guides, explainable diagnostics, source-linked AI as
 
 - The repository is a functional procedural PHP prototype running from `C:\xampp\htdocs\GuideMyPC`.
 - Shared page fragments exist under `includes/`; CSS and JavaScript are under `css/` and `js/`.
-- MariaDB schema and sample data are stored in `database/guidemypc.sql`.
-- Accounts, guides, progress, ratings, favorites, downloads, community features, and admin pages are partially implemented.
-- Universal search is nonfunctional, `ai.php` is empty, and the generic Guides navigation has a broken empty-category flow.
-- Security, migrations, tests, setup documentation, monitoring, and deployment processes are not release-ready.
+- Versioned migrations and sanitized seeds now cover the core content, account, diagnostic, download, maintenance, and administration foundations.
+- Accounts, search, guides, knowledge content, progress, ratings, favorites, downloads, diagnostics, community records, and admin pages have varying levels of implementation.
+- The shared bootstrap, CSRF/authorization helpers, local setup validation, fast integration tests, sitemap/robots, and baseline security headers are implemented.
+- Later roadmap work remains foundation-level unless its complete user-facing workflow and task validation have evidence. In particular, an external AI provider and full community workflow are not release claims.
 
 ## Architecture Decisions
 
@@ -120,13 +120,13 @@ The architecture documentation must also identify public routes/assets, shared a
 ### R3: Trusted Assistance
 
 - Verified download catalog
-- AI troubleshooting assistant with safety rules and session context
-- Moderated screenshot and text-log uploads
+- AI troubleshooting shell and safety boundary only; external-provider integration requires a separate release decision
+- Moderated screenshot and text-log uploads only when their security review and workflow are complete
 
 ### R4: Community and Launch
 
-- Questions, answers, voting, accepted solutions, reporting, and moderation
-- Unified administration and audit history
+- One complete administrator content CRUD/moderation workflow with RBAC and audit history
+- Community foundation work is future scope until questions, answers, reporting, and moderation work end to end
 - Accessibility, SEO, performance, automated testing, and deployment readiness
 
 ## Non-Goals
@@ -176,6 +176,7 @@ Metrics must be privacy-conscious and must not store raw sensitive troubleshooti
 - [ ] The problem statement and unique value are reflected in the two-page submission overview.
 - [ ] Frontend, backend, database, and platform choices identify alternatives, rationale, and reconsideration triggers.
 - [ ] A current folder/request/data-flow diagram matches the implemented release rather than a speculative future system.
+- [ ] Every task status distinguishes foundation work from a completed, evidenced vertical slice.
 
 ## Validation
 

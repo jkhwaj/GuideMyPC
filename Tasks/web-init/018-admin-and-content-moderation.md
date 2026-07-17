@@ -1,6 +1,6 @@
 # Task: Admin and Content Moderation
 
-- Status: Not started
+- Status: In progress
 - Priority: High
 - Release: R4
 - Dependencies: `008-knowledge-base.md` through `017-community-forum.md`
@@ -11,7 +11,7 @@ Consolidate content operations into a secure administration area with publishing
 
 ## Current State
 
-The prototype has separate admin pages for categories, guides, downloads, users, comments, and community content. Authorization and mutation patterns are duplicated, destructive actions are not consistently protected, and there is no audit trail or multi-state editorial workflow.
+The prototype has separate admin pages for categories, guides, downloads, users, comments, and community content. The structured-guide workflow is the representative implemented foundation: create, update, and delete use server-side admin checks, POST/CSRF protection, validation, transactions, and redacted audit records. Other admin routes still have duplicated patterns, and shared queues, editorial states, pagination/filtering, and broader moderation remain incomplete.
 
 ## Scope
 
@@ -81,6 +81,7 @@ Admin tables require captions/headers and responsive alternatives; forms require
 
 ## Validation
 
+- Guide CRUD foundation: `tests/guide_integration_test.php` validates guide/category checks, transactional step/tool updates, and redacted audit metadata; `scripts/verify.php` runs it with the integration suite.
 - Test each capability as guest, user, moderator/editor if present, and admin.
 - Attempt direct requests to hidden controls and obsolete endpoints.
 - Verify audit records for create/edit/publish/delete/restore/role/moderation actions.

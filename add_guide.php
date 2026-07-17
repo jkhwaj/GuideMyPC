@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/admin.php';
 require_once __DIR__ . '/includes/guides.php';
 
 require_admin();
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-    require_csrf();
+    require_admin_post();
     $category = filter_var($_POST['category'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
     $title = guide_text($_POST['title'] ?? '', 150);
     $slug = guide_text($_POST['slug'] ?? '', 150);
@@ -31,18 +32,33 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $nextActions = guide_text($_POST['next_actions'] ?? '', 5000);
     $content = '';
 
-    in_transaction($conn, static function () use ($conn, $category, $title, $slug, $description, $difficulty, $time, $risk, $platformVersion, $tools, $prerequisites, $backupWarning, $nextActions, $videoUrl, $content, $steps): void {
-        $insert = $conn->prepare(
-            'INSERT INTO guides (category_id, title, slug, description, difficulty, estimated_time, risk_level, content, platform_version, required_tools, prerequisites, backup_warning, last_reviewed_at, next_actions, video_url) '
-            . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_DATE(), ?, ?)'
-        );
-        $insert->bind_param('isssssssssssss', $category, $title, $slug, $description, $difficulty, $time, $risk, $content, $platformVersion, $tools, $prerequisites, $backupWarning, $nextActions, $videoUrl);
-        $insert->execute();
-        $guideId = $insert->insert_id;
-        $insert->close();
-        guide_replace_steps($conn, $guideId, $steps);
-        guide_replace_tools($conn, $guideId, $tools);
-    });
+    if (!guide_category_exists($conn, $category)) {
+        flash('error', 'Choose an existing category.');
+        redirect('add_guide.php');
+    }
+
+    try {
+        in_transaction($conn, static function () use ($conn, $category, $title, $slug, $description, $difficulty, $time, $risk, $platformVersion, $tools, $prerequisites, $backupWarning, $nextActions, $videoUrl, $content, $steps): void {
+            $insert = $conn->prepare(
+                'INSERT INTO guides (category_id, title, slug, description, difficulty, estimated_time, risk_level, content, platform_version, required_tools, prerequisites, backup_warning, last_reviewed_at, next_actions, video_url) '
+                . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_DATE(), ?, ?)'
+            );
+            $insert->bind_param('isssssssssssss', $category, $title, $slug, $description, $difficulty, $time, $risk, $content, $platformVersion, $tools, $prerequisites, $backupWarning, $nextActions, $videoUrl);
+            $insert->execute();
+            $guideId = $insert->insert_id;
+            $insert->close();
+            guide_replace_steps($conn, $guideId, $steps);
+            guide_replace_tools($conn, $guideId, $tools);
+            admin_audit($conn, 'guide.create', 'guide', $guideId, ['slug' => $slug, 'category_id' => $category]);
+        });
+    } catch (mysqli_sql_exception $exception) {
+        if ($exception->getCode() !== 1062) {
+            throw $exception;
+        }
+
+        flash('error', 'That guide slug is already in use.');
+        redirect('add_guide.php');
+    }
 
     flash('success', 'Structured guide created.');
     redirect('admin_guides.php');

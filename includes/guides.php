@@ -50,6 +50,28 @@ function guide_youtube_embed_url(mixed $value): ?string
         : null;
 }
 
+function guide_category_exists(mysqli $connection, int $categoryId): bool
+{
+    $statement = $connection->prepare('SELECT 1 FROM categories WHERE id = ?');
+    $statement->bind_param('i', $categoryId);
+    $statement->execute();
+    $exists = $statement->get_result()->fetch_row() !== null;
+    $statement->close();
+
+    return $exists;
+}
+
+function guide_exists(mysqli $connection, int $guideId): bool
+{
+    $statement = $connection->prepare('SELECT 1 FROM guides WHERE id = ?');
+    $statement->bind_param('i', $guideId);
+    $statement->execute();
+    $exists = $statement->get_result()->fetch_row() !== null;
+    $statement->close();
+
+    return $exists;
+}
+
 /** @return list<array<string, string|int|null>> */
 function guide_normalize_steps(mixed $input): array
 {

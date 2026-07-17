@@ -1,6 +1,6 @@
 # Task: Documentation and Academic Submission Package
 
-- Status: Not started
+- Status: In progress
 - Priority: Critical
 - Release: Submission
 - Dependencies: `000-product-scope-and-architecture.md` for drafting; `020-testing-security-and-release.md` for finalization; `021-production-deployment.md` only when production deployment is claimed
@@ -23,7 +23,7 @@ The implementation roadmap contains product and technical decisions, but there i
 
 Prepare the four rubric deliverables as separate files before placing them in the final submission archive:
 
-1. `Readme.docx`: project name, group name, every member's name/ID/email/phone as required, role, owned deliverables, and review responsibilities.
+1. `Readme.docx`: project name, group name, every member's name/ID/email/phone as required, role, owned deliverables, and review responsibilities. This is separate from the final report.
 2. `GuideMyPC-Final-Report.docx`: the complete report, including the two-page system overview, architecture analysis, screenshots, Git/GitHub evidence, third-party inventory, tests, limitations, and references.
 3. `GuideMyPC.vpp`: the Visual Paradigm source project containing the four required UML diagrams, plus PNG or PDF exports embedded in the report.
 4. `GuideMyPC-Source.zip`: a clean, reproducible source archive from the exact release commit.
@@ -41,6 +41,20 @@ Use Markdown source documents under `docs/submission/` where useful for review a
 - Inventory every third-party runtime, development, browser, CDN, font, icon, testing, export, and diagram dependency.
 - Include test evidence, known limitations, security/privacy constraints, and optional appendices where they add value.
 - Build and verify a clean source archive and final submission checklist.
+- Meet the formal deadline of 31/07/2026 at 23:59; use 30/07/2026 as the internal submission deadline.
+
+## Formal Report Structure
+
+Build `GuideMyPC-Final-Report.docx` with a table of contents, page numbers, Hebrew proofreading, and these numbered sections:
+
+1. Truthful team roles, responsibilities, and contribution percentages aligned with Git history.
+2. A prose-only system description of no more than two pages.
+3. Internet technologies: architecture block diagram; frontend; backend; database; and platform.
+4. Eight to ten numbered, captioned screenshots in logical user-flow order.
+5. Use Case, Class, Activity, and State Machine UML diagrams.
+6. Optional, truthful GitHub evidence.
+7. Complete third-party inventory with exact versions.
+8. Only useful appendices, such as test evidence, ER/deployment diagrams, sources, or known-problem notes.
 
 ## Non-Goals
 
@@ -75,6 +89,8 @@ Document the implemented architecture from task `000`:
 
 For each layer, state the selected technology, alternatives considered, why the choice fits this project, known tradeoffs, and the condition that would justify reconsideration.
 
+The database section must include an ER diagram or table list, key fields, relationships, and relevant indexes. The platform section must name supported browsers and confirm responsive behavior down to a 320px viewport.
+
 ## UML Deliverables
 
 Create these diagrams in the required Visual Paradigm project:
@@ -96,7 +112,7 @@ Capture exactly 8-10 report screenshots. The recommended 10-image set is:
 4. Profile/history desktop
 5. Universal search and filters desktop
 6. Repair guide or interactive diagnostic desktop
-7. Administrator dashboard desktop
+7. Administrator content-management CRUD desktop, showing the project-equivalent admin dashboard/operations view
 8. Accessible error page desktop
 9. Homepage mobile
 10. Core troubleshooting flow mobile
@@ -196,6 +212,8 @@ None. Diagrams and schema descriptions must be generated from the migration-mana
 - [ ] A separate team README identifies every required member detail, role, owned deliverables, and review responsibility.
 - [ ] The system overview is no more than two concise pages and covers abstract, problem, audience, capabilities, unique value, and implemented scope.
 - [ ] The report justifies frontend, backend, database, and platform choices without proposing an unapproved framework rewrite.
+- [ ] The report maps Sections 1-8, includes a table of contents and page numbering, and has been proofread in Hebrew.
+- [ ] The database report section includes an ER/table view, key fields, relationships, and relevant indexes; the platform section names browsers and verifies 320px minimum viewport support.
 - [ ] The `.vpp` project and readable exports contain all four required diagrams and match the implemented release.
 - [ ] The report contains 8-10 release-quality screenshots, including at least 2-3 responsive/mobile views, with captions and no sensitive data.
 - [ ] Git/GitHub evidence references real repository activity and the exact submitted commit.
@@ -205,6 +223,7 @@ None. Diagrams and schema descriptions must be generated from the migration-mana
 - [ ] The source archive contains no secrets, private data, generated local state, repository history, dependencies, or debug utilities.
 - [ ] A fresh archive extraction can be configured from `.env.example`, install declared dependencies, migrate a blank database, and run the documented verification command.
 - [ ] The final package contains the four required deliverables with instructor-approved filenames and formats.
+- [ ] The outer submission ZIP is opened and checked for all four deliverables, exclusions, and a sanitized schema/sample-data package before the internal deadline.
 
 ## Validation
 

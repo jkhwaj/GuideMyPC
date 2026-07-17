@@ -20,8 +20,8 @@ The current prototype will be improved incrementally. A React or Node.js rewrite
 | R0 | Secure, repeatable foundation | `000`-`004` |
 | R1 | Find and follow trusted solutions | `005`-`009` |
 | R2 | Personalized troubleshooting | `010`-`013` |
-| R3 | Trusted AI and download assistance | `014`-`016` |
-| R4 | Community, operations, and launch | `017`-`021` |
+| R3 | Trusted downloads and scoped assistance | `014`-`016` |
+| R4 | Administration, quality, and launch | `017`-`021` |
 | Submission | Academic documentation and verified evidence | `022` |
 | Future | Post-MVP product expansion | `100` |
 
@@ -31,9 +31,11 @@ The current prototype will be improved incrementally. A React or Node.js rewrite
 2. Do not begin public AI or file-upload features before the security foundation is complete.
 3. Treat each release boundary as a usable, testable product increment.
 4. Run the validation listed in every task before marking it complete.
-5. Update task status and record material decisions in the task file during implementation.
+5. Update task status and record material decisions in the task file during implementation. A foundation commit is not a completed task.
 6. Maintain team ownership, architecture decisions, dependency inventory, Git/GitHub evidence, test evidence, and screenshot notes during development rather than reconstructing them at submission time.
 7. Finalize task `022` against the exact commit that passes task `020`.
+8. Before the final-project deadline, prioritize complete, screenshot-ready vertical slices over optional breadth: account flows, search/guides, diagnostic/confidence, and one administrator CRUD/moderation flow.
+9. Keep external AI-provider integration and the full community workflow in future scope unless their end-to-end behavior, safety controls, and evidence are complete.
 
 ## Task Index
 
@@ -65,10 +67,11 @@ The current prototype will be improved incrementally. A React or Node.js rewrite
 ## Standard Status Values
 
 - `Not started`
+- `Foundation implemented` - schema, helpers, or route scaffolding exists but the vertical slice is unfinished
 - `In progress`
 - `Blocked`
 - `In review`
-- `Complete`
+- `Complete with evidence` - all acceptance criteria, validation, responsive behavior, and release evidence are recorded
 
 ## Definition of MVP
 

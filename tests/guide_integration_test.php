@@ -8,6 +8,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require_once dirname(__DIR__) . '/config.php';
+require_once dirname(__DIR__) . '/includes/admin.php';
 require_once dirname(__DIR__) . '/includes/guides.php';
 
 $guide = $conn->query("SELECT id FROM guides WHERE slug = 'check-windows-update-issue' LIMIT 1")->fetch_assoc();
@@ -21,6 +22,12 @@ $guideId = (int) $guide['id'];
 $conn->begin_transaction();
 
 try {
+    $categoryId = (int) $conn->query('SELECT id FROM categories ORDER BY id LIMIT 1')->fetch_assoc()['id'];
+
+    if (!guide_exists($conn, $guideId) || !guide_category_exists($conn, $categoryId) || guide_category_exists($conn, PHP_INT_MAX)) {
+        throw new RuntimeException('Guide and category validation did not return the expected result.');
+    }
+
     guide_replace_steps($conn, $guideId, [[
         'text' => 'Test the structured action.',
         'title' => 'Test title',
@@ -39,8 +46,17 @@ try {
         throw new RuntimeException('Structured guide fields were not saved as expected.');
     }
 
+    $_SESSION['user_id'] = 1;
+    admin_audit($conn, 'guide.test', 'guide', $guideId, ['slug' => 'test-guide', 'csrf_token' => 'not-stored']);
+    $audit = $conn->query("SELECT metadata_json FROM admin_audit_events WHERE action = 'guide.test' ORDER BY id DESC LIMIT 1")->fetch_assoc();
+    $metadata = $audit === null ? null : json_decode($audit['metadata_json'], true);
+
+    if (!is_array($metadata) || ($metadata['slug'] ?? null) !== 'test-guide' || ($metadata['csrf_token'] ?? null) !== '[redacted]') {
+        throw new RuntimeException('Guide audit metadata was not stored safely.');
+    }
+
     $conn->rollback();
-    fwrite(STDOUT, "PASS: structured guide steps and tools are transactional.\n");
+    fwrite(STDOUT, "PASS: structured guide validation, updates, and audit records are transactional.\n");
 } catch (Throwable $exception) {
     $conn->rollback();
     fwrite(STDERR, 'FAIL: ' . $exception->getMessage() . PHP_EOL);

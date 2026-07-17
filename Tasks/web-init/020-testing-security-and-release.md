@@ -1,6 +1,6 @@
 # Task: Testing, Security, and MVP Release
 
-- Status: Not started
+- Status: Foundation implemented
 - Priority: Critical
 - Release: R4
 - Dependencies: `001-xampp-local-setup.md` through `019-accessibility-seo-and-performance.md`
@@ -11,7 +11,7 @@ Create an automated and manual release gate proving that the MVP's core behavior
 
 ## Current State
 
-There is no automated test suite, CI configuration, static analysis, code style enforcement, release checklist, dependency audit, browser matrix, backup test, or security review process.
+Fast PHP integration tests, PHP syntax checks, local setup validation, a release checklist, and representative HTTP/security smoke checks exist. CI, browser automation, static analysis, full backup restoration, and a complete evidence matrix remain incomplete.
 
 ## Scope
 
@@ -27,6 +27,7 @@ There is no automated test suite, CI configuration, static analysis, code style 
 - Reconcile every third-party runtime, development, browser, CDN, font, icon, test, and documentation dependency against lockfiles and source references.
 - Verify GitHub checks, reviews, issues, and release evidence refer to the exact release/submission commit.
 - Run submission preflight against a fresh extraction of the clean source archive defined by task `022`.
+- Record the named end-to-end scenarios required for the final academic evidence set.
 
 ## Non-Goals
 
@@ -82,6 +83,12 @@ Automated and manual accessibility checks are part of the release gate, includin
 - [ ] Every included dependency is documented with exact version, purpose, canonical source, and license; no undocumented dependency remains.
 - [ ] GitHub and review evidence corresponds to the release commit and does not claim work that did not occur.
 - [ ] A fresh extraction of the submission archive can be configured, migrated, and verified using only included documentation and declared dependencies.
+- [ ] Registration, login, logout, password reset request/reset, and account-history behavior are verified.
+- [ ] One administrator content workflow proves create, read, update, delete, validation feedback, and role denial (`403`).
+- [ ] Search/filter/sort/pagination are proven with more than 25 realistic records where the selected entity supports pagination.
+- [ ] Diagnostic completion is tested with JavaScript disabled, invalid/tampered transitions rejected, and uncertainty displayed when evidence is insufficient.
+- [ ] Sensitive paths return `403`, UTF-8 content renders correctly, and a controlled error/404 state is recorded.
+- [ ] Desktop and 320px mobile behavior are checked in the declared browser matrix.
 
 ## Validation
 
