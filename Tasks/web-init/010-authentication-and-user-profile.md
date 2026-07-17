@@ -1,6 +1,6 @@
 # Task: Authentication and User Profile
 
-- Status: Not started
+- Status: Completed
 - Priority: High
 - Release: R2
 - Dependencies: `002-security-bootstrap.md`, `003-database-migrations-and-seeds.md`, `005-responsive-design-system-and-layout.md`
@@ -66,12 +66,12 @@ Forms need labels, autocomplete attributes, clear password requirements, announc
 
 ## Acceptance Criteria
 
-- [ ] Guest, user, and admin access boundaries are consistently enforced.
-- [ ] Authentication resists session fixation, CSRF, enumeration, and basic brute force.
-- [ ] Users can revisit favorites, history, progress, and saved diagnostics.
-- [ ] Password reset tokens expire, are single use, and are stored hashed.
-- [ ] Users can understand and request deletion/export of stored personal activity.
-- [ ] Guest progress can be retained when creating an account without overwriting newer user data.
+- [x] Guest, user, and admin access boundaries are consistently enforced.
+- [x] Authentication resists session fixation, CSRF, enumeration, and basic brute force.
+- [x] Users can revisit favorites, history, progress, and saved diagnostics.
+- [x] Password reset tokens expire, are single use, and are stored hashed.
+- [x] Users can understand and request deletion/export of stored personal activity.
+- [x] Guest progress can be retained when creating an account without overwriting newer user data.
 
 ## Validation
 
@@ -79,6 +79,8 @@ Forms need labels, autocomplete attributes, clear password requirements, announc
 - Attempt cross-user access to every personalized record.
 - Test guest-to-account state merge and account deletion/export paths.
 - Run keyboard and screen-reader form checks.
+
+Validation completed locally: migration `012_account_personalization.sql` applied to the live and knowledge test databases. Public reset request/consume routes returned HTTP 200; profile/settings correctly redirected logged-out visitors; all updated PHP files linted; and helper tests passed. The focused account integration test created a temporary account in the test database, consumed a hashed reset token exactly once, verified the new password, merged guest progress without replacing an existing record, recorded activity, then deleted the temporary account. Registration/login retain existing CSRF, rate-limit, password-hash, generic error, and session-regeneration controls. Export/deletion routes create reviewable requests rather than claiming immediate automated deletion.
 
 ## Definition of Done
 

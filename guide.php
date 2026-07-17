@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/guides.php';
+require_once __DIR__ . '/includes/accounts.php';
 
 $slug = required_string($_GET['slug'] ?? null, 150) ?? '';
 $statement = $conn->prepare(
@@ -32,6 +33,10 @@ if (!in_array($guideId, $_SESSION['viewed_guides'], true)) {
     $viewStatement->close();
     $_SESSION['viewed_guides'][] = $guideId;
     $guide['views'] = (int) $guide['views'] + 1;
+
+    if (current_user_id() > 0) {
+        record_user_activity($conn, current_user_id(), 'guide_view', 'guide', $guide['slug']);
+    }
 }
 
 $userId = current_user_id();

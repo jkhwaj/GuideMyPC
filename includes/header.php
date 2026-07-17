@@ -22,6 +22,9 @@ $pageDetails = [
     'terms.php' => ['Terms | GuideMyPC', 'Read the terms for using GuideMyPC.'],
     'disclaimer.php' => ['Disclaimer | GuideMyPC', 'Understand the limits of GuideMyPC troubleshooting guidance.'],
     'donate.php' => ['Support GuideMyPC | GuideMyPC', 'Learn how to support the continued development of GuideMyPC.'],
+    'forgot_password.php' => ['Reset Password | GuideMyPC', 'Request a GuideMyPC password reset link.'],
+    'reset_password.php' => ['Choose a New Password | GuideMyPC', 'Set a new GuideMyPC password with a valid reset link.'],
+    'settings.php' => ['Account Settings | GuideMyPC', 'Update your GuideMyPC account settings.'],
 ];
 $pageTitle = $pageTitle ?? ($pageDetails[$pageKey][0] ?? 'GuideMyPC | Practical Tech Support');
 $pageDescription = $pageDescription ?? ($pageDetails[$pageKey][1] ?? 'Practical, trustworthy technology support from GuideMyPC.');

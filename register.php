@@ -1,28 +1,43 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/accounts.php';
 
 $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     require_csrf();
-    $full_name = trim((string) ($_POST["full_name"] ?? ''));
-    $email = trim((string) ($_POST["email"] ?? ''));
+    $full_name = valid_display_name($_POST['full_name'] ?? null);
+    $email = normalize_email($_POST['email'] ?? null);
     $password = (string) ($_POST["password"] ?? '');
 
     if (!rate_limit_allows('registration', 3, 3600)) {
         $message = "Too many registration attempts. Please try again later.";
-    } elseif ($full_name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 12) {
+    } elseif ($full_name === null || $email === null || mb_strlen($password) < 12) {
         $message = "Use a valid name and email, and a password of at least 12 characters.";
     } else {
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $existing = $conn->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+        $existing->bind_param('s', $email);
+        $existing->execute();
+        $exists = $existing->get_result()->num_rows > 0;
+        $existing->close();
 
-        $stmt = $conn->prepare("INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $full_name, $email, $hashedPassword);
-
-        if ($stmt->execute()) {
-            $message = "Account created successfully. You can now log in.";
+        if ($exists) {
+            $message = 'Unable to create the account. Review the details and try again.';
         } else {
-            $message = "Unable to create the account. Review the details and try again.";
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $full_name, $email, $hashedPassword);
+            $stmt->execute();
+            $userId = $stmt->insert_id;
+            $stmt->close();
+            session_regenerate_id(true);
+            $_SESSION['user_id'] = $userId;
+            $_SESSION['full_name'] = $full_name;
+            $_SESSION['role'] = 'user';
+            merge_guest_progress($conn, $userId);
+            record_account_event($conn, $userId, 'registration');
+            flash('success', 'Account created. Your guest progress was saved to your account.');
+            redirect('profile.php');
         }
     }
 }
