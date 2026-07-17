@@ -1,6 +1,6 @@
 # Task: Architecture Contract and Route Inventory
 
-- Status: Not started
+- Status: In progress
 - Priority: Critical
 - Release: M0
 - Dependencies: None
@@ -112,9 +112,9 @@ This task changes documentation only. Revert inaccurate documentation while pres
 - [ ] Existing behavior and desired behavior are clearly distinguished.
 - [ ] Session, CSRF, redirect, JSON, error, and publication contracts are documented.
 - [ ] Community, Downloads, Composer deployment, proxy handling, URL compatibility, and private-storage decisions are approved or explicitly blocked.
-- [ ] `docs/project-structure.md` defines current, transitional, and target structures and dependency rules.
-- [ ] `AGENTS.md` links to the structural guide and migration roadmap without duplicating them.
-- [ ] Foundation-only AI, maintenance, uploads, confidence, and community code is not represented as a completed module.
+- [x] `docs/project-structure.md` defines current, transitional, and target structures and dependency rules.
+- [x] `AGENTS.md` links to the structural guide and migration roadmap without duplicating them.
+- [x] Foundation-only AI, maintenance, uploads, confidence, and community code is not represented as a completed module.
 - [ ] Downstream tasks can identify exactly which contracts they must preserve.
 
 ## Validation
@@ -128,3 +128,10 @@ This task changes documentation only. Revert inaccurate documentation while pres
 ## Definition of Done
 
 The current application contracts and target structural rules are approved, linked from contributor instructions, and precise enough that task `001` can change initialization without relying on undocumented behavior.
+
+## Implementation Evidence
+
+- `docs/project-structure.md` records the current, transitional, and target structures, dependency rules, responsibilities, storage boundary, and decision register.
+- `docs/route-contracts.md` records legacy route groups, shared response/session contracts, known policy differences, and characterization requirements.
+- `AGENTS.md`, `docs/application-conventions.md`, and `docs/submission/system-overview.md` now reference the migration accurately without claiming the target structure is already implemented.
+- Remaining work: create route-by-route characterization evidence, cross-check every caller, and resolve or formally block each pending decision with owner and deadline.

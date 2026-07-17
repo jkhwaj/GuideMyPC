@@ -36,3 +36,17 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 2. Use `detect_changes` for code review.
 3. Use `get_affected_flows` to understand impact.
 4. Use `query_graph` pattern="tests_for" to check coverage.
+
+## Project Structure
+
+Before changing application structure, routing, bootstrap code, shared
+security, or feature boundaries, read:
+
+- `docs/project-structure.md`
+- `docs/route-contracts.md`
+- `Tasks/project-structure-migration/README.md`
+
+Preserve documented legacy route and response contracts during the migration.
+Keep runtime storage outside the repository and expose only `public/` through
+the web server once task `008` is complete. Follow the active migration task
+and record validation evidence before starting a dependent phase.
