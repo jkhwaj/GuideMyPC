@@ -36,7 +36,7 @@ This baseline supports task `000` of `Tasks/project-structure-migration/`. It re
 | `guides.php` | GET HTML | Published guide/category listing with filtering. |
 | `guide.php` | GET HTML | Guide detail plus view counting, activity, guest-progress merging, and guide action forms. Extract reads before commands. |
 | `knowledge.php`, `knowledge_article.php`, `glossary.php`, `error-code.php` | GET HTML | Knowledge content routes. Migrate as the first database-backed read slice. |
-| `downloads.php` | GET HTML | Current public visibility is inconsistent with review state. Characterize now; do not change policy before decision. |
+| `downloads.php` | GET HTML | Public records require `is_published`, `review_state = 'approved'`, and a safe HTTPS URL. Preserve legacy path while centralizing this policy in task `006`. |
 | `search.php` | GET HTML | Search results and aggregate search event recording. |
 | `search_suggestions.php` | GET JSON | File-rate-limited suggestions endpoint. |
 | `search_event.php` | POST JSON | Search-selection telemetry. It is a documented CSRF exception that must not be broken by broad middleware. |
@@ -61,7 +61,7 @@ This baseline supports task `000` of `Tasks/project-structure-migration/`. It re
 | `community.php` | GET HTML and POST HTML/redirect | Active legacy post/comment workflow. Current publication filtering differs from Search and Home. |
 | `toggle_like.php` | POST redirect | Authenticated Community like action. |
 
-The active routes use `community_posts`, `community_comments`, and `community_likes`. The newer question/answer tables are not active runtime routes. Task `006` is blocked until one model is approved as canonical.
+The active routes use `community_posts`, `community_comments`, and `community_likes`. This legacy model is canonical for the migration. The newer question/answer tables remain deferred and are not active runtime routes.
 
 ## Administration
 
@@ -77,8 +77,8 @@ Administration moves into the feature that owns its data. The shared audit servi
 
 | Area | Current difference | Required decision |
 | --- | --- | --- |
-| Downloads | `downloads.php` can show records regardless of publication/review state; Home and Search check `is_published`; the unused helper also checks URL safety and approval. | Define one public eligibility matrix before task `006`. |
-| Community | Community list and Home can show posts without the publication filter used by Search. | Approve model and publication policy before task `006`. |
+| Downloads | `downloads.php` can show records regardless of publication/review state; Home and Search check `is_published`; the unused helper also checks URL safety and approval. | Approved: public records require publication, approval, and a safe HTTPS URL. Task `006` must centralize the rule before task `007` migrates aggregators. |
+| Community | Community list and Home can show posts without the publication filter used by Search. | Approved model: legacy posts/comments/likes. Task `006` must define one publication policy before task `007` migrates aggregators. |
 | Diagnostics | Non-guide resource types currently resolve to `community.php`. | Keep active behavior through migration; schedule typed resource resolution separately. |
 | Admin audit | Structured guide operations are audited, but other administrative mutations are not consistently audited. | Apply audit consistently during task `006`. |
 

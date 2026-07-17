@@ -189,12 +189,12 @@ See `docs/route-contracts.md` for the baseline route groups and compatibility ru
 | --- | --- | --- | --- |
 | Legacy URL compatibility | Approved | Preserve `*.php` paths and form contracts; defer clean URLs. | None |
 | Private runtime storage | Approved | Keep it configurable and external to repository/web root. | None |
-| Canonical Community model | Pending | Keep active legacy behavior; do not activate or merge community-v2 code. | `006` |
-| Public Download eligibility | Pending | Preserve current behavior only for characterization; do not centralize a new policy. | `006`, `007` |
+| Canonical Community model | Approved | Keep the active `community_posts`, `community_comments`, and `community_likes` model. Defer the unwired question/answer schema. | None |
+| Public Download eligibility | Approved | Public records require `is_published`, `review_state = 'approved'`, and a safe HTTPS URL under the existing trusted-URL policy. | None |
 | Production Composer strategy | Approved | Build deploy artifacts with locked production dependencies; source archives remain clean. | `001`, `008`, `009` |
 | Trusted proxy and HTTPS policy | Approved | Support direct Apache HTTPS only; do not trust forwarded headers without a separately approved allowlist. | `002`, `008` |
 
-Each pending decision needs an owner, deadline, and decision record before its blocking task can pass.
+Each pending decision needs an owner, deadline, and decision record before its blocking task can pass. The Community and Download decisions were approved by the project owner on 2026-07-18.
 
 ## Completion Rules
 

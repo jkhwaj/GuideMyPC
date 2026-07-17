@@ -108,8 +108,8 @@ Downloads and Community use approved, testable policy boundaries; administration
 
 ## Implementation Evidence
 
-- The approved Download eligibility matrix and canonical Community model remain pending decisions from task `000`; public routes and active Community behavior are unchanged.
+- The project owner approved the active legacy Community model and a public Download rule requiring publication, approval, and a safe HTTPS URL; task `006` may now centralize these policies without changing legacy paths.
 - Extracted the existing unused Download HTTPS/private-IP/review-state helper behavior into `GuideMyPC\Features\Downloads\DownloadPolicy`, retaining procedural helper delegates for compatibility.
-- This extraction does not select or activate a public Download policy: `downloads.php`, Home, Search, and administrator routes still retain their current behavior until the eligibility decision is approved.
+- This extraction predates the policy decision: `downloads.php`, Home, Search, and administrator routes still retain their current behavior until task `006` applies the approved eligibility rule consistently.
 - Added helper coverage for the preserved HTTPS, non-HTTPS, approved, and pending behaviors.
 - PHP lint passed for the policy, compatibility helpers, public Download route, Community route, and helper test. `tests/helpers_test.php` passes, and a direct autoloaded check confirms private-IP HTTPS URLs remain rejected.

@@ -115,7 +115,7 @@ This task was audited after the first task `009` hardening increment. Legacy rem
 - `bootstrap/web.php` and `bootstrap/cli.php` still compose the procedural bootstrap, function, security, error, and database includes while their namespaced replacements are extracted incrementally.
 - The repository root remains the documented Apache document root. Its protection relies in part on rewrite-dependent `.htaccess` rules, and no public front controller or legacy route map is active.
 - The temporary PSR-4 fallback remains necessary until Composer is installed and the approved deploy artifact workflow is verified.
-- Task `006` still lacks approved canonical Community and Download eligibility decisions; task `007` aggregators depend on those policies; task `008` has not migrated assets or activated public-root routing.
+- Task `006` must now centralize the approved canonical Community and Download eligibility policies; task `007` aggregators depend on that work; task `008` has not migrated assets or activated public-root routing.
 - The full integration suite now refuses to run without an explicit `DB_TEST_NAME`; a migrated and seeded dedicated database must be configured before final release evidence can pass.
 - The code graph still has a low-cohesion `includes-require` community and reports untested hotspots in legacy Search, Security, Diagnostics, database, and error-handling paths.
 

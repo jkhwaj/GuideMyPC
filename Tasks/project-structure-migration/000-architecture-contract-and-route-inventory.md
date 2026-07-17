@@ -109,9 +109,9 @@ This task changes documentation only. Revert inaccurate documentation while pres
 
 - [ ] Every web entry script has a complete route-contract record.
 - [ ] Route callers in PHP, JavaScript, forms, email links, sitemap output, and navigation have been cross-checked.
-- [ ] Existing behavior and desired behavior are clearly distinguished.
-- [ ] Session, CSRF, redirect, JSON, error, and publication contracts are documented.
-- [ ] Community, Downloads, Composer deployment, proxy handling, URL compatibility, and private-storage decisions are approved or explicitly blocked.
+- [x] Existing behavior and desired behavior are clearly distinguished.
+- [x] Session, CSRF, redirect, JSON, error, and publication contracts are documented.
+- [x] Community, Downloads, Composer deployment, proxy handling, URL compatibility, and private-storage decisions are approved or explicitly blocked.
 - [x] `docs/project-structure.md` defines current, transitional, and target structures and dependency rules.
 - [x] `AGENTS.md` links to the structural guide and migration roadmap without duplicating them.
 - [x] Foundation-only AI, maintenance, uploads, confidence, and community code is not represented as a completed module.
@@ -134,4 +134,5 @@ The current application contracts and target structural rules are approved, link
 - `docs/project-structure.md` records the current, transitional, and target structures, dependency rules, responsibilities, storage boundary, and decision register.
 - `docs/route-contracts.md` records legacy route groups, shared response/session contracts, known policy differences, and characterization requirements.
 - `AGENTS.md`, `docs/application-conventions.md`, and `docs/submission/system-overview.md` now reference the migration accurately without claiming the target structure is already implemented.
-- Remaining work: create route-by-route characterization evidence, cross-check every caller, and resolve or formally block each pending decision with owner and deadline.
+- The project owner approved the active legacy Community model and a public Download rule requiring publication, approval, and a safe HTTPS URL; `docs/project-structure.md` and `docs/route-contracts.md` record both decisions.
+- Remaining work: create route-by-route characterization evidence and cross-check every caller.
