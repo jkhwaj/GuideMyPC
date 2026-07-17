@@ -1,6 +1,6 @@
 # Task: Core, Security, and Compatibility Layer
 
-- Status: Not started
+- Status: In progress
 - Priority: Critical
 - Release: M1
 - Dependencies: `001-composer-and-bootstrap-boundaries.md`
@@ -110,3 +110,10 @@ Extract one responsibility at a time behind the existing function signature. Eac
 ## Definition of Done
 
 Shared runtime and security behavior is implemented behind clear namespaced boundaries, legacy callers remain compatible, and feature routes can migrate without duplicating bootstrap, database, error, or security logic.
+
+## Implementation Evidence
+
+- Extracted environment parsing, value lookup, private-storage resolution, and PHP error-reporting configuration into `GuideMyPC\Core\Environment`.
+- Existing `load_environment()`, `config_value()`, `private_storage_path()`, and `configure_error_handling()` remain compatibility delegates with unchanged signatures.
+- Added `bootstrap/autoload.php`, which uses Composer when `vendor/autoload.php` exists and otherwise provides the project PSR-4 mapping until Composer tooling is available.
+- Session, HTTPS/proxy, CSRF, authorization, response, logging, and database behavior remain unchanged in this increment.

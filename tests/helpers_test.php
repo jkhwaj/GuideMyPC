@@ -26,6 +26,11 @@ function assert_same(mixed $expected, mixed $actual, string $message): void
 }
 
 assert_same('Guide', required_string(' Guide ', 10), 'required_string trims valid values.');
+assert_same('value', GuideMyPC\Core\Environment::value(['KEY' => 'value'], 'KEY'), 'PSR-4 Core classes autoload without Composer.');
+assert_same([], load_environment(dirname(__DIR__) . '/missing-test-env'), 'load_environment ignores a missing file.');
+assert_same('fallback', config_value('MISSING_TEST_VALUE', 'fallback'), 'config_value preserves its default contract.');
+assert_same(true, is_string(private_storage_path('logs')), 'private_storage_path resolves private runtime storage.');
+configure_error_handling();
 assert_same(null, required_string('Long value', 3), 'required_string rejects long values.');
 assert_same(['page' => 2, 'per_page' => 20, 'offset' => 20], pagination_values('2'), 'pagination_values calculates offsets.');
 assert_same(['password' => '[redacted]', 'title' => 'Guide'], redact_log_context(['password' => 'secret', 'title' => 'Guide']), 'redact_log_context removes sensitive values.');
