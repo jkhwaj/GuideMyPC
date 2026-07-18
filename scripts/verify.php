@@ -23,6 +23,7 @@ $tests = [
     'tests/search_integration_test.php',
     'tests/knowledge_integration_test.php',
     'tests/guide_integration_test.php',
+    'tests/guide_admin_integration_test.php',
     'tests/account_integration_test.php',
     'tests/dashboard_integration_test.php',
 ];

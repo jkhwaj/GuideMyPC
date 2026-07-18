@@ -365,6 +365,16 @@ For every increment, record:
 - Repository-wide PHP lint, `node --check js\script.js`, `node --check js\guide-editor.js`, and `git diff --check` passed.
 - Remaining before the Guide slice is complete: editor-safe Guide route contracts, draft/publication controls, sources, bounded Guide listing, dependency-aware hard deletion, route-level role/CSRF/PRG tests, and authenticated browser evidence.
 
+### 2026-07-18: Milestone 2 Guide Administration
+
+- Status: implementation workspace after commit `99ae867`; this final Guide validation increment is not yet committed.
+- `GuideAdminRepository` supplies bounded Guide listing, allowlisted filters/sorts, category projections, source reads, and slug checks.
+- `GuideAdminService` validates Guide metadata, curation, official HTTPS sources, publication state, and structured steps; all mutations and audit events share a transaction.
+- Editors can list, create, edit, draft, and publish Guides. Hard deletion remains administrator-only and is blocked by progress, favorites, ratings, and knowledge relations.
+- Root Guide routes now remain compatibility entry points over the feature service and shared editor form.
+- `tests/guide_admin_integration_test.php` covers validation, draft create, source replacement, bounded listing, publication, audit, dependency-blocked deletion, and unused deletion.
+- Pending release evidence: route-level guest/user/editor/admin and CSRF/PRG checks, browser keyboard/desktop/320px checks, and a separate Migration 2 full verification commit.
+
 ## Critical Path And Scope Control
 
 The critical path is:
