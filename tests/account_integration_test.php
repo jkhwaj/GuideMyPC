@@ -7,17 +7,10 @@ if (PHP_SAPI !== 'cli') {
     exit("Not found.\n");
 }
 
-require_once dirname(__DIR__) . '/config.php';
+require_once __DIR__ . '/bootstrap.php';
 require_once dirname(__DIR__) . '/includes/accounts.php';
 
-$test = new mysqli(
-    config_value('DB_HOST'),
-    config_value('DB_USER'),
-    config_value('DB_PASSWORD', ''),
-    'guidemypc_knowledge_test',
-    (int) config_value('DB_PORT', '3306')
-);
-$test->set_charset('utf8mb4');
+$test = test_database_or_fail();
 $email = 'account-test-' . bin2hex(random_bytes(4)) . '@example.test';
 $name = 'Account Test';
 $password = password_hash('InitialPassword1!', PASSWORD_DEFAULT);
@@ -53,6 +46,13 @@ try {
     fwrite(STDERR, 'FAIL: ' . $exception->getMessage() . PHP_EOL);
     $exitCode = 1;
 } finally {
+    foreach (['password_reset_tokens', 'user_progress', 'user_activity', 'account_security_events'] as $table) {
+        $deleteRelated = $test->prepare('DELETE FROM ' . $table . ' WHERE user_id = ?');
+        $deleteRelated->bind_param('i', $userId);
+        $deleteRelated->execute();
+        $deleteRelated->close();
+    }
+
     $delete = $test->prepare('DELETE FROM users WHERE id = ?');
     $delete->bind_param('i', $userId);
     $delete->execute();

@@ -14,35 +14,7 @@ if (!defined('GUIDEMYPC_ROOT')) {
  */
 function load_environment(string $path): array
 {
-    if (!is_file($path)) {
-        return [];
-    }
-
-    $values = [];
-    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-
-    if ($lines === false) {
-        return [];
-    }
-
-    foreach ($lines as $line) {
-        $line = trim($line);
-
-        if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
-            continue;
-        }
-
-        [$key, $value] = explode('=', $line, 2);
-        $key = trim($key);
-
-        if (preg_match('/^[A-Z][A-Z0-9_]*$/', $key) !== 1) {
-            continue;
-        }
-
-        $values[$key] = trim($value);
-    }
-
-    return $values;
+    return GuideMyPC\Core\Environment::load($path);
 }
 
 $guideMyPcEnvironment = load_environment(GUIDEMYPC_ROOT . DIRECTORY_SEPARATOR . '.env');
@@ -51,7 +23,7 @@ function config_value(string $key, ?string $default = null): ?string
 {
     global $guideMyPcEnvironment;
 
-    return $guideMyPcEnvironment[$key] ?? $default;
+    return GuideMyPC\Core\Environment::value($guideMyPcEnvironment, $key, $default);
 }
 
 function is_https_request(): bool
@@ -62,31 +34,16 @@ function is_https_request(): bool
 
 function private_storage_path(string $directory = ''): ?string
 {
-    $configuredPath = config_value('APP_PRIVATE_PATH');
-    $basePath = $configuredPath !== null && $configuredPath !== ''
-        ? $configuredPath
-        : dirname(GUIDEMYPC_ROOT, 2) . DIRECTORY_SEPARATOR . 'guidemypc-private';
-    $path = $directory === '' ? $basePath : $basePath . DIRECTORY_SEPARATOR . $directory;
-
-    if (!is_dir($path) && !@mkdir($path, 0700, true) && !is_dir($path)) {
-        return null;
-    }
-
-    return $path;
+    return GuideMyPC\Core\Environment::privateStoragePath(
+        GUIDEMYPC_ROOT,
+        config_value('APP_PRIVATE_PATH'),
+        $directory
+    );
 }
 
 function configure_error_handling(): void
 {
-    error_reporting(E_ALL);
-    ini_set('display_errors', '0');
-    ini_set('display_startup_errors', '0');
-    ini_set('log_errors', '1');
-
-    $logDirectory = private_storage_path('logs');
-
-    if ($logDirectory !== null) {
-        ini_set('error_log', $logDirectory . DIRECTORY_SEPARATOR . 'php-error.log');
-    }
+    GuideMyPC\Core\Environment::configureErrorReporting(private_storage_path('logs'));
 }
 
 function configure_session(): void
@@ -123,7 +80,3 @@ function send_security_headers(): void
     header('Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=()');
     header("Content-Security-Policy-Report-Only: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self' https://www.youtube-nocookie.com; object-src 'none'");
 }
-
-configure_error_handling();
-configure_session();
-send_security_headers();

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/community.php';
 require_post();
 require_login();
 require_csrf();
@@ -8,6 +9,17 @@ $user_id = current_user_id();
 $post_id = (int) ($_POST["post_id"] ?? 0);
 
 if ($post_id <= 0) {
+    redirect('community.php');
+}
+
+$communityPolicy = new GuideMyPC\Features\Community\CommunityPolicy();
+$post = $conn->prepare('SELECT id FROM community_posts WHERE id = ? AND ' . $communityPolicy->publicWhereClause('community_posts'));
+$post->bind_param('i', $post_id);
+$post->execute();
+$isPublicPost = $post->get_result()->fetch_assoc() !== null;
+$post->close();
+
+if (!$isPublicPost) {
     redirect('community.php');
 }
 

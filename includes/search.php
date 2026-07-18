@@ -23,18 +23,12 @@ function search_filters(array $input): array
 
 function normalize_search_query(mixed $value): string
 {
-    $query = required_string($value, 120);
-
-    if ($query === null) {
-        return '';
-    }
-
-    return mb_strtolower((string) preg_replace('/\s+/u', ' ', $query));
+    return GuideMyPC\Features\Search\SearchQuery::normalize($value);
 }
 
 function search_query_is_aggregate_safe(string $query): bool
 {
-    return preg_match('/(?:@|https?:\/\/|\b\d{7,}\b)/iu', $query) !== 1;
+    return GuideMyPC\Features\Search\SearchQuery::isAggregateSafe($query);
 }
 
 /**
@@ -83,7 +77,8 @@ function search_documents(mysqli $connection, array $filters): array
     }
 
     if (($filters['type'] === '' || $filters['type'] === 'download') && $filters['difficulty'] === '' && $filters['safety'] === '') {
-        $where = ['downloads.is_published = 1'];
+        $downloadPolicy = new GuideMyPC\Features\Downloads\DownloadPolicy();
+        $where = [$downloadPolicy->publicWhereClause('downloads')];
         $types = 'ssss';
         $values = [$query, $prefix, $like, $query];
         $where[] = '(MATCH(downloads.name, downloads.description, downloads.category) AGAINST (? IN NATURAL LANGUAGE MODE) OR downloads.name LIKE ? OR downloads.description LIKE ? OR downloads.category LIKE ?)';
@@ -98,7 +93,7 @@ function search_documents(mysqli $connection, array $filters): array
 
         search_append_recency_filter($where, $filters['recency'], 'downloads');
         $statement = $connection->prepare(
-            'SELECT downloads.name, downloads.description, downloads.category, downloads.official_url, downloads.created_at, '
+            'SELECT downloads.name, downloads.description, downloads.category, downloads.official_url, downloads.created_at, downloads.is_published, downloads.review_state, '
             . '(CASE WHEN LOWER(downloads.name) = ? THEN 10000 WHEN LOWER(downloads.name) LIKE ? THEN 8000 WHEN downloads.name LIKE ? THEN 6000 ELSE 0 END '
             . '+ COALESCE(MATCH(downloads.name, downloads.description, downloads.category) AGAINST (? IN NATURAL LANGUAGE MODE), 0) * 100) AS rank_score '
             . 'FROM downloads WHERE ' . implode(' AND ', $where) . ' LIMIT 60'
@@ -108,6 +103,10 @@ function search_documents(mysqli $connection, array $filters): array
         $result = $statement->get_result();
 
         while ($row = $result->fetch_assoc()) {
+            if (!$downloadPolicy->isPublic($row)) {
+                continue;
+            }
+
             $documents[] = [
                 'type' => 'download', 'label' => 'Official download', 'title' => $row['name'], 'platform' => $row['category'] ?? 'Official source',
                 'excerpt' => $row['description'], 'url' => $row['official_url'], 'rank' => (float) $row['rank_score'],

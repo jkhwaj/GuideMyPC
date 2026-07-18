@@ -28,8 +28,10 @@ $result = $conn->query("SELECT * FROM downloads ORDER BY id DESC");
                 <tr>
                     <th>ID</th>
                     <th>Name</th>
-                    <th>Category</th>
-                    <th>Official URL</th>
+                        <th>Category</th>
+                        <th>Review</th>
+                        <th>Public</th>
+                        <th>Official URL</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -42,6 +44,10 @@ $result = $conn->query("SELECT * FROM downloads ORDER BY id DESC");
                         <td><?php echo htmlspecialchars($download["name"]); ?></td>
 
                         <td><?php echo htmlspecialchars($download["category"]); ?></td>
+
+                        <td><?php echo e($download['review_state']); ?></td>
+
+                        <td><?php echo (int) $download['is_published'] === 1 ? 'Published' : 'Private'; ?></td>
 
                         <td>
                             <a href="<?php echo htmlspecialchars($download["official_url"]); ?>" target="_blank">

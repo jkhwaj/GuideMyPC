@@ -24,7 +24,7 @@ function confidence_rank(array $outcomes, array $evidence): array
             $scores[$item['cause_key']]['conflicting'][] = $item['explanation'];
         }
     }
-    $maximum = max(1, ...array_map(static fn(array $score): int => max(0, $score['raw']), $scores));
+    $maximum = max(1, ...array_values(array_map(static fn(array $score): int => max(0, $score['raw']), $scores)));
     $ranked = [];
     foreach ($scores as $score) {
         $evidenceCount = count($score['supporting']) + count($score['conflicting']);

@@ -1,6 +1,8 @@
 # Application Conventions
 
-GuideMyPC remains a server-rendered procedural PHP application. Root page and action routes load `config.php` before output; it initializes configuration, sessions, shared helpers, error handling, and the `mysqli` connection. Shared code belongs in `includes/`, migration-only code belongs in `database/`, and web routes must not include CLI scripts.
+GuideMyPC is migrating incrementally from a server-rendered procedural PHP application to the structure defined in [`project-structure.md`](project-structure.md). The current runtime still uses root page and action routes that load `config.php` before output; it initializes configuration, sessions, shared helpers, error handling, and the `mysqli` connection. During migration, `config.php` and `includes/` are compatibility seams, not the target location for new application code.
+
+New structural code must follow [`project-structure.md`](project-structure.md) and preserve the legacy behavior catalogued in [`route-contracts.md`](route-contracts.md). Migration-only code belongs in `database/`, web routes must not include CLI scripts, and runtime storage remains outside the repository and web root.
 
 ## Browser Forms
 

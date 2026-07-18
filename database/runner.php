@@ -7,7 +7,7 @@ if (PHP_SAPI !== 'cli') {
     exit("Not found.\n");
 }
 
-require_once dirname(__DIR__) . '/includes/bootstrap.php';
+require_once dirname(__DIR__) . '/bootstrap/cli.php';
 
 /**
  * @return array{database: string, help: bool}
