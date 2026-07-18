@@ -32,6 +32,17 @@ assert_same('Guide', required_string(' Guide ', 10), 'required_string trims vali
 assert_same(true, test_database_name_is_safe('guidemypc_test', 'guidemypc'), 'Test database names must use the dedicated suffix.');
 assert_same(false, test_database_name_is_safe('guidemypc', 'guidemypc'), 'The application database is never a safe test target.');
 assert_same(false, test_database_name_is_safe('guidemypc_preview', 'guidemypc'), 'Test database names reject non-test suffixes.');
+$requestMethod = $_SERVER['REQUEST_METHOD'] ?? null;
+$_SERVER['REQUEST_METHOD'] = 'POST';
+assert_same(true, request_method_is('POST'), 'request_method_is accepts the current request method.');
+assert_same(false, request_method_is('GET'), 'request_method_is rejects a different request method.');
+
+if ($requestMethod === null) {
+    unset($_SERVER['REQUEST_METHOD']);
+} else {
+    $_SERVER['REQUEST_METHOD'] = $requestMethod;
+}
+
 assert_same('value', GuideMyPC\Core\Environment::value(['KEY' => 'value'], 'KEY'), 'PSR-4 Core classes autoload without Composer.');
 assert_same([], load_environment(dirname(__DIR__) . '/missing-test-env'), 'load_environment ignores a missing file.');
 assert_same('fallback', config_value('MISSING_TEST_VALUE', 'fallback'), 'config_value preserves its default contract.');

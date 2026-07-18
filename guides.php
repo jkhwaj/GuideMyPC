@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
 
+require_get();
+
 $categorySlug = required_string($_GET['category'] ?? null, 100) ?? '';
 $search = required_string($_GET['search'] ?? null, 120) ?? '';
 $category = null;

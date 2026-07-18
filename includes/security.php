@@ -17,14 +17,29 @@ function redirect(string $location): never
     exit;
 }
 
+function request_method_is(string $method): bool
+{
+    return ($_SERVER['REQUEST_METHOD'] ?? 'GET') === $method;
+}
+
 function require_post(): void
 {
-    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    if (request_method_is('POST')) {
         return;
     }
 
     header('Allow: POST');
     abort_request(405, 'method_not_allowed', 'This action requires a form submission.');
+}
+
+function require_get(): void
+{
+    if (request_method_is('GET')) {
+        return;
+    }
+
+    header('Allow: GET');
+    abort_request(405, 'method_not_allowed', 'This request method is not allowed.');
 }
 
 function csrf_token(): string

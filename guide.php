@@ -6,6 +6,8 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/guides.php';
 require_once __DIR__ . '/includes/accounts.php';
 
+require_get();
+
 $slug = required_string($_GET['slug'] ?? null, 150) ?? '';
 $statement = $conn->prepare(
     'SELECT guides.*, categories.name AS category_name, categories.slug AS category_slug '
