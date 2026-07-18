@@ -276,11 +276,62 @@ function initializeGuideVideoConsent() {
     });
 }
 
+function initializeDashboardCharts() {
+    if (typeof window.Chart !== "function") {
+        return;
+    }
+
+    const styles = getComputedStyle(document.documentElement);
+    const textColor = styles.getPropertyValue("--text-muted").trim() || "#64748b";
+    const gridColor = styles.getPropertyValue("--border").trim() || "#cbd5e1";
+    const primary = styles.getPropertyValue("--primary").trim() || "#2563eb";
+    const accent = styles.getPropertyValue("--accent").trim() || "#0f766e";
+
+    document.querySelectorAll("[data-dashboard-chart]").forEach((canvas) => {
+        const name = canvas.dataset.dashboardChart;
+        const source = document.querySelector(`[data-dashboard-chart-data="${name}"]`);
+
+        if (source === null) {
+            return;
+        }
+
+        let data;
+
+        try {
+            data = JSON.parse(source.textContent || "{}");
+        } catch (error) {
+            return;
+        }
+
+        const datasets = name === "categories"
+            ? [
+                { label: "Guides", data: data.guides || [], backgroundColor: primary, borderRadius: 6 },
+                { label: "Knowledge", data: data.articles || [], backgroundColor: accent, borderRadius: 6 },
+            ]
+            : [{ label: "Registrations", data: data.values || [], borderColor: primary, backgroundColor: `${primary}26`, fill: true, tension: 0.28 }];
+
+        new window.Chart(canvas, {
+            type: name === "categories" ? "bar" : "line",
+            data: { labels: data.labels || [], datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: textColor } } },
+                scales: {
+                    x: { ticks: { color: textColor }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { color: textColor, precision: 0 }, grid: { color: gridColor } },
+                },
+            },
+        });
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initializeNavigation();
     initializeSearchAutocomplete();
     initializeSearchSelectionTracking();
     initializeGuideVideoConsent();
+    initializeDashboardCharts();
     updateProgress();
 
     document.querySelectorAll(".step-progress-form").forEach((form) => {

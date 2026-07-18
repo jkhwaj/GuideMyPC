@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** @var array{user: array{name: string, isAdmin: bool}|null} $navigation */
+/** @var array{user: array{name: string, canViewDashboard: bool, isAdmin: bool}|null} $navigation */
 $user = $navigation['user'];
 ?>
 <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -25,7 +25,6 @@ $user = $navigation['user'];
             <a href="<?php echo e(application_url('knowledge.php')); ?>">Knowledge</a>
             <a href="<?php echo e(application_url('downloads.php')); ?>">Downloads</a>
             <a href="<?php echo e(application_url('community.php')); ?>">Community</a>
-            <a href="<?php echo e(application_url('ai.php')); ?>">AI Assistant</a>
         </div>
         <div class="auth-buttons">
             <button class="theme-toggle" type="button" aria-pressed="false">
@@ -34,6 +33,9 @@ $user = $navigation['user'];
             <?php if ($user !== null): ?>
                 <span class="user-name">Hello, <?php echo e($user['name']); ?></span>
                 <a class="secondary-btn" href="<?php echo e(application_url('profile.php')); ?>">Profile</a>
+                <?php if ($user['canViewDashboard']): ?>
+                    <a class="secondary-btn" href="<?php echo e(application_url('dashboard.php')); ?>">Dashboard</a>
+                <?php endif; ?>
                 <?php if ($user['isAdmin']): ?>
                     <a class="secondary-btn" href="<?php echo e(application_url('admin.php')); ?>">Admin</a>
                 <?php endif; ?>

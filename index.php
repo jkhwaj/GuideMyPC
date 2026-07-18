@@ -72,7 +72,6 @@ include __DIR__ . '/includes/navbar.php';
 
         <div class="hero-buttons">
             <a href="#categories" class="secondary-btn">Browse by device</a>
-            <a href="<?php echo e(application_url('ai.php')); ?>" class="text-action">Explore the planned AI assistant</a>
         </div>
     </div>
 </section>

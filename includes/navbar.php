@@ -20,7 +20,6 @@
         <a href="<?php echo e(application_url('knowledge.php')); ?>">Knowledge</a>
         <a href="<?php echo e(application_url('downloads.php')); ?>">Downloads</a>
         <a href="<?php echo e(application_url('community.php')); ?>">Community</a>
-        <a href="<?php echo e(application_url('ai.php')); ?>">AI Assistant</a>
     </div>
 
     <div class="auth-buttons">
@@ -35,7 +34,11 @@
 
             <a class="secondary-btn" href="<?php echo e(application_url('profile.php')); ?>">Profile</a>
 
-            <?php if (isset($_SESSION["role"]) && $_SESSION["role"] === "admin"): ?>
+            <?php if (user_can(GuideMyPC\Security\Authorization::VIEW_PERSONAL_DASHBOARD)): ?>
+                <a class="secondary-btn" href="<?php echo e(application_url('dashboard.php')); ?>">Dashboard</a>
+            <?php endif; ?>
+
+            <?php if (is_admin()): ?>
                 <a class="secondary-btn" href="<?php echo e(application_url('admin.php')); ?>">Admin</a>
             <?php endif; ?>
 

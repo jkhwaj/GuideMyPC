@@ -9,6 +9,7 @@ $pageDetails = [
     'login.php' => ['Sign In | GuideMyPC', 'Sign in to save guide progress and favorites.'],
     'register.php' => ['Create Account | GuideMyPC', 'Create a GuideMyPC account to save your troubleshooting progress.'],
     'profile.php' => ['My Profile | GuideMyPC', 'Review your saved troubleshooting progress and favorites.'],
+    'dashboard.php' => ['Dashboard | GuideMyPC', 'Review your GuideMyPC activity and role-appropriate content metrics.'],
     'admin.php' => ['Admin | GuideMyPC', 'Manage GuideMyPC content and community operations.'],
     'about.php' => ['About | GuideMyPC', 'Learn about GuideMyPC and its approach to practical technology support.'],
     'contact.php' => ['Contact | GuideMyPC', 'Find the current support options for GuideMyPC.'],

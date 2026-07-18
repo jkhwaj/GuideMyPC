@@ -50,6 +50,7 @@ This baseline supports task `000` of `Tasks/project-structure-migration/`. It re
 | `login.php`, `register.php`, `forgot_password.php`, `reset_password.php` | GET/POST HTML | Preserve authentication, validation, reset-link paths, and session behavior. |
 | `settings.php` | GET/POST HTML | Authenticated settings workflow. |
 | `profile.php` | GET HTML | Authenticated profile view. |
+| `dashboard.php` | GET HTML or redirect | Authenticated role-aware dashboard. Guests receive the standard HTTP 303 login redirect. Active users receive only personal progress/favorites/activity; editors and administrators receive bounded aggregate content projections; only administrators receive user identities and audit details. Account role/status is refreshed before projection selection; unavailable, disabled, or invalid accounts are signed out and redirected to login without receiving a projection. |
 | `logout.php`, `account_request.php` | POST redirect | Preserve CSRF, authentication, PRG, and flash behavior. |
 | `save_progress.php` | POST HTML redirect or JSON | Preserve both response modes and ownership checks. |
 | `toggle_favorite.php`, `rate_guide.php` | POST redirect | Preserve CSRF, authorization, redirects, and guide ownership/state rules. |

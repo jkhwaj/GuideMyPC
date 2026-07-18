@@ -26,7 +26,7 @@ final class PageController
     }
 
     /**
-     * @return array{user: array{name: string, isAdmin: bool}|null}
+     * @return array{user: array{name: string, canViewDashboard: bool, isAdmin: bool}|null}
      */
     private function navigation(): array
     {
@@ -37,7 +37,8 @@ final class PageController
         return [
             'user' => [
                 'name' => is_string($_SESSION['full_name'] ?? null) ? $_SESSION['full_name'] : '',
-                'isAdmin' => ($_SESSION['role'] ?? null) === 'admin',
+                'canViewDashboard' => user_can(\GuideMyPC\Security\Authorization::VIEW_PERSONAL_DASHBOARD),
+                'isAdmin' => is_admin(),
             ],
         ];
     }
