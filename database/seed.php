@@ -29,6 +29,10 @@ try {
             printf("Loaded %s\n", $name);
         }
 
+        $projection = new GuideMyPC\Features\Guides\GuideSearchProjection($connection);
+        $indexed = $projection->rebuildAll();
+        printf("Rebuilt %d guide search document(s).\n", $indexed);
+
         printf("Seed complete: %d file(s) processed.\n", count($files));
     } finally {
         database_release_lock($connection, $lockName);

@@ -87,7 +87,7 @@ a:hover { color: var(--primary-hover); }
 button, .primary-btn, .secondary-btn, .login-btn, .complete-btn, .favorite-btn, .like-btn { min-height: 2.75rem; }
 button:disabled { cursor: not-allowed; opacity: .62; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.sr-only, .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .skip-link { position: fixed; z-index: 100; top: .75rem; left: .75rem; padding: .7rem 1rem; background: var(--primary); color: var(--primary-contrast); border-radius: var(--radius-sm); transform: translateY(-180%); }
 .skip-link:focus { transform: translateY(0); }
 
@@ -291,10 +291,11 @@ button:disabled { cursor: not-allowed; opacity: .62; }
 .pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1.25rem; color: var(--text-muted); }
 .pagination a { min-height: 2.75rem; display: inline-flex; align-items: center; }
 .admin-form-card { max-width: 44rem; }
-.auth-card textarea, .auth-card select { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-inset); color: var(--text); padding: .8rem; }
+.auth-card input:not([type="checkbox"]), .auth-card textarea, .auth-card select { width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-inset); color: var(--text); padding: .8rem; }
 .auth-card small { color: var(--text-muted); }
 .checkbox-field { display: flex; align-items: center; gap: .65rem; }
 .checkbox-field input { width: 1.1rem; height: 1.1rem; }
+.auth-card, .step-editor, .guide-sources, .admin-table td, .admin-table code { overflow-wrap: anywhere; }
 .form-warning { padding: .8rem; border-left: 3px solid var(--warning); background: var(--surface-raised); color: var(--text-muted) !important; }
 .form-actions { display: flex; align-items: center; gap: .75rem; }
 .form-actions button { margin-top: 0; }

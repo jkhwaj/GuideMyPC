@@ -59,8 +59,8 @@ function search_documents(mysqli $connection, array $filters): array
             'SELECT guides.title, guides.slug, guides.description, guides.content, guide_search_documents.search_text, guides.difficulty, guides.risk_level, guides.created_at, '
             . 'categories.name AS platform_name, '
             . '(CASE WHEN LOWER(guides.title) = ? THEN 10000 WHEN LOWER(guides.title) LIKE ? THEN 8000 WHEN guides.title LIKE ? THEN 6000 ELSE 0 END '
-            . '+ COALESCE(MATCH(guides.title, guides.description, guides.content) AGAINST (? IN NATURAL LANGUAGE MODE), 0) * 100 '
-            . '+ COALESCE(MATCH(guide_search_documents.search_text) AGAINST (? IN NATURAL LANGUAGE MODE), 0) * 100) AS rank_score '
+            . '+ LEAST(COALESCE(MATCH(guides.title, guides.description, guides.content) AGAINST (? IN NATURAL LANGUAGE MODE), 0), 1000) * 100 '
+            . '+ LEAST(COALESCE(MATCH(guide_search_documents.search_text) AGAINST (? IN NATURAL LANGUAGE MODE), 0), 1000) * 100) AS rank_score '
             . 'FROM guides JOIN categories ON guides.category_id = categories.id LEFT JOIN guide_search_documents ON guide_search_documents.guide_id = guides.id WHERE ' . implode(' AND ', $where) . ' LIMIT 60'
         );
         $statement->bind_param($types, ...$values);
