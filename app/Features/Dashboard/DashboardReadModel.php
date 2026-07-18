@@ -22,9 +22,9 @@ final class DashboardReadModel
     {
         $statement = $this->connection->prepare(
             'SELECT '
-            . '(SELECT COUNT(DISTINCT guide_steps.guide_id) FROM user_progress JOIN guide_steps ON user_progress.guide_step_id = guide_steps.id WHERE user_progress.user_id = ?) AS started_guides, '
-            . '(SELECT COUNT(*) FROM favorites WHERE user_id = ?) AS favorites, '
-            . '(SELECT COUNT(*) FROM guide_ratings WHERE user_id = ?) AS ratings'
+            . '(SELECT COUNT(DISTINCT guide_steps.guide_id) FROM user_progress JOIN guide_steps ON user_progress.guide_step_id = guide_steps.id JOIN guides ON guides.id = guide_steps.guide_id JOIN categories ON categories.id = guides.category_id WHERE user_progress.user_id = ? AND guides.is_published = 1 AND categories.is_published = 1) AS started_guides, '
+            . '(SELECT COUNT(*) FROM favorites JOIN guides ON guides.id = favorites.guide_id JOIN categories ON categories.id = guides.category_id WHERE favorites.user_id = ? AND guides.is_published = 1 AND categories.is_published = 1) AS favorites, '
+            . '(SELECT COUNT(*) FROM guide_ratings JOIN guides ON guides.id = guide_ratings.guide_id JOIN categories ON categories.id = guides.category_id WHERE guide_ratings.user_id = ? AND guides.is_published = 1 AND categories.is_published = 1) AS ratings'
         );
         $statement->bind_param('iii', $userId, $userId, $userId);
         $statement->execute();
@@ -33,8 +33,9 @@ final class DashboardReadModel
 
         $completionStatement = $this->connection->prepare(
             'SELECT COUNT(*) AS total FROM ('
-            . 'SELECT guide_steps.guide_id FROM guide_steps '
+            . 'SELECT guide_steps.guide_id FROM guide_steps JOIN guides ON guides.id = guide_steps.guide_id JOIN categories ON categories.id = guides.category_id '
             . 'LEFT JOIN user_progress ON user_progress.guide_step_id = guide_steps.id AND user_progress.user_id = ? '
+            . 'WHERE guides.is_published = 1 AND categories.is_published = 1 '
             . 'GROUP BY guide_steps.guide_id '
             . 'HAVING COUNT(guide_steps.id) > 0 AND COUNT(user_progress.id) = COUNT(guide_steps.id)'
             . ') AS completed_guides'
@@ -45,7 +46,7 @@ final class DashboardReadModel
         $completionStatement->close();
 
         $activityStatement = $this->connection->prepare(
-            'SELECT activity_type, subject_value, created_at FROM user_activity WHERE user_id = ? ORDER BY created_at DESC LIMIT 6'
+            "SELECT activity_type, subject_value, created_at FROM user_activity WHERE user_id = ? AND (activity_type <> 'guide_view' OR EXISTS (SELECT 1 FROM guides JOIN categories ON categories.id = guides.category_id WHERE guides.slug = user_activity.subject_value AND guides.is_published = 1 AND categories.is_published = 1)) ORDER BY created_at DESC LIMIT 6"
         );
         $activityStatement->bind_param('i', $userId);
         $activityStatement->execute();
@@ -97,10 +98,10 @@ final class DashboardReadModel
         $completionStatement->close();
 
         $metrics = [
-            ['label' => 'Published guides', 'value' => $this->count("SELECT COUNT(*) AS total FROM guides WHERE is_published = 1")],
+            ['label' => 'Published guides', 'value' => $this->count('SELECT COUNT(*) AS total FROM guides JOIN categories ON categories.id = guides.category_id WHERE guides.is_published = 1 AND categories.is_published = 1')],
             ['label' => 'Registered users', 'value' => $this->count("SELECT COUNT(*) AS total FROM users WHERE status = 'active' AND deleted_at IS NULL")],
             ['label' => 'Completions this month', 'value' => $monthlyCompletions],
-            ['label' => 'Published knowledge', 'value' => $this->count("SELECT COUNT(*) AS total FROM knowledge_articles WHERE publication_state = 'published'")],
+            ['label' => 'Published knowledge', 'value' => $this->count("SELECT COUNT(*) AS total FROM knowledge_articles JOIN categories ON categories.id = knowledge_articles.category_id WHERE knowledge_articles.publication_state = 'published' AND categories.is_published = 1")],
             ['label' => 'Approved downloads', 'value' => $this->approvedDownloadCount()],
             ['label' => 'Published community posts', 'value' => $this->count('SELECT COUNT(*) AS total FROM community_posts WHERE is_published = 1')],
         ];
@@ -111,7 +112,7 @@ final class DashboardReadModel
             'categoryChart' => $this->contentByCategory(),
             'registrationChart' => $this->registrationsByMonth(),
             'recentGuides' => $this->rows(
-                'SELECT title, slug, created_at FROM guides WHERE is_published = 1 ORDER BY created_at DESC LIMIT 5'
+                'SELECT guides.title, guides.slug, guides.created_at FROM guides JOIN categories ON categories.id = guides.category_id WHERE guides.is_published = 1 AND categories.is_published = 1 ORDER BY guides.created_at DESC LIMIT 5'
             ),
             'recentPosts' => $this->rows(
                 'SELECT community_posts.title, community_posts.created_at, users.full_name '

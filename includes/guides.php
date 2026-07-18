@@ -7,6 +7,45 @@ function guide_text(mixed $value, int $maximumLength = 10000): string
     return required_string($value, $maximumLength) ?? '';
 }
 
+/** @return array{id: int, slug: string}|null */
+function guide_public_by_id(mysqli $connection, int $guideId, ?string $slug = null): ?array
+{
+    $statement = $connection->prepare(
+        'SELECT guides.id, guides.slug FROM guides JOIN categories ON categories.id = guides.category_id '
+        . 'WHERE guides.id = ? AND guides.is_published = 1 AND categories.is_published = 1 '
+        . ($slug === null ? '' : 'AND guides.slug = ? ') . 'LIMIT 1'
+    );
+
+    if ($slug === null) {
+        $statement->bind_param('i', $guideId);
+    } else {
+        $statement->bind_param('is', $guideId, $slug);
+    }
+
+    $statement->execute();
+    $guide = $statement->get_result()->fetch_assoc();
+    $statement->close();
+
+    return $guide === null ? null : ['id' => (int) $guide['id'], 'slug' => $guide['slug']];
+}
+
+/** @return array{id: int, guide_id: int, slug: string}|null */
+function guide_public_step_by_id(mysqli $connection, int $stepId): ?array
+{
+    $statement = $connection->prepare(
+        'SELECT guide_steps.id, guide_steps.guide_id, guides.slug FROM guide_steps '
+        . 'JOIN guides ON guides.id = guide_steps.guide_id '
+        . 'JOIN categories ON categories.id = guides.category_id '
+        . 'WHERE guide_steps.id = ? AND guides.is_published = 1 AND categories.is_published = 1 LIMIT 1'
+    );
+    $statement->bind_param('i', $stepId);
+    $statement->execute();
+    $step = $statement->get_result()->fetch_assoc();
+    $statement->close();
+
+    return $step === null ? null : ['id' => (int) $step['id'], 'guide_id' => (int) $step['guide_id'], 'slug' => $step['slug']];
+}
+
 function guide_safe_url(mixed $value, int $maximumLength = 255): ?string
 {
     $url = guide_text($value, $maximumLength);

@@ -43,7 +43,7 @@ final class AccountService
             return;
         }
 
-        $statement = $this->connection->prepare('INSERT INTO user_progress (user_id, guide_step_id, completed) SELECT ?, guide_steps.id, 1 FROM guide_steps WHERE guide_steps.id = ? ON DUPLICATE KEY UPDATE completed = completed');
+        $statement = $this->connection->prepare('INSERT INTO user_progress (user_id, guide_step_id, completed) SELECT ?, guide_steps.id, 1 FROM guide_steps JOIN guides ON guides.id = guide_steps.guide_id JOIN categories ON categories.id = guides.category_id WHERE guide_steps.id = ? AND guides.is_published = 1 AND categories.is_published = 1 ON DUPLICATE KEY UPDATE completed = completed');
 
         foreach ($guestProgress as $steps) {
             if (!is_array($steps)) {

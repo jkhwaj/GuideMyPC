@@ -30,6 +30,21 @@ try {
         throw new RuntimeException('Guide and category validation did not return the expected result.');
     }
 
+    $publicGuide = guide_public_by_id($conn, $guideId, 'check-windows-update-issue');
+    $publicStep = $conn->query('SELECT id FROM guide_steps WHERE guide_id = ' . $guideId . ' LIMIT 1')->fetch_assoc();
+
+    if ($publicGuide === null || $publicStep === null || guide_public_step_by_id($conn, (int) $publicStep['id']) === null) {
+        throw new RuntimeException('Published guide and step lookups did not return public content.');
+    }
+
+    $conn->query('UPDATE categories SET is_published = 0 WHERE id = ' . $categoryId);
+
+    if (guide_public_by_id($conn, $guideId, 'check-windows-update-issue') !== null || guide_public_step_by_id($conn, (int) $publicStep['id']) !== null) {
+        throw new RuntimeException('Guide actions must reject guides hidden through an unpublished category.');
+    }
+
+    $conn->query('UPDATE categories SET is_published = 1 WHERE id = ' . $categoryId);
+
     guide_replace_steps($conn, $guideId, guide_normalize_steps([
         ['text' => 'Test the first action.', 'title' => 'Test title'],
         ['text' => 'Test the second action.', 'title' => 'Second title'],

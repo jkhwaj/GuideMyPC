@@ -16,11 +16,11 @@ if ($account === null) {
     abort_request(403, 'account_unavailable', 'This account is unavailable.');
 }
 
-$favoritesStatement = $conn->prepare('SELECT guides.title, guides.slug, guides.description FROM favorites JOIN guides ON favorites.guide_id = guides.id WHERE favorites.user_id = ? ORDER BY favorites.created_at DESC LIMIT 10');
+$favoritesStatement = $conn->prepare('SELECT guides.title, guides.slug, guides.description FROM favorites JOIN guides ON favorites.guide_id = guides.id JOIN categories ON categories.id = guides.category_id WHERE favorites.user_id = ? AND guides.is_published = 1 AND categories.is_published = 1 ORDER BY favorites.created_at DESC LIMIT 10');
 $favoritesStatement->bind_param('i', $userId);
 $favoritesStatement->execute();
 $favorites = $favoritesStatement->get_result();
-$progressStatement = $conn->prepare('SELECT guides.title, guides.slug, COUNT(user_progress.id) AS completed_steps FROM user_progress JOIN guide_steps ON user_progress.guide_step_id = guide_steps.id JOIN guides ON guide_steps.guide_id = guides.id WHERE user_progress.user_id = ? GROUP BY guides.id ORDER BY MAX(user_progress.completed_at) DESC LIMIT 10');
+$progressStatement = $conn->prepare('SELECT guides.title, guides.slug, COUNT(user_progress.id) AS completed_steps FROM user_progress JOIN guide_steps ON user_progress.guide_step_id = guide_steps.id JOIN guides ON guide_steps.guide_id = guides.id JOIN categories ON categories.id = guides.category_id WHERE user_progress.user_id = ? AND guides.is_published = 1 AND categories.is_published = 1 GROUP BY guides.id ORDER BY MAX(user_progress.completed_at) DESC LIMIT 10');
 $progressStatement->bind_param('i', $userId);
 $progressStatement->execute();
 $progress = $progressStatement->get_result();

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/guides.php';
 require_post();
 require_csrf();
 
@@ -12,11 +13,7 @@ if ($step_id <= 0 || !in_array($completed, [0, 1], true)) {
     abort_request(422, 'invalid_progress', 'Choose a valid guide step and progress state.');
 }
 
-$stepStatement = $conn->prepare('SELECT guide_steps.id, guide_steps.guide_id FROM guide_steps JOIN guides ON guide_steps.guide_id = guides.id WHERE guide_steps.id = ? AND guides.is_published = 1');
-$stepStatement->bind_param('i', $step_id);
-$stepStatement->execute();
-$step = $stepStatement->get_result()->fetch_assoc();
-$stepStatement->close();
+$step = guide_public_step_by_id($conn, $step_id);
 
 if ($step === null) {
     abort_request(404, 'guide_step_not_found', 'That guide step is no longer available.');
@@ -53,4 +50,4 @@ if (expects_json()) {
 
 $slug = required_string($_POST['guide_slug'] ?? null, 150);
 flash('success', $completed === 1 ? ($user_id === 0 ? 'Step marked for this browser session. Sign in to save it permanently.' : 'Step marked as complete.') : 'Step marked as incomplete.');
-redirect($slug === null ? 'guides.php' : 'guide.php?slug=' . urlencode($slug));
+redirect($slug === $step['slug'] ? 'guide.php?slug=' . urlencode($slug) : 'guides.php');

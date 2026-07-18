@@ -34,10 +34,16 @@ try {
     $_SESSION['_guest_progress'] = [1 => [(int) $step['id'] => true]];
     merge_guest_progress($test, $userId);
     $progress = (int) $test->query('SELECT COUNT(*) AS total FROM user_progress WHERE user_id = ' . $userId)->fetch_assoc()['total'];
+    $categoryId = (int) $test->query("SELECT categories.id FROM categories JOIN guides ON guides.category_id = categories.id WHERE guides.slug = 'check-windows-update-issue' LIMIT 1")->fetch_assoc()['id'];
+    $test->query('UPDATE categories SET is_published = 0 WHERE id = ' . $categoryId);
+    $_SESSION['_guest_progress'] = [1 => [(int) $step['id'] => true]];
+    merge_guest_progress($test, $userId);
+    $hiddenProgress = (int) $test->query('SELECT COUNT(*) AS total FROM user_progress WHERE user_id = ' . $userId)->fetch_assoc()['total'];
+    $test->query('UPDATE categories SET is_published = 1 WHERE id = ' . $categoryId);
     record_user_activity($test, $userId, 'guide_view', 'guide', 'check-windows-update-issue');
     $activity = (int) $test->query('SELECT COUNT(*) AS total FROM user_activity WHERE user_id = ' . $userId)->fetch_assoc()['total'];
 
-    if ($progress !== 1 || $activity !== 1 || isset($_SESSION['_guest_progress'])) {
+    if ($progress !== 1 || $hiddenProgress !== 1 || $activity !== 1 || isset($_SESSION['_guest_progress'])) {
         throw new RuntimeException('Guest progress merge or account activity recording failed.');
     }
 

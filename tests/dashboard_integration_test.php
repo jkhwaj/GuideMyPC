@@ -124,6 +124,12 @@ try {
     dashboard_assert($personalMetrics['Favorites'] === 1 && $personalMetrics['Ratings submitted'] === 1, 'Personal favorites and ratings are scoped to the current user.');
     dashboard_assert(count($personal['activity']) === 1 && $personal['activity'][0]['detail'] === $guideSlug, 'Personal activity returns the current user history.');
 
+    $test->query('UPDATE categories SET is_published = 0 WHERE id = ' . $categoryId);
+    $hiddenPersonal = dashboard_metrics($readModel->personal($userId)['metrics']);
+    $hiddenActivity = $readModel->personal($userId)['activity'];
+    dashboard_assert($hiddenPersonal['Guides started'] === 0 && $hiddenPersonal['Guides completed'] === 0 && $hiddenPersonal['Favorites'] === 0 && $hiddenPersonal['Ratings submitted'] === 0 && $hiddenActivity === [], 'Hidden-category guides are absent from personal dashboard projections.');
+    $test->query('UPDATE categories SET is_published = 1 WHERE id = ' . $categoryId);
+
     $editorProjection = $readModel->operational(false);
     $editorMetrics = dashboard_metrics($editorProjection['metrics']);
     dashboard_assert($editorMetrics['Published guides'] === $baseline['Published guides'] + 1, 'Published guide KPI uses publication state.');
