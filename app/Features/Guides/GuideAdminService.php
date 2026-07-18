@@ -124,6 +124,7 @@ final class GuideAdminService
             \guide_replace_steps($this->connection, $guideId, $values['steps']);
             \guide_replace_tools($this->connection, $guideId, $values['required_tools']);
             $this->replaceSources($guideId, $values['sources']);
+            (new GuideSearchProjection($this->connection))->rebuildGuide($guideId);
             \admin_audit($this->connection, 'guide.created', 'guide', $guideId, ['slug' => $values['slug'], 'is_published' => $values['is_published'], 'source_count' => count($values['sources'])]);
 
             return $guideId;
@@ -152,6 +153,7 @@ final class GuideAdminService
             $steps = \guide_sync_steps($this->connection, $id, $values['steps']);
             \guide_replace_tools($this->connection, $id, $values['required_tools']);
             $this->replaceSources($id, $values['sources']);
+            (new GuideSearchProjection($this->connection))->rebuildGuide($id);
             \admin_audit($this->connection, 'guide.updated', 'guide', $id, ['slug' => $values['slug'], 'publication_from' => (int) $guide['is_published'], 'publication_to' => $values['is_published'], 'source_count' => count($values['sources']), 'steps_added' => $steps['added'], 'steps_deleted' => $steps['deleted'], 'progress_rows_deleted' => $steps['deleted_progress']]);
 
             return true;
