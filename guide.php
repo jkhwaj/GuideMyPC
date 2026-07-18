@@ -123,6 +123,7 @@ $pageTitle = $guide['title'] . ' | GuideMyPC';
 $pageDescription = $guide['description'] ?: 'Follow clear, safety-conscious troubleshooting steps.';
 $canonicalPath = 'guide.php?slug=' . rawurlencode($guide['slug']);
 $videoEmbedUrl = guide_youtube_embed_url($guide['video_url'] ?? null);
+$videoWatchUrl = guide_youtube_watch_url($guide['video_url'] ?? null);
 
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
@@ -170,7 +171,7 @@ include __DIR__ . '/includes/navbar.php';
             <h2 id="guide-video-title">Optional video walkthrough</h2>
             <p>The written steps below are the complete guide. Loading the video connects to YouTube.</p>
             <button class="secondary-btn" type="button" data-video-consent data-video-url="<?php echo e($videoEmbedUrl); ?>">Load privacy-enhanced YouTube video</button>
-            <p><a href="<?php echo e($guide['video_url']); ?>" target="_blank" rel="noopener noreferrer">Open the video on YouTube</a></p>
+            <p><a href="<?php echo e($videoWatchUrl); ?>" target="_blank" rel="noopener noreferrer">Open the video on YouTube</a></p>
             <div class="video-frame" data-video-frame></div>
         </section>
     <?php endif; ?>

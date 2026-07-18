@@ -32,8 +32,8 @@ final class GuideAdminService
         $prerequisites = $this->text($input['prerequisites'] ?? '', 5000, true);
         $backupWarning = $this->text($input['backup_warning'] ?? '', 5000, true);
         $nextActions = $this->text($input['next_actions'] ?? '', 5000, true);
-        $videoUrl = \guide_youtube_embed_url($input['video_url'] ?? '');
         $videoInput = $this->text($input['video_url'] ?? '', 255, true);
+        $videoUrl = \guide_youtube_watch_url($videoInput ?? '');
         $publication = $input['is_published'] ?? null;
         $featured = is_string($input['featured_order'] ?? null) ? trim($input['featured_order']) : $input['featured_order'] ?? null;
         $featuredOrder = $featured === '' || $featured === null ? null : filter_var($featured, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 999]]);

@@ -46,7 +46,7 @@ try {
         'prerequisites' => 'Sign in.',
         'backup_warning' => 'No changes are made.',
         'next_actions' => 'Confirm the result.',
-        'video_url' => '',
+        'video_url' => 'https://youtu.be/M7lc1UVf-VE',
         'last_reviewed_at' => '2026-07-18',
         'is_published' => '0',
         'featured_order' => '2',
@@ -55,6 +55,7 @@ try {
     ]);
     guide_admin_assert($valid['errors'] === [], 'Valid Guide administration input passes validation.');
     guide_admin_assert($valid['values']['is_published'] === 0 && count($valid['values']['sources']) === 1, 'Draft state and official source normalize correctly.');
+    guide_admin_assert($valid['values']['video_url'] === 'https://www.youtube.com/watch?v=M7lc1UVf-VE', 'Guide administration stores a canonical YouTube watch URL.');
     $unapprovedSource = $service->validate([
         'category' => $categoryId,
         'title' => 'Unapproved Source ' . $token,
@@ -81,6 +82,7 @@ try {
     $guideId = $service->create($valid['values']);
     $created = $repository->find($guideId);
     guide_admin_assert($created !== null && (int) $created['is_published'] === 0 && (int) $created['featured_order'] === 2, 'Guide create stores draft publication and featured order.');
+    guide_admin_assert($created['video_url'] === 'https://www.youtube.com/watch?v=M7lc1UVf-VE' && guide_youtube_embed_url($created['video_url']) !== null, 'Guide video URLs remain renderable after create.');
     guide_admin_assert(count($repository->sources($guideId)) === 1, 'Guide create stores official sources.');
     guide_admin_assert($repository->slugExists($valid['values']['slug']), 'Guide duplicate slug lookup detects existing guides.');
 

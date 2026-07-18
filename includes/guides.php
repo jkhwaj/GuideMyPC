@@ -48,7 +48,7 @@ function guide_safe_source_url(mixed $value, int $maximumLength = 255): ?string
     return $url;
 }
 
-function guide_youtube_embed_url(mixed $value): ?string
+function guide_youtube_video_id(mixed $value): ?string
 {
     $url = guide_text($value, 500);
 
@@ -57,6 +57,15 @@ function guide_youtube_embed_url(mixed $value): ?string
     }
 
     $parts = parse_url($url);
+
+    if (!is_array($parts)
+        || ($parts['scheme'] ?? '') !== 'https'
+        || isset($parts['user'])
+        || isset($parts['pass'])
+        || isset($parts['port'])) {
+        return null;
+    }
+
     $host = strtolower((string) ($parts['host'] ?? ''));
     $videoId = '';
 
@@ -65,11 +74,26 @@ function guide_youtube_embed_url(mixed $value): ?string
         $videoId = is_string($parameters['v'] ?? null) ? $parameters['v'] : '';
     } elseif ($host === 'youtu.be') {
         $videoId = trim((string) ($parts['path'] ?? ''), '/');
+    } elseif ($host === 'www.youtube-nocookie.com') {
+        $path = explode('/', trim((string) ($parts['path'] ?? ''), '/'));
+        $videoId = ($path[0] ?? '') === 'embed' && count($path) === 2 ? $path[1] : '';
     }
 
-    return preg_match('/^[A-Za-z0-9_-]{11}$/', $videoId) === 1
-        ? 'https://www.youtube-nocookie.com/embed/' . $videoId
-        : null;
+    return preg_match('/^[A-Za-z0-9_-]{11}$/', $videoId) === 1 ? $videoId : null;
+}
+
+function guide_youtube_watch_url(mixed $value): ?string
+{
+    $videoId = guide_youtube_video_id($value);
+
+    return $videoId === null ? null : 'https://www.youtube.com/watch?v=' . $videoId;
+}
+
+function guide_youtube_embed_url(mixed $value): ?string
+{
+    $videoId = guide_youtube_video_id($value);
+
+    return $videoId === null ? null : 'https://www.youtube-nocookie.com/embed/' . $videoId;
 }
 
 function guide_category_exists(mysqli $connection, int $categoryId): bool
