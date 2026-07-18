@@ -77,14 +77,18 @@ if ($tools === [] && guide_text($guide['required_tools'] ?? '', 2000) !== '') {
     $tools = array_values(array_filter(array_map(static fn (string $tool): string => trim($tool), preg_split('/[\r\n,]+/', $guide['required_tools']) ?: [])));
 }
 
-$sourceStatement = $conn->prepare('SELECT title, official_url FROM guide_sources WHERE guide_id = ? ORDER BY sort_order, id');
+$sourceStatement = $conn->prepare(
+    'SELECT guide_sources.title, guide_sources.official_url, guide_sources.source_last_reviewed_at '
+    . 'FROM guide_sources JOIN trusted_source_domains ON trusted_source_domains.id = guide_sources.trusted_source_domain_id '
+    . 'WHERE guide_sources.guide_id = ? AND trusted_source_domains.is_active = 1 ORDER BY guide_sources.sort_order, guide_sources.id'
+);
 $sourceStatement->bind_param('i', $guideId);
 $sourceStatement->execute();
 $sources = [];
 $sourceResult = $sourceStatement->get_result();
 
 while ($source = $sourceResult->fetch_assoc()) {
-    if (guide_safe_url($source['official_url']) !== null) {
+    if (guide_safe_source_url($source['official_url']) !== null) {
         $sources[] = $source;
     }
 }
@@ -208,7 +212,7 @@ include __DIR__ . '/includes/navbar.php';
     </section>
 
     <?php if ($guide['next_actions']): ?><aside class="guide-context"><h2>Next actions</h2><p><?php echo nl2br(e($guide['next_actions'])); ?></p></aside><?php endif; ?>
-    <?php if ($sources !== []): ?><section class="guide-sources"><h2>Official sources</h2><ul><?php foreach ($sources as $source): ?><li><a href="<?php echo e($source['official_url']); ?>" target="_blank" rel="noopener noreferrer"><?php echo e($source['title']); ?></a></li><?php endforeach; ?></ul></section><?php endif; ?>
+    <?php if ($sources !== []): ?><section class="guide-sources"><h2>Official sources</h2><ul><?php foreach ($sources as $source): ?><li><a href="<?php echo e($source['official_url']); ?>" target="_blank" rel="noopener noreferrer"><?php echo e($source['title']); ?></a><?php if ($source['source_last_reviewed_at']): ?> <span class="meta">(reviewed <?php echo e($source['source_last_reviewed_at']); ?>)</span><?php endif; ?></li><?php endforeach; ?></ul></section><?php endif; ?>
     <?php if ($related->num_rows > 0): ?><aside class="related-searches"><h2>Related help</h2><ul><?php while ($article = $related->fetch_assoc()): ?><li><a href="<?php echo e(application_url('knowledge_article.php?slug=' . rawurlencode($article['slug']))); ?>"><?php echo e($article['title']); ?></a></li><?php endwhile; ?></ul></aside><?php endif; ?>
 
     <section class="guide-rating no-print" aria-labelledby="rating-heading">

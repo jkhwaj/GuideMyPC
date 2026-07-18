@@ -80,6 +80,10 @@ final class GuideAdminService
             $errors[] = 'Provide at least one valid step.';
         }
 
+        if (in_array($publication, ['1', 1], true) && $sources === []) {
+            $errors[] = 'A published guide requires at least one approved official source.';
+        }
+
         return [
             'values' => [
                 'category_id' => $categoryId,
@@ -198,7 +202,7 @@ final class GuideAdminService
         }
     }
 
-    /** @param mixed $input @param list<string> $errors @return list<array{title: string, official_url: string}> */
+    /** @param mixed $input @param list<string> $errors @return list<array{title: string, official_url: string, trusted_source_domain_id: int, source_last_reviewed_at: string|null}> */
     private function sources(mixed $input, array &$errors): array
     {
         if (!is_array($input)) {
@@ -222,8 +226,10 @@ final class GuideAdminService
                 continue;
             }
 
-            if ($title === null || $title === '' || $url === null || filter_var($url, FILTER_VALIDATE_URL) === false || parse_url($url, PHP_URL_SCHEME) !== 'https') {
-                $errors[] = 'Each source requires a title and HTTPS URL.';
+            $approved = $url === null ? null : (new TrustedSourcePolicy($this->connection))->approvedSource($url);
+
+            if ($title === null || $title === '' || $approved === null) {
+                $errors[] = 'Each source requires a title and an approved HTTPS URL.';
                 continue;
             }
 
@@ -233,24 +239,29 @@ final class GuideAdminService
             }
 
             $seen[$url] = true;
-            $sources[] = ['title' => $title, 'official_url' => $url];
+            $sources[] = [
+                'title' => $title,
+                'official_url' => $approved['official_url'],
+                'trusted_source_domain_id' => $approved['trusted_source_domain_id'],
+                'source_last_reviewed_at' => $approved['source_last_reviewed_at'],
+            ];
         }
 
         return $sources;
     }
 
-    /** @param list<array{title: string, official_url: string}> $sources */
+    /** @param list<array{title: string, official_url: string, trusted_source_domain_id: int, source_last_reviewed_at: string|null}> $sources */
     private function replaceSources(int $guideId, array $sources): void
     {
         $delete = $this->connection->prepare('DELETE FROM guide_sources WHERE guide_id = ?');
         $delete->bind_param('i', $guideId);
         $delete->execute();
         $delete->close();
-        $insert = $this->connection->prepare('INSERT INTO guide_sources (guide_id, title, official_url, sort_order) VALUES (?, ?, ?, ?)');
+        $insert = $this->connection->prepare('INSERT INTO guide_sources (guide_id, title, official_url, trusted_source_domain_id, source_last_reviewed_at, sort_order) VALUES (?, ?, ?, ?, ?, ?)');
 
         foreach ($sources as $position => $source) {
             $order = $position + 1;
-            $insert->bind_param('issi', $guideId, $source['title'], $source['official_url'], $order);
+            $insert->bind_param('issisi', $guideId, $source['title'], $source['official_url'], $source['trusted_source_domain_id'], $source['source_last_reviewed_at'], $order);
             $insert->execute();
         }
 

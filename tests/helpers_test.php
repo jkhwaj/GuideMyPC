@@ -55,6 +55,10 @@ assert_same(true, search_query_is_aggregate_safe('wifi keeps disconnecting'), 's
 assert_same('https://www.youtube-nocookie.com/embed/M7lc1UVf-VE', guide_youtube_embed_url('https://youtu.be/M7lc1UVf-VE'), 'guide_youtube_embed_url permits a valid YouTube ID.');
 assert_same(null, guide_youtube_embed_url('https://example.test/video'), 'guide_youtube_embed_url rejects unapproved video hosts.');
 assert_same(null, guide_safe_url('http://support.microsoft.com/unsafe'), 'guide_safe_url requires approved HTTPS URLs.');
+assert_same('https://support.microsoft.com/windows', guide_safe_source_url('https://support.microsoft.com/windows'), 'guide_safe_source_url accepts ordinary HTTPS source URLs.');
+assert_same(null, guide_safe_source_url('https://user:secret@support.microsoft.com/windows'), 'guide_safe_source_url rejects source URL credentials.');
+assert_same(null, guide_safe_source_url('https://support.microsoft.com:8443/windows'), 'guide_safe_source_url rejects unexpected source URL ports.');
+assert_same(null, guide_safe_source_url('https://127.0.0.1/windows'), 'guide_safe_source_url rejects IP-literal source URLs.');
 $rankedConfidence = confidence_rank(
     [
         ['cause_key' => 'power', 'title' => 'Power', 'explanation' => '', 'minimum_evidence' => 1],

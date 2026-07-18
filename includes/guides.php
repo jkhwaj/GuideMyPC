@@ -26,6 +26,28 @@ function guide_safe_url(mixed $value, int $maximumLength = 255): ?string
     return $url;
 }
 
+function guide_safe_source_url(mixed $value, int $maximumLength = 255): ?string
+{
+    $url = guide_text($value, $maximumLength);
+
+    if ($url === '' || filter_var($url, FILTER_VALIDATE_URL) === false) {
+        return null;
+    }
+
+    $parts = parse_url($url);
+
+    if (!is_array($parts)
+        || ($parts['scheme'] ?? '') !== 'https'
+        || isset($parts['user'])
+        || isset($parts['pass'])
+        || isset($parts['port'])
+        || filter_var((string) ($parts['host'] ?? ''), FILTER_VALIDATE_IP) !== false) {
+        return null;
+    }
+
+    return $url;
+}
+
 function guide_youtube_embed_url(mixed $value): ?string
 {
     $url = guide_text($value, 500);

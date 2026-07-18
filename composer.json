@@ -2,6 +2,7 @@
     "name": "jkhwaj/guidemypc",
     "description": "Consumer technology support application",
     "type": "project",
+    "license": "proprietary",
     "require": {
         "php": "^8.2"
     },

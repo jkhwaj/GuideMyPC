@@ -55,6 +55,26 @@ try {
     ]);
     guide_admin_assert($valid['errors'] === [], 'Valid Guide administration input passes validation.');
     guide_admin_assert($valid['values']['is_published'] === 0 && count($valid['values']['sources']) === 1, 'Draft state and official source normalize correctly.');
+    $unapprovedSource = $service->validate([
+        'category' => $categoryId,
+        'title' => 'Unapproved Source ' . $token,
+        'slug' => 'unapproved-source-' . $token,
+        'is_published' => '0',
+        'sources' => [['title' => 'Unapproved', 'official_url' => 'https://example.test/' . $token]],
+        'steps' => [['text' => 'Test the source policy.']],
+    ]);
+    guide_admin_assert($unapprovedSource['errors'] !== [], 'Guide administration rejects unapproved source hosts.');
+    $test->query("UPDATE trusted_source_domains SET is_active = 0 WHERE domain = 'support.microsoft.com'");
+    $inactiveSource = $service->validate([
+        'category' => $categoryId,
+        'title' => 'Inactive Source ' . $token,
+        'slug' => 'inactive-source-' . $token,
+        'is_published' => '0',
+        'sources' => [['title' => 'Microsoft Support', 'official_url' => 'https://support.microsoft.com/test-' . $token]],
+        'steps' => [['text' => 'Test inactive source rejection.']],
+    ]);
+    guide_admin_assert($inactiveSource['errors'] !== [], 'Guide administration rejects inactive source domains.');
+    $test->query("UPDATE trusted_source_domains SET is_active = 1 WHERE domain = 'support.microsoft.com'");
     $invalid = $service->validate(['category' => 'invalid', 'title' => '', 'slug' => 'Bad Slug', 'video_url' => 'http://example.test', 'is_published' => 'yes', 'featured_order' => '-1', 'sources' => [['title' => '', 'official_url' => 'http://example.test']], 'steps' => []]);
     guide_admin_assert($invalid['errors'] !== [], 'Malformed Guide administration input fails closed.');
 
@@ -106,5 +126,6 @@ try {
         $test->query('DELETE FROM users WHERE id = ' . $userId);
     }
 
+    $test->query("UPDATE trusted_source_domains SET is_active = 1 WHERE domain = 'support.microsoft.com'");
     $test->query("DELETE FROM admin_audit_events WHERE target_type = 'guide' AND metadata_json LIKE '%guide-admin-test-%'");
 }
