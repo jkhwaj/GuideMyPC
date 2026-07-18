@@ -19,6 +19,7 @@ foreach ($_SERVER['argv'] ?? [] as $argument) {
 $tests = [
     'tests/helpers_test.php',
     'tests/authorization_test.php',
+    'tests/category_integration_test.php',
     'tests/search_integration_test.php',
     'tests/knowledge_integration_test.php',
     'tests/guide_integration_test.php',

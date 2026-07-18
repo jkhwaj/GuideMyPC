@@ -68,11 +68,16 @@ The active routes use `community_posts`, `community_comments`, and `community_li
 
 | Paths | Method and response | Migration contract |
 | --- | --- | --- |
-| `admin.php`, `admin_categories.php`, `admin_guides.php`, `admin_downloads.php`, `admin_users.php`, `admin_community.php`, `admin_comments.php` | GET HTML | Administrator listings/dashboard. Queries must complete before output. |
-| `add_category.php`, `add_download.php`, `add_guide.php`, `edit_category.php`, `edit_download.php`, `edit_guide.php`, `edit_user.php` | GET/POST HTML | Administrator editor workflows. Preserve validation, CSRF, authorization, and PRG. |
-| `delete_category.php`, `delete_comment.php`, `delete_download.php`, `delete_guide.php`, `delete_post.php`, `delete_user.php` | POST redirect | Administrator deletion actions. Preserve authorization, CSRF, flash, redirect, and audit behavior. |
+| `admin_categories.php` | GET HTML | Editor/administrator category listing with bounded search, publication filter, allowlisted sorting, and pagination. Delete controls are administrator-only. |
+| `add_category.php`, `edit_category.php` | GET/POST HTML | Editor/administrator category workflows. Preserve validation, CSRF, publication capability, audit, and HTTP 303 PRG behavior. Unpublishing a category hides its category-scoped public content. |
+| `admin.php`, `admin_guides.php`, `admin_downloads.php`, `admin_users.php`, `admin_community.php`, `admin_comments.php` | GET HTML | Administrator listings/dashboard. Queries must complete before output. |
+| `add_download.php`, `add_guide.php`, `edit_download.php`, `edit_guide.php`, `edit_user.php` | GET/POST HTML | Administrator editor workflows until their feature-specific capability contracts are approved. Preserve validation, CSRF, authorization, and PRG. |
+| `delete_category.php` | POST redirect | Administrator-only hard deletion. Block deletion when any known feature references the category; preserve CSRF, flash, audit, and HTTP 303 PRG behavior. |
+| `delete_comment.php`, `delete_download.php`, `delete_guide.php`, `delete_post.php`, `delete_user.php` | POST redirect | Administrator deletion actions. Preserve authorization, CSRF, flash, redirect, and audit behavior. |
 
 Administration moves into the feature that owns its data. The shared audit service is a dependency, not an excuse for a separate generic admin repository.
+
+Guide step identity is persistent across edits. `edit_guide.php` must update and reorder submitted steps by their existing IDs, insert only new steps, and delete only intentionally omitted steps. Metadata-only edits, text corrections, additions, and reordering preserve progress on retained IDs. Removing a step deletes progress for that step only; cross-guide or duplicate IDs reject the complete transaction.
 
 ## Known Policy Differences
 

@@ -350,6 +350,21 @@ For every increment, record:
 - `composer validate --no-check-publish` was not run because `composer` is not installed on the current PATH.
 - Authenticated user/editor/admin browser rendering, keyboard behavior, and desktop/320px viewport checks remain pending manual evidence. Milestone 1 is not release-complete until these checks and route-level authenticated characterization are recorded.
 
+### 2026-07-18: Milestone 2 Categories And Guide-Step Safety
+
+- Status: implementation workspace after commit `eb80d00`; this increment is not yet committed.
+- Category list/create/update routes now admit editors through the approved content capability while hard deletion remains administrator-only.
+- Category validation covers schema limits, slug format, publication state, featured order, and duplicate slugs. Mutations and audit events share transactions.
+- Category deletion checks Guides, Knowledge, Diagnostics, Maintenance, and deferred Community references. Forward migration `022_category_reference_integrity.sql` normalizes legacy category key types and adds restrictive foreign keys.
+- Migration `022` passed both a fresh 22-migration install in `guidemypc_m2_test` and the representative local application upgrade; a second test migration run reported `0 applied, 22 total`.
+- Category integration coverage uses 27 bounded pagination fixtures and verifies validation, publication, filtering, dependency blocking, cleanup, and audit. Two consecutive focused runs passed without relying on transaction rollback around application-owned transactions.
+- Category publication now also suppresses category-owned published diagnostic flows.
+- Guide editing now submits stable step IDs and synchronizes rows in place. Reordering, text edits, and additions preserve progress for retained IDs; intentional removal cascades only the removed step's progress.
+- Guide tests cover mixed reorder/add/delete, contiguous numbering, no-op writes, cross-guide and duplicate-ID rejection, tampered-submit atomicity, and guide-scoped guest-progress merging.
+- `C:\xampp\php\php.exe scripts\verify.php --database=guidemypc_m2_test`: all eight suites passed.
+- Repository-wide PHP lint, `node --check js\script.js`, `node --check js\guide-editor.js`, and `git diff --check` passed.
+- Remaining before the Guide slice is complete: editor-safe Guide route contracts, draft/publication controls, sources, bounded Guide listing, dependency-aware hard deletion, route-level role/CSRF/PRG tests, and authenticated browser evidence.
+
 ## Critical Path And Scope Control
 
 The critical path is:

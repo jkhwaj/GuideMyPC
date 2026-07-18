@@ -17,6 +17,9 @@ $isOperational = $dashboard['kind'] === 'operational';
             <a href="<?php echo e(application_url('profile.php')); ?>">Profile</a>
             <a href="<?php echo e(application_url('guides.php')); ?>">Guides</a>
             <a href="<?php echo e(application_url('knowledge.php')); ?>">Knowledge</a>
+            <?php if ($isOperational): ?>
+                <a href="<?php echo e(application_url('admin_categories.php')); ?>">Manage categories</a>
+            <?php endif; ?>
             <?php if ($role === 'admin'): ?>
                 <a href="<?php echo e(application_url('admin.php')); ?>">Admin tools</a>
             <?php endif; ?>

@@ -42,15 +42,7 @@ if (!in_array($guideId, $_SESSION['viewed_guides'], true)) {
 $userId = current_user_id();
 
 if ($userId > 0 && !empty($_SESSION['_guest_progress'][$guideId]) && is_array($_SESSION['_guest_progress'][$guideId])) {
-    $mergeProgress = $conn->prepare('INSERT INTO user_progress (user_id, guide_step_id, completed) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE completed = 1');
-
-    foreach (array_keys($_SESSION['_guest_progress'][$guideId]) as $guestStepId) {
-        $guestStepId = (int) $guestStepId;
-        $mergeProgress->bind_param('ii', $userId, $guestStepId);
-        $mergeProgress->execute();
-    }
-
-    $mergeProgress->close();
+    guide_merge_guest_progress($conn, $userId, $guideId, array_keys($_SESSION['_guest_progress'][$guideId]));
     unset($_SESSION['_guest_progress'][$guideId]);
     flash('success', 'Your browser-session guide progress was saved to your account.');
 }

@@ -7,9 +7,9 @@ function guide_text(mixed $value, int $maximumLength = 10000): string
     return required_string($value, $maximumLength) ?? '';
 }
 
-function guide_safe_url(mixed $value): ?string
+function guide_safe_url(mixed $value, int $maximumLength = 255): ?string
 {
-    $url = guide_text($value, 500);
+    $url = guide_text($value, $maximumLength);
 
     if ($url === '') {
         return null;
@@ -83,26 +83,203 @@ function guide_normalize_steps(mixed $input): array
 
     foreach ($input as $step) {
         $data = is_array($step) ? $step : ['text' => $step];
+        $id = null;
+
+        if (array_key_exists('id', $data) && $data['id'] !== '') {
+            $validatedId = filter_var($data['id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+            if ($validatedId === false) {
+                return [];
+            }
+
+            $id = $validatedId;
+        }
+
         $text = guide_text($data['text'] ?? '', 10000);
 
         if ($text === '') {
+            if ($id !== null) {
+                return [];
+            }
+
             continue;
         }
 
         $timestamp = filter_var($data['video_timestamp'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 86400]]);
         $steps[] = [
+            'id' => $id,
             'text' => $text,
-            'title' => guide_text($data['title'] ?? '', 200),
+            'title' => guide_text($data['title'] ?? '', 180),
             'expected_result' => guide_text($data['expected_result'] ?? '', 1000),
             'warning_text' => guide_text($data['warning_text'] ?? '', 1000),
             'recovery_text' => guide_text($data['recovery_text'] ?? '', 1000),
-            'image_url' => guide_safe_url($data['image_url'] ?? null),
-            'image_alt' => guide_text($data['image_alt'] ?? '', 300),
+            'image_url' => guide_safe_url($data['image_url'] ?? null, 255),
+            'image_alt' => guide_text($data['image_alt'] ?? '', 255),
             'video_timestamp' => $timestamp === false ? null : $timestamp,
         ];
     }
 
     return $steps;
+}
+
+/** @param array<int|string, mixed> $guestStepIds */
+function guide_merge_guest_progress(mysqli $connection, int $userId, int $guideId, array $guestStepIds): void
+{
+    $merge = $connection->prepare(
+        'INSERT INTO user_progress (user_id, guide_step_id, completed) '
+        . 'SELECT ?, id, 1 FROM guide_steps WHERE id = ? AND guide_id = ? '
+        . 'ON DUPLICATE KEY UPDATE completed = 1'
+    );
+    $seen = [];
+
+    foreach ($guestStepIds as $guestStepId) {
+        $stepId = filter_var($guestStepId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+        if ($stepId === false || isset($seen[$stepId])) {
+            continue;
+        }
+
+        $seen[$stepId] = true;
+        $merge->bind_param('iii', $userId, $stepId, $guideId);
+        $merge->execute();
+    }
+
+    $merge->close();
+}
+
+/**
+ * Synchronize submitted steps by stable ID. Call this inside the guide update transaction.
+ *
+ * @param list<array<string, string|int|null>> $steps
+ * @return array{added: list<int>, updated: list<int>, deleted: list<int>, deleted_progress: int}
+ */
+function guide_sync_steps(mysqli $connection, int $guideId, array $steps): array
+{
+    if ($steps === []) {
+        throw new DomainException('A guide must contain at least one step.');
+    }
+
+    $statement = $connection->prepare('SELECT * FROM guide_steps WHERE guide_id = ? ORDER BY step_number FOR UPDATE');
+    $statement->bind_param('i', $guideId);
+    $statement->execute();
+    $result = $statement->get_result();
+    $existing = [];
+    $existingOrder = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $stepId = (int) $row['id'];
+        $existing[$stepId] = $row;
+        $existingOrder[] = $stepId;
+    }
+
+    $statement->close();
+    $submittedIds = [];
+
+    foreach ($steps as $step) {
+        $stepId = $step['id'] ?? null;
+
+        if ($stepId === null) {
+            continue;
+        }
+
+        $stepId = (int) $stepId;
+
+        if (!isset($existing[$stepId]) || isset($submittedIds[$stepId])) {
+            throw new DomainException('A submitted guide step is invalid or belongs to another guide.');
+        }
+
+        $submittedIds[$stepId] = true;
+    }
+
+    $submittedOrder = array_values(array_map(
+        static fn (array $step): int => (int) ($step['id'] ?? 0),
+        array_filter($steps, static fn (array $step): bool => ($step['id'] ?? null) !== null)
+    ));
+    $structuralChange = count($steps) !== count($existing)
+        || $submittedOrder !== $existingOrder;
+
+    if ($structuralChange && $existing !== []) {
+        $temporaryNumber = max(array_map(static fn (array $step): int => (int) $step['step_number'], $existing)) + count($existing) + count($steps) + 1;
+        $move = $connection->prepare('UPDATE guide_steps SET step_number = ? WHERE id = ? AND guide_id = ?');
+
+        foreach (array_keys($existing) as $stepId) {
+            $move->bind_param('iii', $temporaryNumber, $stepId, $guideId);
+            $move->execute();
+            $temporaryNumber++;
+        }
+
+        $move->close();
+    }
+
+    $insert = $connection->prepare(
+        'INSERT INTO guide_steps (guide_id, step_number, step_text, step_title, expected_result, warning_text, recovery_text, image_url, image_alt, video_timestamp) '
+        . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    $update = $connection->prepare(
+        'UPDATE guide_steps SET step_number = ?, step_text = ?, step_title = ?, expected_result = ?, warning_text = ?, recovery_text = ?, image_url = ?, image_alt = ?, video_timestamp = ? WHERE id = ? AND guide_id = ?'
+    );
+    $added = [];
+    $updated = [];
+
+    foreach ($steps as $index => $step) {
+        $number = $index + 1;
+        $timestamp = $step['video_timestamp'];
+        $stepId = $step['id'] ?? null;
+
+        if ($stepId === null) {
+            $insert->bind_param(
+                'iisssssssi', $guideId, $number, $step['text'], $step['title'], $step['expected_result'], $step['warning_text'],
+                $step['recovery_text'], $step['image_url'], $step['image_alt'], $timestamp
+            );
+            $insert->execute();
+            $added[] = $insert->insert_id;
+            continue;
+        }
+
+        $stepId = (int) $stepId;
+        $current = $existing[$stepId];
+        $changed = $structuralChange
+            || (string) $current['step_text'] !== (string) $step['text']
+            || (string) $current['step_title'] !== (string) $step['title']
+            || (string) $current['expected_result'] !== (string) $step['expected_result']
+            || (string) $current['warning_text'] !== (string) $step['warning_text']
+            || (string) $current['recovery_text'] !== (string) $step['recovery_text']
+            || (string) $current['image_url'] !== (string) $step['image_url']
+            || (string) $current['image_alt'] !== (string) $step['image_alt']
+            || ($current['video_timestamp'] === null ? null : (int) $current['video_timestamp']) !== $timestamp;
+
+        if ($changed) {
+            $update->bind_param(
+                'issssssssii', $number, $step['text'], $step['title'], $step['expected_result'], $step['warning_text'],
+                $step['recovery_text'], $step['image_url'], $step['image_alt'], $timestamp, $stepId, $guideId
+            );
+            $update->execute();
+            $updated[] = $stepId;
+        }
+    }
+
+    $insert->close();
+    $update->close();
+    $deleted = array_values(array_diff(array_keys($existing), array_keys($submittedIds)));
+    $deletedProgress = 0;
+
+    if ($deleted !== []) {
+        $progress = $connection->prepare('SELECT COUNT(*) AS total FROM user_progress WHERE guide_step_id = ?');
+        $delete = $connection->prepare('DELETE FROM guide_steps WHERE id = ? AND guide_id = ?');
+
+        foreach ($deleted as $stepId) {
+            $progress->bind_param('i', $stepId);
+            $progress->execute();
+            $deletedProgress += (int) ($progress->get_result()->fetch_assoc()['total'] ?? 0);
+            $delete->bind_param('ii', $stepId, $guideId);
+            $delete->execute();
+        }
+
+        $progress->close();
+        $delete->close();
+    }
+
+    return ['added' => $added, 'updated' => $updated, 'deleted' => $deleted, 'deleted_progress' => $deletedProgress];
 }
 
 /** @param list<array<string, string|int|null>> $steps */
@@ -144,7 +321,7 @@ function guide_replace_tools(mysqli $connection, int $guideId, string $tools): v
     $position = 1;
 
     foreach (preg_split('/[\r\n,]+/', $tools) ?: [] as $tool) {
-        $tool = guide_text($tool, 150);
+        $tool = guide_text($tool, 120);
 
         if ($tool === '' || isset($seen[mb_strtolower($tool)])) {
             continue;

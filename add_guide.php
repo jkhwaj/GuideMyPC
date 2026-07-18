@@ -14,7 +14,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $title = guide_text($_POST['title'] ?? '', 150);
     $slug = guide_text($_POST['slug'] ?? '', 150);
     $steps = guide_normalize_steps($_POST['steps'] ?? []);
-    $videoUrl = guide_text($_POST['video_url'] ?? '', 500);
+    $videoUrl = guide_text($_POST['video_url'] ?? '', 255);
 
     if ($category === false || $title === '' || $slug === '' || $steps === [] || ($videoUrl !== '' && guide_youtube_embed_url($videoUrl) === null)) {
         flash('error', 'Provide a category, title, slug, at least one step, and an approved YouTube URL when adding a video.');
@@ -81,8 +81,8 @@ include __DIR__ . '/includes/navbar.php';
 <label for="backup-warning">Backup and safety warning</label><textarea id="backup-warning" name="backup_warning"></textarea>
 <label for="next-actions">Next actions</label><textarea id="next-actions" name="next_actions"></textarea>
 <label for="video-url">Optional YouTube URL</label><input id="video-url" name="video_url" type="url" placeholder="https://www.youtube.com/watch?v=...">
-<h2>Steps</h2><div id="stepsContainer"><fieldset class="step-editor"><legend>Step 1</legend><label>Title <input name="steps[0][title]"></label><label>Action <textarea name="steps[0][text]" required></textarea></label><label>Expected result <textarea name="steps[0][expected_result]"></textarea></label><label>Warning <textarea name="steps[0][warning_text]"></textarea></label><label>Recovery path <textarea name="steps[0][recovery_text]"></textarea></label></fieldset></div>
+<h2>Steps</h2><div id="stepsContainer"><fieldset class="step-editor"><legend>Step 1</legend><label>Title <input data-step-field="title" name="steps[0][title]" maxlength="180"></label><label>Action <textarea data-step-field="text" name="steps[0][text]" required></textarea></label><label>Expected result <textarea data-step-field="expected_result" name="steps[0][expected_result]"></textarea></label><label>Warning <textarea data-step-field="warning_text" name="steps[0][warning_text]"></textarea></label><label>Recovery path <textarea data-step-field="recovery_text" name="steps[0][recovery_text]"></textarea></label><label>Image URL <input data-step-field="image_url" type="url" name="steps[0][image_url]" maxlength="255"></label><label>Image alt text <input data-step-field="image_alt" name="steps[0][image_alt]" maxlength="255"></label><label>Video timestamp (seconds) <input data-step-field="video_timestamp" type="number" min="0" max="86400" name="steps[0][video_timestamp]"></label><div class="step-editor-actions"><button type="button" data-step-move="up">Move up</button><button type="button" data-step-move="down">Move down</button><button type="button" data-step-remove>Remove step</button></div></fieldset></div>
 <button class="secondary-btn" type="button" id="add-step">Add step</button><button type="submit">Save guide</button>
 </form></div></section>
-<script>document.getElementById('add-step').addEventListener('click',function(){const c=document.getElementById('stepsContainer'),n=c.children.length,f=document.createElement('fieldset'),l=document.createElement('legend');l.textContent='Step '+(n+1);f.className='step-editor';f.append(l);[['title','Title','input'],['text','Action','textarea'],['expected_result','Expected result','textarea'],['warning_text','Warning','textarea'],['recovery_text','Recovery path','textarea']].forEach(function(d){const x=document.createElement('label'),e=document.createElement(d[2]);x.textContent=d[1]+' ';e.name='steps['+n+']['+d[0]+']';if(d[0]==='text'){e.required=true;}x.append(e);f.append(x);});c.append(f);});</script>
+<script src="<?php echo e(asset_url('js/guide-editor.js')); ?>"></script>
 <?php include __DIR__ . '/includes/footer.php';

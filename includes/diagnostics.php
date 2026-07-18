@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 function diagnostic_flow(mysqli $connection, string $slug): ?array
 {
-    $statement = $connection->prepare("SELECT diagnostic_flows.*, diagnostic_flow_versions.id AS version_id, diagnostic_flow_versions.initial_node_key FROM diagnostic_flows JOIN diagnostic_flow_versions ON diagnostic_flow_versions.flow_id = diagnostic_flows.id WHERE diagnostic_flows.slug = ? AND diagnostic_flows.publication_state = 'published' AND diagnostic_flow_versions.publication_state = 'published' ORDER BY diagnostic_flow_versions.version_number DESC LIMIT 1");
+    $statement = $connection->prepare("SELECT diagnostic_flows.*, diagnostic_flow_versions.id AS version_id, diagnostic_flow_versions.initial_node_key FROM diagnostic_flows JOIN diagnostic_flow_versions ON diagnostic_flow_versions.flow_id = diagnostic_flows.id LEFT JOIN categories ON categories.id = diagnostic_flows.category_id WHERE diagnostic_flows.slug = ? AND diagnostic_flows.publication_state = 'published' AND diagnostic_flow_versions.publication_state = 'published' AND (diagnostic_flows.category_id IS NULL OR categories.is_published = 1) ORDER BY diagnostic_flow_versions.version_number DESC LIMIT 1");
     $statement->bind_param('s', $slug); $statement->execute(); $flow = $statement->get_result()->fetch_assoc(); $statement->close();
     return is_array($flow) ? $flow : null;
 }

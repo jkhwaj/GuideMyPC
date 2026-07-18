@@ -138,8 +138,6 @@ function require_admin(): void
 
 function require_editor(): void
 {
-    require_login();
-
     if (!is_editor()) {
         abort_request(403, 'editor_required', 'You do not have permission to manage content.');
     }
