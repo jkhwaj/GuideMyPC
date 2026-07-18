@@ -25,6 +25,7 @@ if ($categorySlug !== '') {
 $where = ['guides.is_published = 1', 'categories.is_published = 1'];
 $types = '';
 $values = [];
+$pagination = pagination_values($_GET['page'] ?? null, 12);
 
 if ($category !== null) {
     $where[] = 'guides.category_id = ?';
@@ -40,19 +41,34 @@ if ($search !== '') {
     $values[] = $searchTerm;
 }
 
+$countStatement = $conn->prepare(
+    'SELECT COUNT(*) AS total FROM guides JOIN categories ON guides.category_id = categories.id WHERE ' . implode(' AND ', $where)
+);
+
+if ($types !== '') {
+    $countStatement->bind_param($types, ...$values);
+}
+
+$countStatement->execute();
+$totalGuides = (int) ($countStatement->get_result()->fetch_assoc()['total'] ?? 0);
+$countStatement->close();
+$totalPages = max(1, (int) ceil($totalGuides / $pagination['per_page']));
+$pagination['page'] = min($pagination['page'], $totalPages);
+$pagination['offset'] = ($pagination['page'] - 1) * $pagination['per_page'];
+
 $guidesSql = 'SELECT guides.*, categories.name AS category_name, categories.slug AS category_slug, '
     . 'ROUND(AVG(guide_ratings.rating), 1) AS average_rating, COUNT(guide_ratings.id) AS total_ratings '
     . 'FROM guides JOIN categories ON guides.category_id = categories.id '
     . 'LEFT JOIN guide_ratings ON guides.id = guide_ratings.guide_id '
     . 'WHERE ' . implode(' AND ', $where) . ' '
     . 'GROUP BY guides.id, categories.name, categories.slug '
-    . 'ORDER BY guides.featured_order IS NULL, guides.featured_order ASC, guides.created_at DESC';
+    . 'ORDER BY guides.featured_order IS NULL, guides.featured_order ASC, guides.created_at DESC LIMIT ? OFFSET ?';
 
 $guidesStatement = $conn->prepare($guidesSql);
+$queryTypes = $types . 'ii';
+$queryValues = [...$values, $pagination['per_page'], $pagination['offset']];
 
-if ($types !== '') {
-    $guidesStatement->bind_param($types, ...$values);
-}
+$guidesStatement->bind_param($queryTypes, ...$queryValues);
 
 $guidesStatement->execute();
 $guidesResult = $guidesStatement->get_result();
@@ -66,6 +82,12 @@ $pageDescription = $category !== null
 $canonicalPath = $category !== null
     ? 'guides.php?category=' . rawurlencode($categorySlug)
     : 'guides.php';
+$pageUrl = static function (int $page) use ($categorySlug, $category, $search): string {
+    $parameters = ['category' => $category === null ? null : $categorySlug, 'search' => $search, 'page' => $page];
+    $parameters = array_filter($parameters, static fn (mixed $value): bool => $value !== null && $value !== '');
+
+    return application_url('guides.php?' . http_build_query($parameters));
+};
 
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
@@ -107,6 +129,14 @@ include __DIR__ . '/includes/navbar.php';
             <div class="content-empty"><p>No published guides match this view. Try a different filter or <a href="<?php echo e(application_url('guides.php')); ?>">browse all guides</a>.</p></div>
         <?php endif; ?>
     </div>
+
+    <?php if ($totalPages > 1): ?>
+        <nav class="pagination" aria-label="Guide library pages">
+            <?php if ($pagination['page'] > 1): ?><a class="secondary-btn" href="<?php echo e($pageUrl($pagination['page'] - 1)); ?>">Previous</a><?php endif; ?>
+            <span>Page <?php echo (int) $pagination['page']; ?> of <?php echo $totalPages; ?></span>
+            <?php if ($pagination['page'] < $totalPages): ?><a class="secondary-btn" href="<?php echo e($pageUrl($pagination['page'] + 1)); ?>">Next</a><?php endif; ?>
+        </nav>
+    <?php endif; ?>
 </section>
 
 <?php

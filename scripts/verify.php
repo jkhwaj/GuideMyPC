@@ -21,6 +21,7 @@ $tests = [
     'tests/authorization_test.php',
     'tests/category_integration_test.php',
     'tests/search_integration_test.php',
+    'tests/guide_library_integration_test.php',
     'tests/knowledge_integration_test.php',
     'tests/guide_integration_test.php',
     'tests/guide_admin_integration_test.php',
