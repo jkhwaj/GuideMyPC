@@ -34,15 +34,16 @@ if ($category !== null) {
 }
 
 if ($search !== '') {
-    $where[] = '(guides.title LIKE ? OR guides.description LIKE ?)';
-    $types .= 'ss';
+    $where[] = '(guides.title LIKE ? OR guides.description LIKE ? OR guide_search_documents.search_text LIKE ?)';
+    $types .= 'sss';
     $searchTerm = '%' . $search . '%';
+    $values[] = $searchTerm;
     $values[] = $searchTerm;
     $values[] = $searchTerm;
 }
 
 $countStatement = $conn->prepare(
-    'SELECT COUNT(*) AS total FROM guides JOIN categories ON guides.category_id = categories.id WHERE ' . implode(' AND ', $where)
+    'SELECT COUNT(*) AS total FROM guides JOIN categories ON guides.category_id = categories.id LEFT JOIN guide_search_documents ON guide_search_documents.guide_id = guides.id WHERE ' . implode(' AND ', $where)
 );
 
 if ($types !== '') {
@@ -59,6 +60,7 @@ $pagination['offset'] = ($pagination['page'] - 1) * $pagination['per_page'];
 $guidesSql = 'SELECT guides.*, categories.name AS category_name, categories.slug AS category_slug, '
     . 'ROUND(AVG(guide_ratings.rating), 1) AS average_rating, COUNT(guide_ratings.id) AS total_ratings '
     . 'FROM guides JOIN categories ON guides.category_id = categories.id '
+    . 'LEFT JOIN guide_search_documents ON guide_search_documents.guide_id = guides.id '
     . 'LEFT JOIN guide_ratings ON guides.id = guide_ratings.guide_id '
     . 'WHERE ' . implode(' AND ', $where) . ' '
     . 'GROUP BY guides.id, categories.name, categories.slug '

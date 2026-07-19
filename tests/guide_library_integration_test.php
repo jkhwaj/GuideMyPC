@@ -16,11 +16,11 @@ function guide_library_assert(bool $condition, string $message): void
     }
 }
 
-function render_guide_library_page(int $page): string
+function render_guide_library_page(int $page, string $search = ''): string
 {
     global $conn;
 
-    $_GET = ['page' => (string) $page];
+    $_GET = ['page' => (string) $page, 'search' => $search];
     ob_start();
     include dirname(__DIR__) . '/guides.php';
 
@@ -47,11 +47,13 @@ try {
     require_once dirname(__DIR__) . '/config.php';
     $firstPage = render_guide_library_page(1);
     $lastPage = render_guide_library_page(999);
+    $structuredSearch = render_guide_library_page(1, 'stable internet connection');
 
     guide_library_assert(str_contains($firstPage, 'Page 1 of 2') && str_contains($firstPage, 'Next'), 'Guide library renders a bounded first page with a next link.');
     guide_library_assert(str_contains($lastPage, 'Page 2 of 2') && str_contains($lastPage, 'Previous') && !str_contains($lastPage, '>Next<'), 'Guide library clamps out-of-range pages to the final page.');
+    guide_library_assert(str_contains($structuredSearch, 'Check a Windows update issue'), 'Guide library filters search structured guide step and tool content.');
 
-    fwrite(STDOUT, "PASS: public guide library pagination is bounded and clamps out-of-range pages.\n");
+    fwrite(STDOUT, "PASS: public guide library pagination and structured filtering work.\n");
 } catch (Throwable $exception) {
     fwrite(STDERR, 'FAIL: ' . $exception->getMessage() . PHP_EOL);
     $exitCode = 1;
