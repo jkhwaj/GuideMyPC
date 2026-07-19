@@ -86,16 +86,16 @@ The default URL works when the checkout is under `htdocs`. To use a local hostna
 ```apache
 <VirtualHost *:80>
     ServerName guidemypc.test
-    DocumentRoot "C:/xampp/htdocs/GuideMyPC"
+    DocumentRoot "C:/xampp/htdocs/GuideMyPC/public"
 
-    <Directory "C:/xampp/htdocs/GuideMyPC">
+    <Directory "C:/xampp/htdocs/GuideMyPC/public">
         AllowOverride All
         Require all granted
     </Directory>
 </VirtualHost>
 ```
 
-Add `127.0.0.1 guidemypc.test` to the Windows hosts file, restart Apache, and set `APP_URL=http://guidemypc.test` in `.env`. This is local development only. Later security work will move private configuration, logs, and uploads outside the public web root.
+Add `127.0.0.1 guidemypc.test` to the Windows hosts file, restart Apache, and set `APP_URL=http://guidemypc.test` in `.env`. This preferred local configuration exposes only `public/`; legacy `*.php` paths are dispatched by `public/index.php`. This is local development only.
 
 ## Local File Access and Mail
 

@@ -111,4 +111,7 @@ All existing application behavior is served through named routes from a public-o
 - Audited the current root document root, root `.htaccess`, legacy route contracts, and CSS/JavaScript locations. The root `.htaccess` provides only temporary rewrite-dependent protection and cannot meet the public-only boundary.
 - Production Composer delivery is approved as a deploy artifact containing locked production dependencies; source archives remain clean.
 - The initial proxy policy is approved as direct Apache HTTPS only. Forwarded headers remain untrusted until a separately approved allowlist exists.
-- Live front-controller activation is deferred until named legacy route dispatch and public asset migration can land together; activating `public/` before then would break legacy scripts, metadata derived from script paths, or CSS/JavaScript URLs.
+- Added `routes/web.php`, `routes/admin.php`, and `routes/api.php` as an allowlisted legacy route map, plus `public/index.php` to dispatch those paths to root compatibility scripts while preserving the original `SCRIPT_NAME` metadata contract.
+- Moved static CSS and JavaScript into `public/assets/`; public and transitional root rewrite rules retain the existing `/css`, `/js`, and `/robots.txt` URLs.
+- Updated the preferred XAMPP virtual-host example to use `public/`. Live public-root activation still requires the route, asset, private-path, and hostname/subdirectory smoke matrix before replacing an existing root document-root configuration.
+- PHP lint passed for the dispatcher and all route maps. The route map covers every root web script, `tests/helpers_test.php` passes, and direct CLI dispatch of `/about.php` preserves the legacy title and page content.
