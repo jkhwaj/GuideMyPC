@@ -50,3 +50,19 @@ Preserve documented legacy route and response contracts during the migration.
 Keep runtime storage outside the repository and expose only `public/` through
 the web server once task `008` is complete. Follow the active migration task
 and record validation evidence before starting a dependent phase.
+
+## Final Project Submission Readiness
+
+Before planning or implementing final-project completion, repository cleanup,
+folder reorganization, submission documents, UML, screenshots, or packaging,
+read the following file in full:
+
+- `Tasks/final-project-submission-readiness/README.md`
+
+Treat that document as the execution plan for the final-project guide. Start by
+inventorying every path returned by `git ls-files`. Classify every tracked file
+before moving, merging, rewriting, or deleting it. Do not perform a directory-only
+cleanup that breaks legacy routes, forms, redirects, JavaScript endpoints,
+sitemap URLs, session behavior, database migrations, or package-relative paths.
+Work through its phases and Definition of Done, and update its evidence files as
+the implementation changes.
