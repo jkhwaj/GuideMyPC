@@ -9,6 +9,7 @@ This repository is an early prototype being improved through the implementation 
 - Windows 10 or Windows 11
 - XAMPP with PHP 8.2.x, Apache 2.4.x, and MariaDB 10.4.x
 - Git
+- Composer 2.10 or later
 - A local checkout at `C:\xampp\htdocs\GuideMyPC`
 
 PHP must have these extensions enabled in `C:\xampp\php\php.ini`:
@@ -20,28 +21,34 @@ PHP must have these extensions enabled in `C:\xampp\php\php.ini`:
 - `json`
 - `curl`
 
-Composer is not currently required. If task `004-application-structure-and-error-handling.md` introduces it, use the committed `composer.json` and lock file rather than installing untracked packages.
+Composer manages the project autoloader. Install only from the committed `composer.lock`; do not commit `vendor/`.
 
 ## Quick Start
 
 1. Install XAMPP with Apache, MySQL/MariaDB, and PHP 8.2 enabled.
 2. Clone the repository into `C:\xampp\htdocs\GuideMyPC`.
 3. Copy `.env.example` to `.env` and keep `.env` private.
-4. In the XAMPP Control Panel, start Apache and MySQL.
-5. Run the setup check:
+4. Install the locked autoloader:
+
+   ```powershell
+   composer install --no-interaction
+   ```
+
+5. In the XAMPP Control Panel, start Apache and MySQL.
+6. Run the setup check:
 
    ```powershell
    C:\xampp\php\php.exe scripts\check-local-setup.php
    ```
 
-6. Create the schema and, optionally, safe sample content:
+7. Create the schema and, optionally, safe sample content:
 
     ```powershell
     C:\xampp\php\php.exe database\migrate.php
     C:\xampp\php\php.exe database\seed.php
     ```
 
-7. Open [http://localhost/GuideMyPC/](http://localhost/GuideMyPC/).
+8. Open [http://localhost/GuideMyPC/](http://localhost/GuideMyPC/).
 
 `config.php` loads database settings from the untracked `.env` file. Keep that file local and use the setup checker before troubleshooting application pages.
 

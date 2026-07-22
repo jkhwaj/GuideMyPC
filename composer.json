@@ -11,6 +11,12 @@
             "GuideMyPC\\": "app/"
         }
     },
+    "scripts": {
+        "verify": [
+            "@composer validate",
+            "@php scripts/lint.php"
+        ]
+    },
     "minimum-stability": "stable",
     "prefer-stable": true
 }
