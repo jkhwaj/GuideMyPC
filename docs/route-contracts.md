@@ -78,6 +78,9 @@ The active routes use `community_posts`, `community_comments`, and `community_li
 | `add_download.php`, `edit_download.php`, `edit_user.php` | GET/POST HTML | Administrator editor workflows until their feature-specific capability contracts are approved. Preserve validation, CSRF, authorization, and PRG. |
 | `delete_category.php` | POST redirect | Administrator-only hard deletion. Block deletion when any known feature references the category; preserve CSRF, flash, audit, and HTTP 303 PRG behavior. |
 | `delete_guide.php` | POST redirect | Administrator-only hard deletion. Block deletion when durable user or knowledge dependencies exist; preserve CSRF, flash, audit, and HTTP 303 PRG behavior. |
+| `admin_knowledge.php` | GET HTML | Editor/administrator knowledge listing with bounded search, publication/type/category filters, allowlisted sorting, and pagination. Delete controls are administrator-only. |
+| `add_knowledge.php`, `edit_knowledge.php` | GET/POST HTML | Editor/administrator knowledge article workflows. Publication lifecycle, tags, official sources, CSRF, audit, and HTTP 303 PRG are required. |
+| `delete_knowledge.php` | POST redirect | Administrator-only hard deletion. Preserve CSRF, dependency checks, flash, audit, and HTTP 303 PRG behavior. |
 | `delete_comment.php`, `delete_download.php`, `delete_post.php`, `delete_user.php` | POST redirect | Administrator deletion actions. Preserve authorization, CSRF, flash, redirect, and audit behavior. |
 
 Administration moves into the feature that owns its data. The shared audit service is a dependency, not an excuse for a separate generic admin repository.
