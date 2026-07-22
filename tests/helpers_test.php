@@ -46,6 +46,12 @@ if ($requestMethod === null) {
 assert_same('value', GuideMyPC\Core\Environment::value(['KEY' => 'value'], 'KEY'), 'PSR-4 Core classes autoload without Composer.');
 assert_same('https://example.test/guides.php', GuideMyPC\Core\Url::applicationUrl('https://example.test/', '/guides.php'), 'Core URL generation preserves the legacy path contract.');
 assert_same('https://example.test/css/style.css?v=2', GuideMyPC\Core\Url::assetUrl('https://example.test', '2', 'css/style.css'), 'Core asset URLs preserve the version query contract.');
+try {
+    GuideMyPC\Core\Database::connect(['host' => null, 'user' => null, 'password' => '', 'database' => null, 'port' => '3306']);
+    assert_same(true, false, 'Core database factory rejects incomplete configuration.');
+} catch (RuntimeException $exception) {
+    assert_same('Database configuration is incomplete.', $exception->getMessage(), 'Core database factory preserves incomplete configuration errors.');
+}
 assert_same([], load_environment(dirname(__DIR__) . '/missing-test-env'), 'load_environment ignores a missing file.');
 assert_same('fallback', config_value('MISSING_TEST_VALUE', 'fallback'), 'config_value preserves its default contract.');
 assert_same(true, is_string(private_storage_path('logs')), 'private_storage_path resolves private runtime storage.');
@@ -66,6 +72,24 @@ $contactViewOutput = (static function (): string {
 })();
 assert_same(true, str_contains($contactViewOutput, '<title>Contact | GuideMyPC</title>'), 'Pages controller passes Contact metadata to the layout.');
 assert_same(true, str_contains($contactViewOutput, '<h1 id="contact-title">Contact support</h1>'), 'Pages controller renders the contact view.');
+foreach ([
+    'privacy' => ['Privacy | GuideMyPC', 'privacy-heading', 'privacy.php'],
+    'terms' => ['Terms | GuideMyPC', 'terms-heading', 'terms.php'],
+    'disclaimer' => ['Disclaimer | GuideMyPC', 'disclaimer-heading', 'disclaimer.php'],
+    'donate' => ['Support GuideMyPC | GuideMyPC', 'donate-heading', 'donate.php'],
+    'ai' => ['AI Assistant | GuideMyPC', 'ai-title', 'ai.php'],
+] as $method => [$title, $headingId, $canonicalPath]) {
+    $staticPageOutput = (static function () use ($method): string {
+        ob_start();
+        (new GuideMyPC\Features\Pages\PageController(new GuideMyPC\Core\View()))->{$method}();
+
+        return (string) ob_get_clean();
+    })();
+
+    assert_same(true, str_contains($staticPageOutput, '<title>' . $title . '</title>'), sprintf('Pages controller preserves %s metadata.', $method));
+    assert_same(true, str_contains($staticPageOutput, 'href="' . e(application_url($canonicalPath)) . '"'), sprintf('Pages controller preserves the %s canonical URL.', $method));
+    assert_same(true, str_contains($staticPageOutput, 'id="' . $headingId . '"'), sprintf('Pages controller renders the %s view.', $method));
+}
 assert_same(null, required_string('Long value', 3), 'required_string rejects long values.');
 assert_same(['page' => 2, 'per_page' => 20, 'offset' => 20], pagination_values('2'), 'pagination_values calculates offsets.');
 assert_same(['password' => '[redacted]', 'title' => 'Guide'], redact_log_context(['password' => 'secret', 'title' => 'Guide']), 'redact_log_context removes sensitive values.');
@@ -83,6 +107,11 @@ assert_same('https://support.microsoft.com/windows', guide_safe_source_url('http
 assert_same(null, guide_safe_source_url('https://user:secret@support.microsoft.com/windows'), 'guide_safe_source_url rejects source URL credentials.');
 assert_same(null, guide_safe_source_url('https://support.microsoft.com:8443/windows'), 'guide_safe_source_url rejects unexpected source URL ports.');
 assert_same(null, guide_safe_source_url('https://127.0.0.1/windows'), 'guide_safe_source_url rejects IP-literal source URLs.');
+$guestProgressSession = [];
+GuideMyPC\Features\Guides\GuideProgressService::saveGuestProgress($guestProgressSession, 12, 34, true);
+assert_same([12 => [34 => true]], $guestProgressSession['_guest_progress'], 'Guide progress service stores guest progress by guide and step.');
+GuideMyPC\Features\Guides\GuideProgressService::saveGuestProgress($guestProgressSession, 12, 34, false);
+assert_same([12 => []], $guestProgressSession['_guest_progress'], 'Guide progress service preserves the legacy empty guest guide state when a step is cleared.');
 $rankedConfidence = confidence_rank(
     [
         ['cause_key' => 'power', 'title' => 'Power', 'explanation' => '', 'minimum_evidence' => 1],

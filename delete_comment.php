@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/admin.php';
 require_post();
 require_admin();
 require_csrf();
@@ -7,9 +8,7 @@ require_csrf();
 $id = (int) ($_POST["id"] ?? 0);
 
 if ($id > 0) {
-    $stmt = $conn->prepare("DELETE FROM community_comments WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
+    (new GuideMyPC\Features\Community\CommunityAdminService($conn))->deleteComment($id);
 }
 
 redirect('admin_comments.php');

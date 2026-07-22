@@ -111,3 +111,5 @@ Guide mutations, account workflows, and active diagnostics are feature-owned, en
 - Session reads and guest-progress cleanup remain in `merge_guest_progress()` so the existing session contract is unchanged.
 - Guide action routes and diagnostic state/transition behavior remain unchanged in this increment.
 - PHP lint passed for the service, account helper, login route, diagnostic action route, and account integration test. `tests/helpers_test.php` and `tests/account_integration_test.php` pass against the current test database.
+- Extracted `save_progress.php` guest-session and authenticated `user_progress` writes into `GuideMyPC\Features\Guides\GuideProgressService`; the route retains legacy request validation, public-step lookup, CSRF, HTML redirect/flash, and JSON response handling.
+- Added DB-free helper coverage for guest step completion and clearing, including the legacy empty per-guide session state. Validation for this increment: PHP lint, `tests/helpers_test.php`, and `composer verify`.

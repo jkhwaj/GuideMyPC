@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/guides.php';
+
+use GuideMyPC\Features\Guides\GuideProgressService;
+
 require_post();
 require_csrf();
 
@@ -19,30 +22,7 @@ if ($step === null) {
     abort_request(404, 'guide_step_not_found', 'That guide step is no longer available.');
 }
 
-if ($user_id === 0) {
-    $guideId = (int) $step['guide_id'];
-    $_SESSION['_guest_progress'][$guideId] = $_SESSION['_guest_progress'][$guideId] ?? [];
-
-    if ($completed === 1) {
-        $_SESSION['_guest_progress'][$guideId][$step_id] = true;
-    } else {
-        unset($_SESSION['_guest_progress'][$guideId][$step_id]);
-    }
-} else {
-    if ($completed === 1) {
-        $sql = "INSERT INTO user_progress (user_id, guide_step_id, completed)
-                VALUES (?, ?, 1)
-                ON DUPLICATE KEY UPDATE completed = 1";
-    } else {
-        $sql = "DELETE FROM user_progress
-                WHERE user_id = ? AND guide_step_id = ?";
-    }
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $user_id, $step_id);
-    $stmt->execute();
-    $stmt->close();
-}
+(new GuideProgressService($conn))->save($user_id, (int) $step['guide_id'], $step_id, $completed === 1, $_SESSION);
 
 if (expects_json()) {
     json_response(200, ['step_id' => $step_id, 'completed' => $completed === 1, 'guest' => $user_id === 0]);

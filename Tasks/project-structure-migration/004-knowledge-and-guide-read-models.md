@@ -103,6 +103,8 @@ Knowledge and guide read behavior is feature-owned, rendered through the new vie
 
 - Extracted the published Knowledge article lookup into `GuideMyPC\Features\Knowledge\KnowledgeRepository`.
 - `knowledge_published_article()` remains a compatibility delegate, preserving `knowledge_article.php` and existing integration-test callers while the remaining Knowledge queries are characterized.
+- Extracted the published category and article list/filter reads from `knowledge.php` into `KnowledgeRepository`; the legacy route still validates `type`, retains `type` and `category` query names, and renders the existing markup from explicit arrays.
+- Extended the Knowledge integration test to verify that the seeded published error-code article appears in the feature list query and disappears after it is drafted.
 - No publication policy, route, rendering, Guide behavior, or database schema changed in this increment.
-- The current Knowledge integration test still depends on seeded content and may report `SKIP`; deterministic fixture work remains required before this task can complete.
-- PHP lint passed for the repository, compatibility helper, article route, and Knowledge integration test. `tests/helpers_test.php` and `tests/knowledge_integration_test.php` pass against the current seeded database.
+- The current Knowledge integration test still depends on seeded content; deterministic fixture work remains required before this task can complete.
+- Validation evidence for this increment: `php scripts/lint.php`, `php tests/helpers_test.php`, and `composer verify` passed after the extraction. `php tests/knowledge_integration_test.php` could not run because this shell has no safe `DB_TEST_NAME` configuration; it failed before connecting to a database.
