@@ -16,12 +16,14 @@ Complete this checklist against the exact release commit before the internal dea
 
 ## Required Deliverables
 
-| Artifact | Required filename | Responsible reviewer | Status | Checked date |
+| Artifact | Required location or filename | Responsible reviewer | Status | Checked date |
 | --- | --- | --- | --- | --- |
-| Team Readme | `Readme.docx` | `[name]` | Not started |  |
-| Final report | `GuideMyPC-Final-Report.docx` | `[name]` | Not started |  |
-| UML project | `GuideMyPC.vpp` | `[name]` | Not started |  |
-| Source archive | `GuideMyPC-Source.zip` | `[name]` | Not started |  |
+| Team Readme | `docs/submission/documents/Readme.docx` | `[name]` | Not started |  |
+| Final report | `docs/submission/documents/GuideMyPC-Final-Report.docx` | `[name]` | Not started |  |
+| UML project | `uml/source/GuideMyPC.vpp` | `[name]` | Not started |  |
+| Four UML exports | `uml/exports/` with the documented filenames | `[name]` | Not started |  |
+| Final screenshots | 8 to 10 images in `docs/submission/screenshots/` | `[name]` | Not started |  |
+| Submission archive | `build/GuideMyPC_Submission.zip` | `[name]` | Not started |  |
 
 ## Content and Evidence
 
@@ -29,23 +31,23 @@ Complete this checklist against the exact release commit before the internal dea
 - [ ] Team information and contribution claims match the team record and available Git evidence.
 - [ ] The system description is no more than two pages and describes only the submitted release.
 - [ ] Technology, database, platform, browser, and 320px claims have traceable evidence.
-- [ ] Each UML diagram is present in the `.vpp`, legible in export, and matches implemented behavior.
-- [ ] The report contains exactly 8-10 captioned screenshots, including at least two mobile views, with manifest entries and redactions.
+- [ ] Each UML diagram is present in `GuideMyPC.vpp`, legible in export, and matches implemented behavior.
+- [ ] The report contains exactly 8 to 10 captioned screenshots, including at least two mobile views, with manifest entries and redactions.
 - [ ] Third-party inventory names exact versions, sources, licenses, purposes, and delivery methods.
-- [ ] Test evidence records the submitted commit, environment, tester, date, expected/actual result, and safe evidence reference.
+- [ ] Test evidence records the submitted commit, environment, tester, date, expected and actual result, and safe evidence reference.
 - [ ] Known limitations distinguish incomplete roadmap foundations from implemented behavior.
 
 ## Archive and Privacy
 
-- [ ] `scripts/package-source.ps1` was run with the submitted commit and a new output path.
-- [ ] `GuideMyPC-Source.zip` was opened and inspected for `.env`, secrets, local data, uploads, logs, backups, dependencies, Git metadata, workspace tooling, and report/UML binaries.
+- [ ] `composer run package:submission:strict` completed successfully for the submitted commit.
+- [ ] `GuideMyPC_Submission.zip` contains `frontend/`, `backend/`, `database/`, `uml/`, `docs/`, `README.md`, and `PACKAGE-MANIFEST.txt` under one `GuideMyPC/` folder.
+- [ ] The ZIP was opened and inspected for `.env`, secrets, local data, uploads, logs, backups, dependency folders, Git metadata, and workspace tooling.
 - [ ] A clean extraction was configured from `.env.example`, migrated, optionally seeded, and passed the documented verification command.
-- [ ] Final document properties, image metadata, screenshots, and evidence contain no personal data, credentials, local paths, tokens, or private content.
-- [ ] The outer submission ZIP contains all four required artifacts with instructor-approved names and formats.
-- [ ] The independent reviewer opened the outer ZIP and signed the final result.
+- [ ] Final document properties, image metadata, screenshots, and evidence contain no unintended personal data, credentials, local paths, tokens, or private content.
+- [ ] The independent reviewer opened the final ZIP and checked every Word, UML, image, database, frontend, and backend file.
 
 ## Final Decision
 
 | Decision | Assembler signature/date | Independent reviewer signature/date |
 | --- | --- | --- |
-| Ready to submit / blocked with reason: `[record decision]` |  |  |
+| Ready to submit or blocked with reason: `[record decision]` |  |  |
