@@ -27,6 +27,12 @@ $categoryId = (int) $guide['category_id'];
 $conn->begin_transaction();
 
 try {
+    $clampedPage = search_result_pagination(11, 999);
+
+    if ($clampedPage !== ['page' => 2, 'per_page' => 10, 'offset' => 10, 'total_pages' => 2]) {
+        throw new RuntimeException('Search pagination did not clamp an out-of-range requested page.');
+    }
+
     $structuredResults = search_documents($conn, search_filters(['q' => 'stable internet connection', 'type' => 'guide']));
     $structuredMatch = false;
 
@@ -73,7 +79,7 @@ try {
     }
 
     $conn->rollback();
-    fwrite(STDOUT, "PASS: structured guide content is searchable and unpublished content is excluded.\n");
+    fwrite(STDOUT, "PASS: search pagination, structured guide content, and publication filtering work.\n");
 } catch (Throwable $exception) {
     $conn->rollback();
     fwrite(STDERR, 'FAIL: ' . $exception->getMessage() . PHP_EOL);

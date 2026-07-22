@@ -31,6 +31,21 @@ function search_query_is_aggregate_safe(string $query): bool
     return GuideMyPC\Features\Search\SearchQuery::isAggregateSafe($query);
 }
 
+/** @return array{page: int, per_page: int, offset: int, total_pages: int} */
+function search_result_pagination(int $totalResults, mixed $requestedPage): array
+{
+    $pagination = pagination_values($requestedPage, 10);
+    $totalPages = max(1, (int) ceil(max($totalResults, 0) / $pagination['per_page']));
+    $page = min($pagination['page'], $totalPages);
+
+    return [
+        'page' => $page,
+        'per_page' => $pagination['per_page'],
+        'offset' => ($page - 1) * $pagination['per_page'],
+        'total_pages' => $totalPages,
+    ];
+}
+
 /**
  * @param array{query: string, type: string, platform: string, difficulty: string, safety: string, recency: string, page: int} $filters
  * @return list<array<string, mixed>>
