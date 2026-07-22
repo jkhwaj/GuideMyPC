@@ -18,13 +18,23 @@ jobs:
           fetch-depth: 1
           show-progress: false
 
-      - name: Create cleanup report
-        run: php scripts/audit-repository-cleanup.php > cleanup-audit.txt
+      - name: Create cleanup report and source snapshot
+        run: |
+          php scripts/audit-repository-cleanup.php > cleanup-audit.txt
+          git archive --format=zip --output=repository-snapshot.zip HEAD
 
       - name: Upload cleanup report
         uses: actions/upload-artifact@v4
         with:
           name: repository-cleanup-audit
           path: cleanup-audit.txt
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-snapshot
+          path: repository-snapshot.zip
           if-no-files-found: error
           retention-days: 1
