@@ -41,6 +41,7 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-# Added by code-review-graph
-.code-review-graph/
+# Local development tooling
+/opencode.json
+/.code-review-graph/
 *.pdf
