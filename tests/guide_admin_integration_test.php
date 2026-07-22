@@ -50,11 +50,14 @@ try {
         'last_reviewed_at' => '2026-07-18',
         'is_published' => '0',
         'featured_order' => '2',
-        'sources' => [['title' => 'Microsoft Support', 'official_url' => 'https://support.microsoft.com/test-' . $token]],
+        'sources' => [
+            ['title' => 'Microsoft Support', 'official_url' => 'https://support.microsoft.com/test-' . $token],
+            ['title' => 'Apple Support', 'official_url' => 'https://support.apple.com/test-' . $token],
+        ],
         'steps' => [['title' => 'Open Settings', 'text' => 'Open Windows Settings.', 'expected_result' => 'Settings opens.']],
     ]);
     guide_admin_assert($valid['errors'] === [], 'Valid Guide administration input passes validation.');
-    guide_admin_assert($valid['values']['is_published'] === 0 && count($valid['values']['sources']) === 1, 'Draft state and official source normalize correctly.');
+    guide_admin_assert($valid['values']['is_published'] === 0 && count($valid['values']['sources']) === 2 && $valid['values']['sources'][1]['title'] === 'Apple Support', 'Draft state and ordered official sources normalize correctly.');
     guide_admin_assert($valid['values']['video_url'] === 'https://www.youtube.com/watch?v=M7lc1UVf-VE', 'Guide administration stores a canonical YouTube watch URL.');
     $unapprovedSource = $service->validate([
         'category' => $categoryId,
@@ -83,16 +86,19 @@ try {
     $created = $repository->find($guideId);
     guide_admin_assert($created !== null && (int) $created['is_published'] === 0 && (int) $created['featured_order'] === 2, 'Guide create stores draft publication and featured order.');
     guide_admin_assert($created['video_url'] === 'https://www.youtube.com/watch?v=M7lc1UVf-VE' && guide_youtube_embed_url($created['video_url']) !== null, 'Guide video URLs remain renderable after create.');
-    guide_admin_assert(count($repository->sources($guideId)) === 1, 'Guide create stores official sources.');
+    guide_admin_assert(count($repository->sources($guideId)) === 2 && $repository->sources($guideId)[1]['title'] === 'Apple Support', 'Guide create preserves official source order.');
     guide_admin_assert($repository->slugExists($valid['values']['slug']), 'Guide duplicate slug lookup detects existing guides.');
 
     $listing = $repository->paginate(['q' => $token, 'status' => 'unpublished', 'category' => $categoryId, 'sort' => 'title', 'direction' => 'asc', 'per_page' => 10]);
     guide_admin_assert($listing['total'] === 1 && (int) $listing['rows'][0]['id'] === $guideId, 'Guide listing filters and bounds administrative results.');
     $updated = $valid['values'];
     $updated['is_published'] = 1;
-    $updated['sources'] = [['title' => 'Updated Support', 'official_url' => 'https://support.microsoft.com/updated-' . $token]];
+    $updated['sources'] = [
+        ['title' => 'Apple Support', 'official_url' => 'https://support.apple.com/updated-' . $token],
+        ['title' => 'Updated Support', 'official_url' => 'https://support.microsoft.com/updated-' . $token],
+    ];
     guide_admin_assert($service->update($guideId, $updated), 'Guide update succeeds.');
-    guide_admin_assert((int) $repository->find($guideId)['is_published'] === 1 && $repository->sources($guideId)[0]['title'] === 'Updated Support', 'Guide update changes publication and replaces sources.');
+    guide_admin_assert((int) $repository->find($guideId)['is_published'] === 1 && $repository->sources($guideId)[0]['title'] === 'Apple Support' && $repository->sources($guideId)[1]['title'] === 'Updated Support', 'Guide update changes publication and preserves submitted source order.');
 
     $email = 'guide-admin-' . $token . '@example.test';
     $name = 'Guide Admin Dependency Test';
