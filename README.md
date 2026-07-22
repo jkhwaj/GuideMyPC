@@ -20,6 +20,7 @@ PHP must have these extensions enabled in `C:\xampp\php\php.ini`:
 - `fileinfo`
 - `json`
 - `curl`
+- `phar`
 
 Composer manages the project autoloader. Install only from the committed `composer.lock`; do not commit `vendor/`.
 
@@ -51,6 +52,46 @@ Composer manages the project autoloader. Install only from the committed `compos
 8. Open [http://localhost/GuideMyPC/](http://localhost/GuideMyPC/).
 
 `config.php` loads database settings from the untracked `.env` file. Keep that file local and use the setup checker before troubleshooting application pages.
+
+## Project Layout
+
+The runtime source stays organized by responsibility:
+
+```text
+GuideMyPC/
+|-- app/                 application, security, and feature code
+|-- bootstrap/           web, CLI, and test initialization
+|-- config/              non-secret configuration
+|-- public/              web entry point and public assets
+|-- resources/views/     server-rendered templates
+|-- routes/              route maps
+|-- database/            migrations, seeds, and database commands
+|-- scripts/             operational and packaging commands
+|-- tests/               automated verification
+|-- docs/                technical and submission documentation
+|-- uml/                 UML instructions and local deliverable folders
+`-- Tasks/               implementation plans and evidence
+```
+
+Root `*.php` files and selected files under `includes/` remain compatibility entry points while route migration is in progress. Do not move them without migrating and testing the affected route contracts. See [`docs/folder-layout.md`](docs/folder-layout.md) for the full mapping.
+
+## Final Course Package
+
+The academic submission uses the required `frontend/`, `backend/`, `database/`, `uml/`, and `docs/` layout without duplicating or breaking the runtime repository.
+
+Keep final Word documents, screenshots, the Visual Paradigm project, and diagram exports in the ignored locations documented in [`docs/submission/README.md`](docs/submission/README.md). Build a review package with:
+
+```powershell
+composer run package:submission
+```
+
+Before submission, run the strict gate:
+
+```powershell
+composer run package:submission:strict
+```
+
+The command creates `build/GuideMyPC_Submission.zip`. Strict mode requires both Word documents, `GuideMyPC.vpp`, four named UML exports, and exactly 8 to 10 screenshots.
 
 ## Database Setup
 
