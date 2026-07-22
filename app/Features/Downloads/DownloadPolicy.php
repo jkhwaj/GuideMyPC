@@ -6,6 +6,9 @@ namespace GuideMyPC\Features\Downloads;
 
 final class DownloadPolicy
 {
+    /** @var list<string> */
+    private const REVIEW_STATES = ['pending', 'approved', 'stale', 'rejected', 'archived'];
+
     public function trustedUrl(mixed $value): ?string
     {
         if (!is_string($value) || filter_var($value, FILTER_VALIDATE_URL) === false) {
@@ -41,5 +44,10 @@ final class DownloadPolicy
         $prefix = $table === '' ? '' : $table . '.';
 
         return $prefix . "is_published = 1 AND " . $prefix . "review_state = 'approved'";
+    }
+
+    public function reviewStateIsValid(mixed $value): bool
+    {
+        return is_string($value) && in_array($value, self::REVIEW_STATES, true);
     }
 }

@@ -115,3 +115,4 @@ Downloads and Community use approved, testable policy boundaries; administration
 - PHP lint passed for the policy, compatibility helpers, public Download route, Community route, and helper test. `tests/helpers_test.php` passes, and a direct autoloaded check confirms private-IP HTTPS URLs remain rejected.
 - The current increment centralizes the approved Download state/URL predicate in public Downloads, Home, and Search; it adds administrator review/publication controls and blocks comments or likes against unpublished Community posts.
 - Public Community and Home now list only `community_posts.is_published = 1`, matching Search. Administrator listings retain all records.
+- Added `DownloadAdminService` for create, update, and delete mutations. The legacy routes retain their form fields, authorization, CSRF checks, and redirects while each successful write now records an administrator audit event.

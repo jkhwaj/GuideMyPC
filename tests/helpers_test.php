@@ -105,6 +105,8 @@ assert_same(null, trusted_download_url('http://downloads.example.test/tool'), 'D
 assert_same(true, download_is_public(['is_published' => 1, 'review_state' => 'approved', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy permits published, approved HTTPS URLs.');
 assert_same(false, download_is_public(['is_published' => 0, 'review_state' => 'approved', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy rejects unpublished downloads.');
 assert_same(false, download_is_public(['is_published' => 1, 'review_state' => 'pending', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy rejects pending downloads.');
+assert_same(true, (new GuideMyPC\Features\Downloads\DownloadPolicy())->reviewStateIsValid('approved'), 'Download policy accepts approved review states.');
+assert_same(false, (new GuideMyPC\Features\Downloads\DownloadPolicy())->reviewStateIsValid('public'), 'Download policy rejects unknown review states.');
 assert_same(true, community_post_is_public(['is_published' => 1]), 'Community policy permits published legacy posts.');
 assert_same(false, community_post_is_public(['is_published' => 0]), 'Community policy rejects unpublished legacy posts.');
 

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/admin.php';
 require_admin();
 
 $message = "";
@@ -16,16 +17,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($name === '' || $policy->trustedUrl($official_url) === null) {
         $message = 'Name and a safe HTTPS official URL are required.';
-    } elseif (!in_array($reviewState, ['pending', 'approved', 'stale', 'rejected', 'archived'], true)) {
+    } elseif (!$policy->reviewStateIsValid($reviewState)) {
         $message = 'Choose a valid review state.';
     } else {
-        $stmt = $conn->prepare("
-            INSERT INTO downloads (name, description, official_url, category, review_state, is_published)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ");
-
-        $stmt->bind_param("sssssi", $name, $description, $official_url, $category, $reviewState, $isPublished);
-        $stmt->execute();
+        (new GuideMyPC\Features\Downloads\DownloadAdminService($conn))->create(
+            $name,
+            $description,
+            $official_url,
+            $category,
+            $reviewState,
+            $isPublished
+        );
 
         redirect('admin_downloads.php');
     }
