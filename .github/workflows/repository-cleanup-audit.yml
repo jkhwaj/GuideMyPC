@@ -18,5 +18,13 @@ jobs:
           fetch-depth: 1
           show-progress: false
 
-      - name: Audit tracked files
-        run: php scripts/audit-repository-cleanup.php
+      - name: Create cleanup report
+        run: php scripts/audit-repository-cleanup.php > cleanup-audit.txt
+
+      - name: Upload cleanup report
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-cleanup-audit
+          path: cleanup-audit.txt
+          if-no-files-found: error
+          retention-days: 1
