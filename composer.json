@@ -20,7 +20,9 @@
         "verify": [
             "@verify:fast",
             "@php scripts/verify.php"
-        ]
+        ],
+        "package:submission": "@php scripts/package-submission.php --output=build/GuideMyPC_Submission.zip --force",
+        "package:submission:strict": "@php scripts/package-submission.php --output=build/GuideMyPC_Submission.zip --force --strict"
     },
     "minimum-stability": "stable",
     "prefer-stable": true
