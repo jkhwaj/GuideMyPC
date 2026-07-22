@@ -18,6 +18,21 @@
 /coverage/
 /.phpunit.cache/
 
+# Generated packages
+/build/
+/release/
+*.zip
+
+# Final submission binaries stay local
+/docs/submission/documents/*
+!/docs/submission/documents/README.md
+/docs/submission/screenshots/*
+!/docs/submission/screenshots/README.md
+/uml/source/*
+!/uml/source/README.md
+/uml/exports/*
+!/uml/exports/README.md
+
 # IDE and operating-system files
 /.idea/
 /.vscode/
@@ -25,7 +40,7 @@
 Thumbs.db
 Desktop.ini
 .DS_Store
+
 # Added by code-review-graph
 .code-review-graph/
 *.pdf
-screenshot giudes/*
