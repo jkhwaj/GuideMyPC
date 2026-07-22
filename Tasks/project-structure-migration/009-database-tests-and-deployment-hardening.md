@@ -5,6 +5,8 @@
 - Release: M6
 - Dependencies: `008-public-document-root-and-routing.md`
 
+> **Final-release scope notice (2026-07-22):** Final scope retains only independently proven migration, test-isolation, packaging, and local artifact checks. Production deployment, hosting, backup-restoration, and operational rollback are not release claims unless separately evidenced. Dated implementation evidence remains unchanged; apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Turn the migrated structure into a repeatable release by hardening database upgrades, seed repeatability, test isolation, automated route coverage, packaging, deployment, backup, and rollback procedures.

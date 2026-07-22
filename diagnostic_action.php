@@ -1,11 +1,38 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/config.php'; require_once __DIR__ . '/includes/accounts.php'; require_once __DIR__ . '/includes/diagnostics.php'; require_post(); require_csrf();
-$publicId=required_string($_POST['session']??null,48)??''; $session=diagnostic_session($conn,$publicId); if($session===null)abort_request(404,'diagnostic_session_not_found','This diagnostic session is unavailable or expired.');
-$action=required_string($_POST['action']??null,20)??'';
-if($action==='restart'||$action==='back'){ $s=$conn->prepare('SELECT initial_node_key FROM diagnostic_flow_versions WHERE id=?');$s->bind_param('i',$session['version_id']);$s->execute();$key=$s->get_result()->fetch_assoc()['initial_node_key'];$s->close(); if($action==='restart'){$s=$conn->prepare('DELETE FROM diagnostic_answers WHERE session_id=?');$s->bind_param('i',$session['id']);$s->execute();$s->close();}else{$s=$conn->prepare('SELECT id FROM diagnostic_answers WHERE session_id=? ORDER BY id DESC LIMIT 1');$s->bind_param('i',$session['id']);$s->execute();$last=$s->get_result()->fetch_assoc();$s->close();if($last){$s=$conn->prepare('DELETE FROM diagnostic_answers WHERE id=?');$s->bind_param('i',$last['id']);$s->execute();$s->close();}$s=$conn->prepare('SELECT option_key,node_key FROM diagnostic_answers WHERE session_id=? ORDER BY id');$s->bind_param('i',$session['id']);$s->execute();$answers=$s->get_result();while($answer=$answers->fetch_assoc()){$node=diagnostic_node($conn,(int)$session['version_id'],$answer['node_key']);if($node){$o=$conn->prepare('SELECT next_node_key FROM diagnostic_options WHERE node_id=? AND option_key=?');$o->bind_param('is',$node['id'],$answer['option_key']);$o->execute();$next=$o->get_result()->fetch_assoc();$o->close();if($next)$key=$next['next_node_key'];}}$s->close();} $s=$conn->prepare('UPDATE diagnostic_sessions SET current_node_key=?,completed_at=NULL WHERE id=?');$s->bind_param('si',$key,$session['id']);$s->execute();$s->close();redirect('diagnostic.php?session='.rawurlencode($publicId)); }
-if($action!=='answer')abort_request(422,'diagnostic_action_invalid','Choose a valid diagnostic action.');
-$node=diagnostic_node($conn,(int)$session['version_id'],$session['current_node_key']);$optionKey=required_string($_POST['option']??null,100)??'';if($node===null||$node['node_type']!=='question')abort_request(422,'diagnostic_transition_invalid','This question is no longer available.');
-$s=$conn->prepare('SELECT next_node_key FROM diagnostic_options WHERE node_id=? AND option_key=? LIMIT 1');$s->bind_param('is',$node['id'],$optionKey);$s->execute();$option=$s->get_result()->fetch_assoc();$s->close(); if($option===null||diagnostic_node($conn,(int)$session['version_id'],$option['next_node_key'])===null)abort_request(422,'diagnostic_transition_invalid','That answer is not valid for this question.');
-in_transaction($conn,static function()use($conn,$session,$node,$optionKey,$option):void{$s=$conn->prepare('INSERT INTO diagnostic_answers (session_id,node_key,option_key) VALUES (?,?,?) ON DUPLICATE KEY UPDATE option_key=VALUES(option_key),created_at=UTC_TIMESTAMP()');$s->bind_param('iss',$session['id'],$node['node_key'],$optionKey);$s->execute();$s->close();$s=$conn->prepare('UPDATE diagnostic_sessions SET current_node_key=? WHERE id=?');$s->bind_param('si',$option['next_node_key'],$session['id']);$s->execute();$s->close();});
-if(current_user_id())record_user_activity($conn,current_user_id(),'diagnostic','session',$publicId); redirect('diagnostic.php?session='.rawurlencode($publicId));
+
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/accounts.php';
+require_once __DIR__ . '/includes/diagnostics.php';
+
+require_post();
+require_csrf();
+
+$publicId = required_string($_POST['session'] ?? null, 48) ?? '';
+$session = diagnostic_session($conn, $publicId);
+
+if ($session === null) {
+    abort_request(404, 'diagnostic_session_not_found', 'This diagnostic session is unavailable or expired.');
+}
+
+$action = required_string($_POST['action'] ?? null, 20) ?? '';
+$result = diagnostic_transition(
+    $conn,
+    $session,
+    $action,
+    required_string($_POST['option'] ?? null, 100)
+);
+
+if ($result === 'invalid_action') {
+    abort_request(422, 'diagnostic_action_invalid', 'Choose a valid diagnostic action.');
+}
+
+if ($result === 'invalid_transition') {
+    abort_request(422, 'diagnostic_transition_invalid', 'That answer is not valid for this question.');
+}
+
+if ($action === 'answer' && current_user_id()) {
+    record_user_activity($conn, current_user_id(), 'diagnostic', 'session', $publicId);
+}
+
+redirect('diagnostic.php?session=' . rawurlencode($publicId));

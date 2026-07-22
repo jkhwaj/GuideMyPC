@@ -5,6 +5,8 @@
 - Release: R4
 - Dependencies: `020-testing-security-and-release.md`
 
+> **Final-release scope notice (2026-07-22):** This production-deployment task is deferred and is not a final-release dependency or completion claim. Local setup, clean packaging, and truthful deployment documentation do not prove staging, production hosting, monitoring, backups, rollback, or incident operations. The task body remains historical planning; apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Deploy the tested PHP application to a hardened production environment with HTTPS, backups, monitoring, controlled releases, and rollback. XAMPP must remain local-development tooling only.

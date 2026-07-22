@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+define('GUIDEMYPC_JSON_ENDPOINT', true);
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/search.php';
 

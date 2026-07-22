@@ -5,6 +5,8 @@
 - Release: R0
 - Dependencies: None
 
+> **Final-release scope notice (2026-07-22):** This file is retained as historical planning and foundation evidence. Its R2-R4 descriptions do not expand the verified-core final release: AI Assistant, Uploads, Maintenance Center, Donate, Community v2, and production-hosting claims are excluded. Dated implementation statements remain historical; apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Establish a shared implementation boundary for GuideMyPC v1.0 so development can extend the existing prototype without an unnecessary rewrite or an unbounded first release.

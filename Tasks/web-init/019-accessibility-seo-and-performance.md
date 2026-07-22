@@ -5,6 +5,8 @@
 - Release: R4
 - Dependencies: `005-responsive-design-system-and-layout.md` through `018-admin-and-content-moderation.md`
 
+> **Final-release scope notice (2026-07-22):** Final-release validation applies only to retained routes. AI Assistant and Uploads are excluded from the required matrix, legacy `*.php` URLs remain canonical, and this task does not authorize clean-URL, framework/SPA, or production-hosting claims. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Make the full public experience accessible, discoverable, fast, mobile-friendly, and respectful of privacy before release.

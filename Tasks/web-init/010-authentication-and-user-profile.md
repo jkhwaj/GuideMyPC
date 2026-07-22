@@ -5,6 +5,8 @@
 - Release: R2
 - Dependencies: `002-security-bootstrap.md`, `003-database-migrations-and-seeds.md`, `005-responsive-design-system-and-layout.md`
 
+> **Final-release scope notice (2026-07-22):** Password-reset token and route evidence remains historical and does not prove outbound email delivery. Unproven mail transport, email delivery, and related release claims are excluded. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Provide secure guest and free-account experiences with saved troubleshooting activity and understandable account controls.

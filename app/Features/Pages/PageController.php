@@ -77,32 +77,6 @@ final class PageController
         ]);
     }
 
-    public function donate(): void
-    {
-        $this->view->render('pages/donate', [
-            'page' => [
-                'title' => 'Support GuideMyPC | GuideMyPC',
-                'description' => 'Learn how to support the continued development of GuideMyPC.',
-                'canonicalPath' => 'donate.php',
-            ],
-            'navigation' => $this->navigation(),
-            'flashMessages' => $this->flashMessages(),
-        ]);
-    }
-
-    public function ai(): void
-    {
-        $this->view->render('pages/ai', [
-            'page' => [
-                'title' => 'AI Assistant | GuideMyPC',
-                'description' => 'Learn about the planned GuideMyPC AI troubleshooting assistant.',
-                'canonicalPath' => 'ai.php',
-            ],
-            'navigation' => $this->navigation(),
-            'flashMessages' => $this->flashMessages(),
-        ]);
-    }
-
     /**
      * @return array{user: array{name: string, canViewDashboard: bool, isAdmin: bool}|null}
      */

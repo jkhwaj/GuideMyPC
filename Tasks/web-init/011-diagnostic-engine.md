@@ -5,6 +5,8 @@
 - Release: R2
 - Dependencies: `009-structured-repair-guides.md`, `010-authentication-and-user-profile.md`
 
+> **Final-release scope notice (2026-07-22):** This file is retained as historical planning. AI escalation is excluded, and any Community reference is limited to the canonical legacy posts/comments/likes model rather than Community v2. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Build an interactive, data-driven decision-tree tool that asks understandable questions and recommends safe next steps based on the user's answers.

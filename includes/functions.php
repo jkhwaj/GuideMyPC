@@ -29,7 +29,8 @@ function asset_url(string $path): string
 
 function expects_json(): bool
 {
-    return str_contains(strtolower($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json');
+    return (defined('GUIDEMYPC_JSON_ENDPOINT') && GUIDEMYPC_JSON_ENDPOINT === true)
+        || str_contains(strtolower($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json');
 }
 
 function set_response_status(int $status): void

@@ -15,7 +15,7 @@ $routeMaps = [
 ];
 $expectedRoutes = [
     'web' => [
-        'index.php', 'about.php', 'ai.php', 'contact.php', 'disclaimer.php', 'donate.php', 'privacy.php', 'terms.php',
+        'index.php', 'about.php', 'contact.php', 'disclaimer.php', 'privacy.php', 'terms.php',
         'guides.php', 'guide.php', 'knowledge.php', 'knowledge_article.php', 'glossary.php', 'error-code.php',
         'downloads.php', 'search.php', 'diagnostic.php', 'diagnostic_action.php', 'login.php', 'register.php',
         'forgot_password.php', 'reset_password.php', 'settings.php', 'profile.php', 'dashboard.php', 'logout.php',
@@ -47,6 +47,44 @@ foreach ($expectedRoutes as $group => $expected) {
             fwrite(STDERR, sprintf("FAIL: %s route map contains an invalid dispatch target: %s\n", $group, $route));
             exit(1);
         }
+    }
+}
+
+$retiredRoutes = ['ai.php', 'donate.php'];
+
+foreach ($retiredRoutes as $route) {
+    foreach ($routeMaps as $group => $routeMap) {
+        if (isset($routeMap[$route])) {
+            fwrite(STDERR, sprintf("FAIL: retired route %s remains in the %s route map.\n", $route, $group));
+            exit(1);
+        }
+    }
+
+    if (is_file($root . DIRECTORY_SEPARATOR . $route)) {
+        fwrite(STDERR, sprintf("FAIL: retired route target still exists: %s\n", $route));
+        exit(1);
+    }
+
+    $probe = __DIR__ . DIRECTORY_SEPARATOR . 'retired_route_probe.php';
+    $output = [];
+    $exitCode = 0;
+    exec(
+        escapeshellarg(PHP_BINARY)
+        . ' ' . escapeshellarg($probe)
+        . ' ' . escapeshellarg($route),
+        $output,
+        $exitCode
+    );
+    $response = implode("\n", $output);
+
+    if (
+        $exitCode !== 0
+        || !str_contains($response, '<!-- test-status:404 -->')
+        || !str_contains($response, '<title>Page not found | GuideMyPC</title>')
+        || !str_contains($response, 'The requested page was not found.')
+    ) {
+        fwrite(STDERR, sprintf("FAIL: retired route %s did not return the standard safe 404 response.\n", $route));
+        exit(1);
     }
 }
 

@@ -11,7 +11,6 @@ final class Authorization
     public const MANAGE_CONTENT = 'content.manage';
     public const PUBLISH_CONTENT = 'content.publish';
     public const MODERATE_COMMUNITY = 'community.moderate';
-    public const VIEW_REPORTS = 'reports.view';
     public const DELETE_CONTENT = 'content.delete';
     public const MANAGE_USERS = 'users.manage';
     public const VIEW_AUDIT = 'audit.view';
@@ -31,7 +30,6 @@ final class Authorization
             self::MANAGE_CONTENT,
             self::PUBLISH_CONTENT,
             self::MODERATE_COMMUNITY,
-            self::VIEW_REPORTS,
         ],
         'admin' => [
             self::VIEW_PERSONAL_DASHBOARD,
@@ -39,7 +37,6 @@ final class Authorization
             self::MANAGE_CONTENT,
             self::PUBLISH_CONTENT,
             self::MODERATE_COMMUNITY,
-            self::VIEW_REPORTS,
             self::DELETE_CONTENT,
             self::MANAGE_USERS,
             self::VIEW_AUDIT,

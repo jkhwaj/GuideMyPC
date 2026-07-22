@@ -10,7 +10,7 @@ Use POST for mutations, include `csrf_field()`, authorize before output, validat
 
 ## JSON Enhancements
 
-Server-rendered forms remain the default. An interaction may request JSON by sending `Accept: application/json`; its endpoint uses `json_response()` or `abort_request()`.
+Server-rendered forms remain the default. JSON is available only where a route contract explicitly documents it: the dedicated `search_suggestions.php` and `search_event.php` endpoints and narrow progressive enhancements such as the dual-mode `save_progress.php` response. These routes use `json_response()` or `abort_request()` and do not form a full-resource API.
 
 Successful responses use a 2xx status and this shape:
 
@@ -32,7 +32,7 @@ Error responses use their stable HTTP status and bounded public error details:
 }
 ```
 
-Do not include exception text, SQL, filesystem paths, credentials, draft content, or another user's information in responses. The same validation, authorization, CSRF, rate-limit, logging, and redaction behavior applies to form and JSON requests.
+Do not include exception text, SQL, filesystem paths, credentials, draft content, or another user's information in responses. The same applicable validation, authorization, rate-limit, logging, and redaction behavior applies to form and JSON requests; CSRF exceptions must be explicitly recorded in the route contract.
 
 ## Errors and Logs
 

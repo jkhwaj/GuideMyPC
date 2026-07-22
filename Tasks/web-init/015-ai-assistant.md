@@ -5,6 +5,8 @@
 - Release: R3
 - Dependencies: `007-universal-search.md`, `009-structured-repair-guides.md`, `011-diagnostic-engine.md`, `014-trusted-downloads.md`
 
+> **Final-release scope notice (2026-07-22):** This task is wholly deferred and excluded from the final release. No AI shell, route, provider adapter, conversation feature, or AI-safety foundation may be presented as a released capability. The task body remains historical planning; apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Provide a conversational troubleshooting assistant that asks focused follow-up questions and recommends reviewed GuideMyPC resources while applying strict technical-safety controls.

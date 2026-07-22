@@ -15,7 +15,6 @@ declare(strict_types=1);
         <a href="<?php echo e(application_url('privacy.php')); ?>">Privacy</a>
         <a href="<?php echo e(application_url('terms.php')); ?>">Terms</a>
         <a href="<?php echo e(application_url('disclaimer.php')); ?>">Disclaimer</a>
-        <a href="<?php echo e(application_url('donate.php')); ?>">Donate</a>
     </nav>
 </footer>
 <script src="<?php echo e(asset_url('js/script.js')); ?>"></script>

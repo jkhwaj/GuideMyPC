@@ -5,6 +5,8 @@
 - Release: R2
 - Dependencies: `011-diagnostic-engine.md`
 
+> **Final-release scope notice (2026-07-22):** This file is retained as historical planning. AI escalation and Community-v2 escalation are excluded and are not final-release acceptance criteria. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Rank likely causes from diagnostic evidence and explain why each cause is suggested, while avoiding false precision or unsafe certainty.

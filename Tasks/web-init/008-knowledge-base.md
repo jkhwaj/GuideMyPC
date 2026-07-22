@@ -5,6 +5,8 @@
 - Release: R1
 - Dependencies: `005-responsive-design-system-and-layout.md`, `007-universal-search.md`
 
+> **Final-release scope notice (2026-07-22):** Public read-only Knowledge remains in final scope. Editorial forms, Knowledge CRUD, and Knowledge administration are deferred; this task's completed public-read validation does not prove or require them. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Create a searchable, maintainable knowledge base for technical explanations that are broader or shorter than repair guides.

@@ -2,7 +2,11 @@
 
 ## Abstract
 
-GuideMyPC is a PHP and MariaDB consumer-technology support application. The implemented release connects published support guides, knowledge articles, search, account progress, diagnostics, trusted-resource foundations, and moderated-content foundations through safety-conscious server-rendered workflows.
+GuideMyPC is a PHP and MariaDB consumer-technology support application. The
+verified-core release includes published troubleshooting Guides, public
+Knowledge, approved Downloads, Search, accounts and progress, Diagnostics,
+role-aware Dashboard KPI/chart projections, the canonical legacy Community,
+and the administration workflows documented in the route inventory.
 
 ## Problem and Audience
 
@@ -10,8 +14,28 @@ Everyday users encounter fragmented, inconsistent, and sometimes unsafe support 
 
 ## Capabilities and Value
 
-Implemented public capabilities include searchable published content, structured repair guides, account-backed progress, a diagnostic foundation, and reviewed-resource models. The unique value is one connected path from a symptom to explainable next actions and reviewed resources. Incomplete roadmap foundations must be labeled future work in the final report.
+The retained release surface connects published step-by-step Guides and public
+Knowledge to filtered Search, safe Diagnostics, approved external Downloads,
+account personalization, and role-bounded administration and Dashboard views.
+Community uses only the canonical post/comment/like model.
+`search_suggestions.php` and `search_event.php` support narrow suggestion and
+aggregate event behavior; they are not a full-resource API.
+
+AI Assistant, Uploads, Maintenance Center, Knowledge administration, product
+Reports, full-resource APIs, Donate, Community v2, unproven mail/CSV behavior,
+and other optional foundations are excluded from final product claims.
+Historical schema or dormant code does not establish feature completion.
 
 ## Architecture
 
-The frontend is server-rendered HTML with responsive custom CSS and progressive vanilla JavaScript. The current PHP 8.2 runtime uses root routes with shared procedural bootstrap, security, validation, and helper layers; it is being migrated incrementally to a feature-oriented structure without a framework rewrite. MariaDB 10.4 uses `mysqli`, prepared statements, versioned migrations, and sanitized seeds. XAMPP is local-only; production requires hardened PHP hosting. The migration target exposes only `public/`, keeps runtime storage private, and preserves legacy route contracts until separately approved URL work. Alternatives such as an API-first JavaScript rewrite were rejected because incremental PHP changes preserve the working prototype while reducing delivery risk.
+The frontend is server-rendered HTML with first-party responsive CSS and
+progressive vanilla JavaScript. PHP 8.2 uses canonical root legacy `*.php`
+routes, shared bootstrap/security/helper layers, and MariaDB 10.4 through
+`mysqli`, prepared statements, versioned migrations, and sanitized seeds. The
+two dedicated Search JSON endpoints and documented progressive responses use
+bounded JSON; the application is not a general resource API.
+
+The verified environment is local Windows/XAMPP. Live Apache release checks,
+public-only exposure, production hosting, clean URLs, a framework or SPA, ORM,
+and template-engine adoption are not claimed. Final accessibility, package,
+clean-extraction, and backup/restore evidence remains pending.

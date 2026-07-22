@@ -22,7 +22,7 @@ include __DIR__ . '/includes/navbar.php';
 
 <section class="section">
     <p class="section-label">Trusted Downloads</p>
-    <h2>Safe tools from official sources</h2>
+    <h1>Safe tools from official sources</h1>
     <p class="section-desc">
         Download recommended tools only from official websites.
     </p>
@@ -46,7 +46,8 @@ include __DIR__ . '/includes/navbar.php';
                     <a
                         class="primary-btn"
                         href="<?php echo htmlspecialchars($download["official_url"]); ?>"
-                        target="_blank">
+                        target="_blank"
+                        rel="noopener noreferrer">
                         Download
                     </a>
                 </div>

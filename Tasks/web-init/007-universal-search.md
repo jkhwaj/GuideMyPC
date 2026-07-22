@@ -5,6 +5,8 @@
 - Release: R1
 - Dependencies: `003-database-migrations-and-seeds.md`, `004-application-structure-and-error-handling.md`, `006-homepage-and-navigation.md`
 
+> **Final-release scope notice (2026-07-22):** This task's dated validation remains historical evidence. Community search means published canonical legacy Community posts only, not Community-v2 questions or answers; the only retained Search JSON endpoints are `search_suggestions.php` and `search_event.php`. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Provide fast, forgiving search across the trusted GuideMyPC content types, with clear filters and useful recovery from misspellings or zero results.

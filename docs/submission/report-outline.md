@@ -1,6 +1,9 @@
 # GuideMyPC Final Report Outline
 
-Use this as the reviewed Markdown source for `GuideMyPC-Final-Report.docx`. The final report must be proofread in Hebrew, include a table of contents and page numbers, and remain truthful to the submitted release commit.
+This reviewed Markdown source was used for the ignored
+`GuideMyPC-Final-Report.docx`. The 28-page Hebrew report includes contents,
+numbered sections, page numbers, four UML figures, and ten screenshots. Its
+release-commit placeholder must be replaced after the authorized final commit.
 
 ## Front Matter
 
@@ -12,7 +15,10 @@ Use this as the reviewed Markdown source for `GuideMyPC-Final-Report.docx`. The 
 
 ## 1. Team Roles and Contributions
 
-Insert each member's required name, student ID, contact details where course policy requires them, assigned role, owned deliverables, reviewer, and contribution percentage. Reconcile contribution claims with the Git history and team record; do not infer work from commit counts alone.
+Complete identity and contact fields only in the private `Readme.docx` and final
+report when course policy requires them. Use the concrete contribution
+categories in `docs/team/README.md`, reconcile claims with Git and delivered
+artifacts, and do not infer work from commit counts alone.
 
 ## 2. System Description (Maximum Two Pages)
 
@@ -20,55 +26,110 @@ Adapt `system-overview.md` into concise prose covering:
 
 - The consumer-technology support problem and its safety implications.
 - The beginner-to-advanced audience.
-- Implemented capabilities only: published guides and knowledge content, search, accounts and progress, diagnostics, trusted resources, and the implemented administration foundation.
-- The connected path from symptom to explainable next action and reviewed resource.
-- Explicitly labeled future work for unfinished AI-provider, community, upload, and broader moderation workflows.
+- Implemented release capabilities only: published Guides and progress,
+  public Knowledge, approved Downloads, Search, accounts, Diagnostics,
+  role-aware Dashboard KPI/chart projections, canonical legacy Community, and
+  the administration workflows present in the final route inventory.
+- Root legacy `*.php` routes as the canonical release interface.
+- Explicit exclusions: AI Assistant, Uploads, Maintenance Center, Knowledge
+  administration, product Reports, full-resource APIs, Donate, Community v2,
+  and unproven mail or CSV behavior.
 
 ## 3. Internet Technologies
 
 ### Architecture
 
-Include a block diagram showing browser, Apache, PHP route/bootstrap/security/helper layers, MariaDB, and HTML or bounded JSON responses. Explain why incremental server-rendered PHP was selected over an API-first JavaScript rewrite: it preserves the existing application, keeps operational complexity low, and fits the project deadline. State the tradeoff that a richer separate client would require a stable API and stronger deployment/observability maturity.
+Include a block diagram limited to the retained scope: browser, local Apache,
+canonical root `*.php` routes, PHP bootstrap/security/retained feature layers,
+MariaDB, server-rendered HTML, and only `search_suggestions.php` plus
+`search_event.php` as bounded JSON responses. Do not depict a REST API,
+full-resource API, clean URLs, production hosting, framework, SPA, ORM, or
+template engine. Explain that incremental server-rendered PHP preserves the
+verified application and avoids an unsupported rewrite.
 
 ### Frontend
 
-Document server-rendered HTML, custom responsive CSS, progressive vanilla JavaScript, semantic forms, flash messages, and no third-party font or icon assets. Confirm final browser checks and responsive behavior at 320px before submission.
+Document server-rendered HTML, first-party responsive CSS, progressive vanilla
+JavaScript, forms, and flash messages as used by retained routes. Record the
+final keyboard, accessibility, browser, and responsive checks only after Phase
+6 evidence exists; current sources do not prove final accessibility.
 
 ### Backend
 
-Document PHP 8.2 routes, shared `config.php` bootstrap, sessions, CSRF, authorization, validation, prepared statements, transactions, redacted error logging, and bounded JSON conventions. Use the guide-admin workflow as a concrete audited mutation example.
+Document PHP 8.2 canonical legacy routes, shared bootstrap, sessions, CSRF,
+authorization, validation, prepared statements, transactions, and redacted
+error handling only where verified for retained behavior. Use canonical
+Community mutations or another retained, tested workflow as the audited
+mutation example. Describe `search_suggestions.php` and `search_event.php` as
+two narrow endpoints, never as a general API.
 
 ### Database
 
-Include an ER diagram or concise table list generated from migrations. Cover users, categories, guides, guide steps, guide tools, user progress, knowledge articles, diagnostic flows, downloads, community records, and audit events as implemented. Identify foreign-key relationships, unique slugs, and relevant search/list indexes without claiming tables or states that are only planned.
+Include a concise ER view derived from migrations and limited to data needed by
+public Knowledge, Dashboard projections, canonical legacy Community,
+Diagnostics, Search suggestion/event behavior, and supporting users/roles.
+Historical tables for excluded or dormant features may be identified only as
+schema history, not as implemented product capability. Do not infer lifecycle
+states or relationships that are not verified in the release schema and code.
 
 ### Platform
 
-Record the final tested versions of Windows, XAMPP, Apache, PHP, MariaDB, and browsers. Explain that local development uses XAMPP and production deployment is not claimed until the production checklist is completed.
+Use exact versions from `readiness-baseline.md` and
+`third-party-inventory.md`. The release environment records Windows 10 Pro
+25H2 build 26200 and exact PHP, Apache, MariaDB, Composer, browser, Word, and
+Visual Paradigm versions. State that this is local Windows/XAMPP evidence and
+does not prove production hosting.
 
 ## 4. Screenshots
 
-Embed exactly 8-10 numbered screenshots in logical flow order. Use the completed manifest for route, role, viewport, caption, alt text, capture date, release commit, and redactions. Include at least two mobile views and one safe error state. Do not include real account data, tokens, local paths, or instructor/reference material.
+Embed exactly 8-10 numbered screenshots from the retained scope in
+`screenshots/README.md`. Use canonical root `*.php` routes and record role,
+viewport, caption, alt text, capture date, release commit, and redactions.
+Include at least two mobile views and one safely handled boundary/error state.
+The ten ignored images listed in `screenshots/README.md` were captured and
+reviewed on 2026-07-23. The final package manifest supplies release-commit and
+per-file hash binding.
 
 ## 5. UML Diagrams
 
 Create and export the following diagrams from `GuideMyPC.vpp`:
 
-1. Use Case: guest, registered user, and administrator interactions actually available in the release.
-2. Domain Class: schema relationships, not invented PHP classes.
-3. Activity: diagnostic start-to-result path, including validation, branching, backtracking, uncertainty, and escalation where implemented.
-4. State Machine: only lifecycle states and transitions supported by the submitted release.
+1. Use Case: guest, authenticated user, editor, and administrator actions only
+   across retained Guides, Knowledge, Downloads, Search, account/progress,
+   Diagnostics, Dashboard, canonical Community, and documented administration.
+2. Domain Class: verified schema relationships required by retained users,
+   categories, Guides/steps/progress, Knowledge, approved Downloads,
+   Diagnostics, canonical Community, Search telemetry, and audit behavior, not
+   invented PHP classes or excluded-feature tables presented as active.
+3. Activity: the retained Diagnostic start-to-result path, including only
+   validation, branching, backtracking, uncertainty, and escalation behavior
+   demonstrated by code and tests.
+4. State Machine: a verified lifecycle from Diagnostics or canonical legacy
+   Community, with only release-supported states and transitions.
 
-Give every diagram a readable export and a caption that explains what it demonstrates.
+All four native diagrams exist in the ignored `GuideMyPC.vpp`; four readable
+PNG exports and report captions were inspected. `artifact-evidence.md` records
+the source hash, review, and scope boundary.
 
 ## 6. Git and GitHub Evidence
 
-Record the repository URL, submitted commit, branching model, and real checks. The current history uses direct commits to `main`; do not claim pull requests, code reviews, issues, or CI runs unless evidence exists. Include only screenshots or exports that do not disclose private account information.
+Record the repository URL, submitted commit, branching model, and real checks.
+The readiness branch started from merge commit `8dd43bc` (GitHub pull request
+#2); do not infer reviewer approval, issue tracking, or CI from that merge.
+The authorized final readiness commit and exact package SHA remain pending.
+Include only screenshots or exports that do not disclose private account
+information.
 
 ## 7. Third-Party Inventory
 
-Use `third-party-inventory.md`. Reconcile the final table with runtime versions, committed assets, external service integrations, and the document/UML tooling actually used for submission.
+Use `third-party-inventory.md`. Keep first-party assets separate from
+third-party software. Reconcile the final table with runtime versions,
+committed assets, external service integrations, and the exact Word and Visual
+Paradigm versions actually used after those artifacts are created.
 
 ## 8. Appendices
 
-Include only material that supports the report: test evidence, known limitations, security/privacy notes, ER/deployment details, selected source references, and the final archive checklist. Identify every item by release commit and date.
+Include only material supporting the retained scope: Phase 2 cleanup evidence,
+final test evidence when available, known limitations, security/privacy notes,
+selected source references, and final archive evidence. Identify final evidence
+by release commit and date; do not relabel readiness checks as final sign-off.

@@ -5,6 +5,8 @@
 - Release: R3
 - Dependencies: `002-security-bootstrap.md`, `003-database-migrations-and-seeds.md`, `005-responsive-design-system-and-layout.md`
 
+> **Final-release scope notice (2026-07-22):** This file is retained as historical planning. Maintenance Center and AI recommendation integrations are excluded and are not required to claim independently verified Downloads behavior. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Provide a clearly reviewed catalog of official software and driver destinations without misleading buttons, bundled installers, or unsafe mirrors.

@@ -10,10 +10,8 @@ This is the route-by-route companion to [`route-contracts.md`](route-contracts.m
 | --- | --- | --- | --- |
 | `index.php` | GET~ HTML | Public; home search form submits `q`. | Reads categories, guides, downloads, Community posts/users. Called by navigation and sitemap; no direct route test. |
 | `about.php` | GET~ HTML | Public; no inputs. | Called by footer. View-renderer coverage. |
-| `ai.php` | GET~ HTML | Public; no inputs. | Links to a diagnostic flow; no direct test. |
 | `contact.php` | GET~ HTML | Public; no inputs. | Called by footer and legal pages; no direct test. |
 | `disclaimer.php` | GET~ HTML | Public; no inputs. | Called by footer; no direct test. |
-| `donate.php` | GET~ HTML | Public; no inputs. | Called by footer; no direct test. |
 | `privacy.php` | GET~ HTML | Public; no inputs. | Called by footer; no direct test. |
 | `terms.php` | GET~ HTML | Public; no inputs. | Called by footer; no direct test. |
 | `guides.php` | GET HTML | Public; `category`, `search`, `page`. | Reads published categories, guides, search projection, and ratings. Called by nav, home, and Search; covered by guide-library integration tests. |
@@ -30,10 +28,10 @@ This is the route-by-route companion to [`route-contracts.md`](route-contracts.m
 | Path | Method / response | Protection and inputs | Side effects and coverage |
 | --- | --- | --- | --- |
 | `search.php` | GET~ HTML | Public; `q`, `type`, `platform`, `difficulty`, `safety`, `recency`, `page`. | Reads search projections; writes aggregate search events for non-empty queries. Called by Home/Search forms and client JavaScript; covered by search integration tests. |
-| `search_suggestions.php` | GET JSON | Public; rate limit 30/min; `q`. | Reads search projections. Called by autocomplete in `public/assets/js/script.js`; covered indirectly by Search tests. |
-| `search_event.php` | POST JSON | Public; **CSRF exception**; rate limit 60/min; `query`, `result_type`. | Writes aggregate search events. Called by search-selection JavaScript; no direct endpoint test. |
-| `diagnostic.php` | GET~ HTML/303 | Public; `flow` or `session`. | Reads and may create diagnostic flow/session/node/option/resource state. Called by AI link and diagnostic redirects; no direct test. |
-| `diagnostic_action.php` | POST redirect | Session holder; CSRF; `session`, `action`, `option`. | Writes/deletes diagnostic answers and updates session; authenticated use writes user activity. Called by diagnostic forms; no direct test. |
+| `search_suggestions.php` | GET JSON | Public; rate limit 30/min; `q`; non-GET returns bounded JSON `405`. | Reads at most eight suggestions. Called by autocomplete in `public/assets/js/script.js`; `search_endpoint_test.php` covers methods, envelopes, bounds, and rate limits. |
+| `search_event.php` | POST JSON | Public; **CSRF exception**; rate limit 60/min; `query`, `result_type`; non-POST returns bounded JSON `405`. | Writes aggregate selection events only when privacy filtering accepts the query and returns the actual `recorded` status. Called by search-selection JavaScript; `search_endpoint_test.php` covers methods, envelopes, privacy, storage, truthful status, and rate limits. |
+| `diagnostic.php` | GET~ HTML/303 | Public; `flow` or `session`. | Reads and may create diagnostic flow/session/node/option/resource state. Linked from both navbar implementations and called by diagnostic redirects; covered by `diagnostic_integration_test.php`. |
+| `diagnostic_action.php` | POST redirect | Session holder; CSRF; `session`, `action`, `option`. | Writes/deletes answers, sets `completed_at` on outcomes, and clears it on back/restart; authenticated answers write user activity. Called by diagnostic forms; transition, completion, ownership, expiry, back, and restart are covered by `diagnostic_integration_test.php`. |
 
 ## Accounts and Personalization
 
@@ -41,12 +39,12 @@ This is the route-by-route companion to [`route-contracts.md`](route-contracts.m
 | --- | --- | --- | --- |
 | `login.php` | GET~/POST HTML/303 | Public; POST CSRF and rate limit 5/15 min; `email`, `password`. | Reads users; writes session, account security events, and may merge guest progress. Called by nav/Register/Forgot Password; covered indirectly by account tests. |
 | `register.php` | GET~/POST HTML/303 | Public; POST CSRF and rate limit 3/hour; `full_name`, `email`, `password`. | Inserts user, writes session/security event, merges guest progress. Called by nav/Login; covered indirectly by account tests. |
-| `forgot_password.php` | GET~/POST HTML | Public; POST CSRF and rate limit 3/hour; `email`. | Reads users, writes/prunes reset tokens, and sends mail when configured. Called by Login; covered indirectly by account tests. |
+| `forgot_password.php` | GET~/POST HTML | Public; POST CSRF and rate limit 3/hour; `email`. | Reads users, writes/prunes reset tokens, and conditionally attempts native PHP mail. Delivery is unverified and not a release capability. Called by Login; covered indirectly by account tests. |
 | `reset_password.php` | GET~/POST HTML/303 | Public token holder; POST CSRF; `token`, `password`, `password_confirmation`. | Consumes reset token, updates password, writes security event. Called by reset-email link; covered indirectly by account tests. |
 | `logout.php` | POST redirect | Session optional; CSRF; no inputs. | Clears/destroys session; writes logout event when authenticated. Called by shared navigation; no direct test. |
 | `profile.php` | GET~ HTML | Active authenticated user; no inputs. | Reads own account, favorites, progress, activity, and data requests with guide/category data. Called by nav; no direct test. |
 | `settings.php` | GET~/POST HTML/303 | Authenticated; POST CSRF; `full_name`, `current_password`, `new_password`. | Updates own account/session; password changes write security events. Called by Profile; covered indirectly by account tests. |
-| `dashboard.php` | GET HTML/303 | Authenticated; no inputs. | Refreshes account/role, signs invalid accounts out, and reads role-scoped guide/account/community/download/audit projections. Called by nav; covered by dashboard integration tests. |
+| `dashboard.php` | GET HTML/303 | Authenticated; no inputs. | Refreshes account/role and signs invalid accounts out. Users receive four personal summaries/activity; editors/admins receive six operational KPIs and two charts; admin-only projections include identities/audit. Called by nav; covered by dashboard integration tests. This is not a Reports route. |
 | `account_request.php` | POST redirect | Authenticated; CSRF; `request_type` (`export` or `deletion`). | Inserts account data request and writes a security event. Called by Profile form; no direct test. |
 | `save_progress.php` | POST HTML redirect or JSON | Guest or authenticated; CSRF; `step_id`, `completed`, `guide_slug`. | Updates guest session progress or user progress after published-step validation. Called by Guide form and fetch enhancement; covered indirectly by guide tests. |
 | `toggle_favorite.php` | POST redirect | Authenticated; CSRF; `guide_id`, `slug`. | Toggles favorites after published-guide validation. Called by Guide form; no direct test. |
@@ -67,7 +65,7 @@ This is the route-by-route companion to [`route-contracts.md`](route-contracts.m
 | `admin_categories.php` | GET HTML | Editor/administrator with refreshed role; `q`, `status`, `sort`, `direction`, `per_page`, `page`. | Reads categories and guide/article counts. Called by admin dashboard; category integration coverage. |
 | `add_category.php` | GET/POST HTML/303 | Editor/administrator with refreshed role; POST CSRF; `name`, `slug`, `description`, `icon`, `is_published`, `featured_order`. | Inserts category and updates search projection/audit through service. Called by category admin; category integration coverage. |
 | `edit_category.php` | GET/POST HTML/303 | Editor/administrator with refreshed role; POST CSRF; `id` and category fields. | Updates category, dependent publication/search state, and audit data. Called by category admin; category integration coverage. |
-| `delete_category.php` | POST redirect | Administrator with refreshed role; CSRF; `id`. | Deletes category only when Guides, Knowledge, Diagnostics, Maintenance, and Community dependencies permit it. Called by category admin form; category integration coverage. |
+| `delete_category.php` | POST redirect | Administrator with refreshed role; CSRF; `id`. | Deletes a category only when Guides, Knowledge, Diagnostics, historical Maintenance rows, and canonical Community dependencies permit it. The historical dependency check does not activate Maintenance Center. Called by category admin form; category integration coverage. |
 | `admin_guides.php` | GET HTML | Editor/administrator with refreshed role; `q`, `status`, `category`, `sort`, `direction`, `per_page`, `page`. | Reads guides, categories, step counts, and progress. Called by admin dashboard; guide-admin integration coverage. |
 | `add_guide.php` | GET/POST HTML/303 | Editor/administrator with refreshed role; POST CSRF; guide metadata, `steps`, `sources`. | Writes guide, steps, sources, trusted-source/search data, and audit data. Called by Guide admin; guide-admin integration coverage. |
 | `edit_guide.php` | GET/POST HTML/303 | Editor/administrator with refreshed role; POST CSRF; `id`, guide metadata, persistent step IDs/`steps`, `sources`. | Updates guide/steps/sources/search/audit data and deletes progress for intentionally removed steps. Called by Guide admin; guide-admin integration coverage. |
@@ -86,7 +84,15 @@ This is the route-by-route companion to [`route-contracts.md`](route-contracts.m
 
 ## Inventory Validation
 
-- The 55 root web entry scripts, excluding `config.php`, exactly match the union of `routes/web.php`, `routes/admin.php`, and `routes/api.php`.
+- The 53 root web entry scripts, excluding `config.php`, exactly match the union of `routes/web.php`, `routes/admin.php`, and `routes/api.php`.
+- `routes/api.php` contains only `search_suggestions.php` and `search_event.php`; it is not a full-resource API.
 - Root route files that are intended to be GET but currently lack a method guard are marked `GET~`. Their method behavior must be characterized before moving them behind centralized method handling.
 - `search_event.php` is the only recorded public POST JSON CSRF exception. Do not apply broad POST middleware without preserving that exception.
 - Test coverage listed here is current coverage, not a claim that every route has complete characterization tests.
+
+## Retired Routes
+
+| Path | Previous behavior | Final contract | Retirement coverage |
+| --- | --- | --- | --- |
+| `ai.php` | Public placeholder page linking to Diagnostics. | Owner-approved removal on 2026-07-22. No route, view, controller action, metadata, crawler rule, or caller remains; requests receive the standard safe `404`. | Route-map test asserts the file and allowlist entry are absent and executes the front controller to verify the safe `404` page. |
+| `donate.php` | Public placeholder page linked from both footers. | Owner-approved removal on 2026-07-22. No route, view, controller action, metadata, navigation/footer caller, or documentation claim remains; requests receive the standard safe `404`. | Route-map test asserts the file and allowlist entry are absent and executes the front controller to verify the safe `404` page. |
