@@ -15,20 +15,16 @@ function request_id(): string
 
 function application_url(string $path = ''): string
 {
-    $baseUrl = rtrim(config_value('APP_URL', '') ?? '', '/');
-
-    if ($path === '') {
-        return $baseUrl;
-    }
-
-    return $baseUrl . '/' . ltrim($path, '/');
+    return GuideMyPC\Core\Url::applicationUrl(config_value('APP_URL', ''), $path);
 }
 
 function asset_url(string $path): string
 {
-    $version = config_value('APP_ASSET_VERSION', '1') ?? '1';
-
-    return application_url($path) . '?v=' . rawurlencode($version);
+    return GuideMyPC\Core\Url::assetUrl(
+        config_value('APP_URL', ''),
+        config_value('APP_ASSET_VERSION', '1'),
+        $path
+    );
 }
 
 function expects_json(): bool

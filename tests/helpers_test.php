@@ -44,6 +44,8 @@ if ($requestMethod === null) {
 }
 
 assert_same('value', GuideMyPC\Core\Environment::value(['KEY' => 'value'], 'KEY'), 'PSR-4 Core classes autoload without Composer.');
+assert_same('https://example.test/guides.php', GuideMyPC\Core\Url::applicationUrl('https://example.test/', '/guides.php'), 'Core URL generation preserves the legacy path contract.');
+assert_same('https://example.test/css/style.css?v=2', GuideMyPC\Core\Url::assetUrl('https://example.test', '2', 'css/style.css'), 'Core asset URLs preserve the version query contract.');
 assert_same([], load_environment(dirname(__DIR__) . '/missing-test-env'), 'load_environment ignores a missing file.');
 assert_same('fallback', config_value('MISSING_TEST_VALUE', 'fallback'), 'config_value preserves its default contract.');
 assert_same(true, is_string(private_storage_path('logs')), 'private_storage_path resolves private runtime storage.');
