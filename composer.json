@@ -15,12 +15,14 @@
         "verify:fast": [
             "@composer validate --strict",
             "@php scripts/lint.php",
+            "@php scripts/audit-repository-cleanup.php",
             "@php tests/helpers_test.php"
         ],
         "verify": [
             "@verify:fast",
             "@php scripts/verify.php"
         ],
+        "audit:cleanup": "@php scripts/audit-repository-cleanup.php",
         "package:submission": "@php scripts/package-submission.php --output=build/GuideMyPC_Submission.zip --force",
         "package:submission:strict": "@php scripts/package-submission.php --output=build/GuideMyPC_Submission.zip --force --strict"
     },
