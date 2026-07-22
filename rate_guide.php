@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/guides.php';
 require_post();
 require_login();
 require_csrf();
@@ -7,8 +8,9 @@ require_csrf();
 $user_id = current_user_id();
 $guide_id = (int) ($_POST["guide_id"] ?? 0);
 $rating = (int) ($_POST["rating"] ?? 0);
+$slug = required_string($_POST['slug'] ?? null, 150);
 
-if ($guide_id <= 0 || $rating < 1 || $rating > 5) {
+if ($guide_id <= 0 || $rating < 1 || $rating > 5 || $slug === null || guide_public_by_id($conn, $guide_id, $slug) === null) {
     redirect('guides.php');
 }
 
@@ -21,5 +23,4 @@ $stmt = $conn->prepare("
 $stmt->bind_param("iii", $guide_id, $user_id, $rating);
 $stmt->execute();
 
-$slug = (string) ($_POST["slug"] ?? '');
 redirect('guide.php?slug=' . urlencode($slug));

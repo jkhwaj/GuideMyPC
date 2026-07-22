@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/admin.php';
 require_admin();
 
 $id = intval($_GET["id"] ?? 0);
@@ -23,18 +24,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         abort_request(422, 'invalid_download_url', 'Provide a safe HTTPS official URL.');
     }
 
-    if (!in_array($reviewState, ['pending', 'approved', 'stale', 'rejected', 'archived'], true)) {
+    if (!$policy->reviewStateIsValid($reviewState)) {
         abort_request(422, 'invalid_download_review_state', 'Choose a valid review state.');
     }
 
-    $stmt = $conn->prepare("
-        UPDATE downloads
-        SET name = ?, description = ?, official_url = ?, category = ?, review_state = ?, is_published = ?
-        WHERE id = ?
-    ");
-
-    $stmt->bind_param("sssssii", $name, $description, $official_url, $category, $reviewState, $isPublished, $id);
-    $stmt->execute();
+    (new GuideMyPC\Features\Downloads\DownloadAdminService($conn))->update(
+        $id,
+        $name,
+        $description,
+        $official_url,
+        $category,
+        $reviewState,
+        $isPublished
+    );
 
     redirect('admin_downloads.php');
 }

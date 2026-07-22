@@ -5,6 +5,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/search.php';
 
+require_get();
+
 $filters = search_filters($_GET);
 $enteredQuery = $filters['query'];
 $resolvedQuery = search_resolve_alias($conn, $enteredQuery);
@@ -21,7 +23,8 @@ if ($resolvedQuery !== '') {
     $allResults = search_documents($conn, $filters);
     $searchElapsedMilliseconds = (int) ((hrtime(true) - $startedAt) / 1_000_000);
     $totalResults = count($allResults);
-    $pagination = pagination_values($filters['page'], 10);
+    $pagination = search_result_pagination($totalResults, $filters['page']);
+    $filters['page'] = $pagination['page'];
     $pageResults = array_slice($allResults, $pagination['offset'], $pagination['per_page']);
     $relatedQueries = search_related_queries($conn, $resolvedQuery);
     record_search_event($conn, $resolvedQuery, $totalResults, 'search', $totalResults === 0 ? 'zero' : 'results');
@@ -145,8 +148,8 @@ include __DIR__ . '/includes/navbar.php';
         <?php if ($totalResults > 10): ?>
             <nav class="pagination" aria-label="Search result pages">
                 <?php if ($filters['page'] > 1): ?><a class="secondary-btn" href="<?php echo e($queryParameters(['page' => $filters['page'] - 1])); ?>">Previous</a><?php endif; ?>
-                <span>Page <?php echo (int) $filters['page']; ?> of <?php echo (int) ceil($totalResults / 10); ?></span>
-                <?php if ($filters['page'] < (int) ceil($totalResults / 10)): ?><a class="secondary-btn" href="<?php echo e($queryParameters(['page' => $filters['page'] + 1])); ?>">Next</a><?php endif; ?>
+                <span>Page <?php echo (int) $filters['page']; ?> of <?php echo (int) $pagination['total_pages']; ?></span>
+                <?php if ($filters['page'] < $pagination['total_pages']): ?><a class="secondary-btn" href="<?php echo e($queryParameters(['page' => $filters['page'] + 1])); ?>">Next</a><?php endif; ?>
             </nav>
         <?php endif; ?>
     <?php else: ?>

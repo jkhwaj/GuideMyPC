@@ -17,14 +17,29 @@ function redirect(string $location): never
     exit;
 }
 
+function request_method_is(string $method): bool
+{
+    return ($_SERVER['REQUEST_METHOD'] ?? 'GET') === $method;
+}
+
 function require_post(): void
 {
-    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    if (request_method_is('POST')) {
         return;
     }
 
     header('Allow: POST');
     abort_request(405, 'method_not_allowed', 'This action requires a form submission.');
+}
+
+function require_get(): void
+{
+    if (request_method_is('GET')) {
+        return;
+    }
+
+    header('Allow: GET');
+    abort_request(405, 'method_not_allowed', 'This request method is not allowed.');
 }
 
 function csrf_token(): string
@@ -60,9 +75,61 @@ function current_user_id(): int
     return is_logged_in() ? (int) $_SESSION['user_id'] : 0;
 }
 
+function current_user_role(): ?string
+{
+    if (!is_logged_in()) {
+        return null;
+    }
+
+    return GuideMyPC\Security\Authorization::normalizeRole($_SESSION['role'] ?? null);
+}
+
+function refresh_current_user_authorization(mysqli $connection): bool
+{
+    if (!is_logged_in()) {
+        return false;
+    }
+
+    $userId = current_user_id();
+    $statement = $connection->prepare('SELECT full_name, role, status, deleted_at FROM users WHERE id = ? LIMIT 1');
+    $statement->bind_param('i', $userId);
+    $statement->execute();
+    $user = $statement->get_result()->fetch_assoc();
+    $statement->close();
+    $role = GuideMyPC\Security\Authorization::normalizeRole($user['role'] ?? null);
+
+    if ($user === null || $role === null || $user['status'] !== 'active' || $user['deleted_at'] !== null) {
+        unset($_SESSION['user_id'], $_SESSION['full_name'], $_SESSION['role']);
+        session_regenerate_id(true);
+
+        return false;
+    }
+
+    $authorizationChanged = ($_SESSION['role'] ?? null) !== $role;
+    $_SESSION['full_name'] = (string) $user['full_name'];
+    $_SESSION['role'] = $role;
+
+    if ($authorizationChanged) {
+        session_regenerate_id(true);
+    }
+
+    return true;
+}
+
+function user_can(string $capability): bool
+{
+    return GuideMyPC\Security\Authorization::allows(current_user_role(), $capability);
+}
+
+function is_editor(): bool
+{
+    return user_can(GuideMyPC\Security\Authorization::MANAGE_CONTENT);
+}
+
 function is_admin(): bool
 {
-    return is_logged_in() && ($_SESSION['role'] ?? '') === 'admin';
+    return is_logged_in()
+        && GuideMyPC\Security\Authorization::hasRole(current_user_role(), 'admin');
 }
 
 function require_login(): void
@@ -81,6 +148,13 @@ function require_admin(): void
 {
     if (!is_admin()) {
         abort_request(403, 'admin_required', 'You do not have permission to access this page.');
+    }
+}
+
+function require_editor(): void
+{
+    if (!is_editor()) {
+        abort_request(403, 'editor_required', 'You do not have permission to manage content.');
     }
 }
 

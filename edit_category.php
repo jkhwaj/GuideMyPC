@@ -1,96 +1,65 @@
 <?php
+
+declare(strict_types=1);
+
 require_once __DIR__ . '/config.php';
-require_admin();
+require_once __DIR__ . '/includes/admin.php';
 
-$id = intval($_GET["id"] ?? 0);
-
-$stmt = $conn->prepare("SELECT * FROM categories WHERE id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$category = $stmt->get_result()->fetch_assoc();
-
-if (!$category) {
-    die("Category not found.");
+if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'POST'], true)) {
+    header('Allow: GET, POST');
+    abort_request(405, 'method_not_allowed', 'This request method is not allowed.');
 }
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+if (is_logged_in()) {
+    refresh_current_user_authorization($conn);
+}
+
+require_editor();
+$id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+$repository = new GuideMyPC\Features\Categories\CategoryAdminRepository($conn);
+$service = new GuideMyPC\Features\Categories\CategoryAdminService($conn);
+$category = $repository->find($id);
+
+if ($category === null) {
+    abort_request(404, 'category_not_found', 'The requested category could not be found.');
+}
+
+$errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
+    $validation = $service->validate($_POST);
+    $category = [...$category, ...$validation['values']];
+    $errors = $validation['errors'];
 
-    $name = trim($_POST["name"]);
-    $slug = trim($_POST["slug"]);
-    $description = trim($_POST["description"]);
-    $icon = trim($_POST["icon"]);
+    if ($errors === [] && $repository->slugExists($category['slug'], $id)) {
+        $errors[] = 'That category slug is already in use.';
+    }
 
-    $update = $conn->prepare("
-        UPDATE categories
-        SET name=?, slug=?, description=?, icon=?
-        WHERE id=?
-    ");
+    if ($errors === []) {
+        try {
+            if (!$service->update($id, $validation['values'])) {
+                abort_request(404, 'category_not_found', 'The requested category could not be found.');
+            }
 
-    $update->bind_param(
-        "ssssi",
-        $name,
-        $slug,
-        $description,
-        $icon,
-        $id
-    );
+            flash('success', 'Category updated.');
+            redirect('admin_categories.php');
+        } catch (mysqli_sql_exception $exception) {
+            if ($exception->getCode() !== 1062) {
+                throw $exception;
+            }
 
-    $update->execute();
-
-    redirect('admin_categories.php');
+            $errors[] = 'That category slug is already in use.';
+        }
+    }
 }
 
-include("includes/header.php");
-include("includes/navbar.php");
-?>
+$formTitle = 'Edit Category';
+$formDescription = 'Update category visibility and homepage placement.';
+$submitLabel = 'Save changes';
+$publicationWarning = 'Unpublishing this category also hides its guides and knowledge articles from public category-based projections.';
 
-<section class="auth-page">
-
-<div class="auth-card" style="max-width:700px;">
-
-<h1>Edit Category</h1>
-
-<form method="POST">
-<?php echo csrf_field(); ?>
-
-<label>Name</label>
-
-<input
-type="text"
-name="name"
-value="<?php echo htmlspecialchars($category["name"]); ?>"
-required>
-
-<label>Slug</label>
-
-<input
-type="text"
-name="slug"
-value="<?php echo htmlspecialchars($category["slug"]); ?>"
-required>
-
-<label>Description</label>
-
-<textarea
-name="description"
-rows="5"><?php echo htmlspecialchars($category["description"]); ?></textarea>
-
-<label>Icon</label>
-
-<input
-type="text"
-name="icon"
-value="<?php echo htmlspecialchars($category["icon"]); ?>">
-
-<button type="submit">
-Save Changes
-</button>
-
-</form>
-
-</div>
-
-</section>
-
-<?php include("includes/footer.php"); ?>
+include __DIR__ . '/includes/header.php';
+include __DIR__ . '/includes/navbar.php';
+include __DIR__ . '/resources/views/admin/category-form.php';
+include __DIR__ . '/includes/footer.php';

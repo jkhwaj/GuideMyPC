@@ -21,7 +21,7 @@ repository root
 |-- *.php                 web pages and actions
 |-- config.php            shared procedural bootstrap facade
 |-- includes/             bootstrap, helpers, security, errors, database, layouts
-|-- css/ and js/          public assets
+|-- public/assets/        public CSS and JavaScript; root rewrite aliases preserve legacy URLs
 |-- database/             migrations, seeds, and CLI runners
 |-- scripts/              operational CLI commands
 |-- tests/                custom CLI helper and integration tests
@@ -51,6 +51,8 @@ During this state:
 - New classes use the `GuideMyPC\` namespace and Composer PSR-4 autoloading.
 - New views receive explicit data; they do not read global `$conn` or superglobals.
 - `database/`, `scripts/`, and `tests/` remain top-level operational directories.
+- `public/index.php` dispatches the approved legacy route map to root compatibility scripts until feature routes move fully under `app/`.
+- Static files live under `public/assets/`; temporary rewrite aliases retain existing `/css` and `/js` URLs during the transition.
 
 ## Target Structure
 

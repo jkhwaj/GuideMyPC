@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var array<string, mixed> $guide */
+/** @var list<array<string, mixed>> $categories */
+/** @var list<array<string, mixed>> $steps */
+/** @var list<array<string, mixed>> $sources */
+/** @var list<string> $errors */
+/** @var string $formTitle */
+/** @var string $formDescription */
+/** @var string $submitLabel */
+?>
+<section class="auth-page"><div class="auth-card" style="max-width:900px;">
+    <h1><?php echo e($formTitle); ?></h1><p><?php echo e($formDescription); ?></p>
+    <?php if ($errors !== []): ?><div class="auth-message" role="alert"><strong>Check the guide details:</strong><ul><?php foreach ($errors as $error): ?><li><?php echo e($error); ?></li><?php endforeach; ?></ul></div><?php endif; ?>
+    <form method="POST"><?php echo csrf_field(); ?>
+        <label for="guide-category">Category</label><select id="guide-category" name="category" required><?php foreach ($categories as $category): ?><option value="<?php echo (int) $category['id']; ?>"<?php echo (int) $guide['category_id'] === (int) $category['id'] ? ' selected' : ''; ?>><?php echo e($category['name']); ?><?php echo (int) $category['is_published'] === 0 ? ' (unpublished)' : ''; ?></option><?php endforeach; ?></select>
+        <label for="guide-title">Title</label><input id="guide-title" name="title" maxlength="150" value="<?php echo e($guide['title']); ?>" required>
+        <label for="guide-slug">Slug</label><input id="guide-slug" name="slug" maxlength="150" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value="<?php echo e($guide['slug']); ?>" required>
+        <label for="guide-description">Description</label><textarea id="guide-description" name="description" maxlength="5000"><?php echo e($guide['description']); ?></textarea>
+        <div class="content-grid"><div><label for="guide-difficulty">Difficulty</label><input id="guide-difficulty" name="difficulty" maxlength="50" value="<?php echo e($guide['difficulty']); ?>"></div><div><label for="guide-time">Estimated time</label><input id="guide-time" name="estimated_time" maxlength="50" value="<?php echo e($guide['estimated_time']); ?>"></div><div><label for="guide-risk">Risk level</label><input id="guide-risk" name="risk_level" maxlength="50" value="<?php echo e($guide['risk_level']); ?>"></div></div>
+        <label for="guide-platform">Platform/version</label><input id="guide-platform" name="platform_version" maxlength="100" value="<?php echo e($guide['platform_version']); ?>">
+        <label for="guide-tools">Required tools</label><textarea id="guide-tools" name="required_tools" maxlength="2000"><?php echo e($guide['required_tools']); ?></textarea>
+        <label for="guide-prerequisites">Prerequisites</label><textarea id="guide-prerequisites" name="prerequisites" maxlength="5000"><?php echo e($guide['prerequisites']); ?></textarea>
+        <label for="guide-warning">Backup and safety warning</label><textarea id="guide-warning" name="backup_warning" maxlength="5000"><?php echo e($guide['backup_warning']); ?></textarea>
+        <label for="guide-next-actions">Next actions</label><textarea id="guide-next-actions" name="next_actions" maxlength="5000"><?php echo e($guide['next_actions']); ?></textarea>
+        <label for="guide-video">Optional YouTube URL</label><input id="guide-video" name="video_url" type="url" maxlength="255" value="<?php echo e($guide['video_url']); ?>">
+        <label for="guide-reviewed">Last reviewed</label><input id="guide-reviewed" name="last_reviewed_at" type="date" value="<?php echo e($guide['last_reviewed_at']); ?>">
+        <label for="guide-featured">Featured order</label><input id="guide-featured" name="featured_order" type="number" min="1" max="999" value="<?php echo $guide['featured_order'] === null ? '' : (int) $guide['featured_order']; ?>">
+        <input type="hidden" name="is_published" value="0"><label class="checkbox-field" for="guide-published"><input id="guide-published" name="is_published" type="checkbox" value="1"<?php echo (int) $guide['is_published'] === 1 ? ' checked' : ''; ?>> Published</label>
+        <p class="form-warning">Unpublished guides remain available to editors but are hidden from public guides, search, and homepage projections.</p>
+        <h2>Official sources</h2><p>Optional HTTPS references. Add a title and URL together.</p>
+        <div id="sourcesContainer"><?php for ($index = 0; $index < max(3, count($sources)); $index++): $source = $sources[$index] ?? ['title' => '', 'official_url' => '']; ?><fieldset class="source-editor"><legend>Source <?php echo $index + 1; ?></legend><label>Title <input data-source-field="title" name="sources[<?php echo $index; ?>][title]" maxlength="180" value="<?php echo e($source['title']); ?>"></label><label>HTTPS URL <input data-source-field="official_url" name="sources[<?php echo $index; ?>][official_url]" type="url" maxlength="255" value="<?php echo e($source['official_url']); ?>"></label><div class="source-editor-actions"><button type="button" data-source-move="up">Move up</button><button type="button" data-source-move="down">Move down</button><button type="button" data-source-remove>Remove source</button></div></fieldset><?php endfor; ?></div>
+        <button class="secondary-btn" type="button" id="add-source">Add source</button>
+        <h2>Steps</h2><p>Reordering and text edits preserve saved progress. Removing a step deletes progress for that step only.</p><div id="stepsContainer"><?php foreach ($steps as $index => $step): ?><fieldset class="step-editor"><legend>Step <?php echo $index + 1; ?></legend><?php if (($step['id'] ?? null) !== null): ?><input type="hidden" data-step-field="id" name="steps[<?php echo $index; ?>][id]" value="<?php echo (int) $step['id']; ?>"><?php endif; ?><label>Title <input data-step-field="title" name="steps[<?php echo $index; ?>][title]" maxlength="180" value="<?php echo e($step['step_title'] ?? $step['title'] ?? ''); ?>"></label><label>Action <textarea data-step-field="text" name="steps[<?php echo $index; ?>][text]" required><?php echo e($step['step_text'] ?? $step['text'] ?? ''); ?></textarea></label><label>Expected result <textarea data-step-field="expected_result" name="steps[<?php echo $index; ?>][expected_result]"><?php echo e($step['expected_result'] ?? ''); ?></textarea></label><label>Warning <textarea data-step-field="warning_text" name="steps[<?php echo $index; ?>][warning_text]"><?php echo e($step['warning_text'] ?? ''); ?></textarea></label><label>Recovery path <textarea data-step-field="recovery_text" name="steps[<?php echo $index; ?>][recovery_text]"><?php echo e($step['recovery_text'] ?? ''); ?></textarea></label><label>Image URL <input data-step-field="image_url" type="url" name="steps[<?php echo $index; ?>][image_url]" maxlength="255" value="<?php echo e($step['image_url'] ?? ''); ?>"></label><label>Image alt text <input data-step-field="image_alt" name="steps[<?php echo $index; ?>][image_alt]" maxlength="255" value="<?php echo e($step['image_alt'] ?? ''); ?>"></label><label>Video timestamp (seconds) <input data-step-field="video_timestamp" type="number" min="0" max="86400" name="steps[<?php echo $index; ?>][video_timestamp]" value="<?php echo e($step['video_timestamp'] ?? ''); ?>"></label><div class="step-editor-actions"><button type="button" data-step-move="up">Move up</button><button type="button" data-step-move="down">Move down</button><button type="button" data-step-remove>Remove step</button></div></fieldset><?php endforeach; ?></div>
+        <button class="secondary-btn" type="button" id="add-step">Add step</button><div class="form-actions"><button type="submit"><?php echo e($submitLabel); ?></button><a class="secondary-btn" href="<?php echo e(application_url('admin_guides.php')); ?>">Cancel</a></div>
+    </form>
+</div></section><script src="<?php echo e(asset_url('js/guide-editor.js')); ?>"></script>

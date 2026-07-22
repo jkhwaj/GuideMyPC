@@ -15,4 +15,6 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule ^(?:\.git|Tasks|database|includes|scripts|tests|logs|uploads|storage)(?:/|$) - [F,L,NC]
+    RewriteRule ^(css|js)/(.*)$ public/assets/$1/$2 [L]
+    RewriteRule ^robots\.txt$ public/robots.txt [L]
 </IfModule>

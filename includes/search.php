@@ -31,6 +31,21 @@ function search_query_is_aggregate_safe(string $query): bool
     return GuideMyPC\Features\Search\SearchQuery::isAggregateSafe($query);
 }
 
+/** @return array{page: int, per_page: int, offset: int, total_pages: int} */
+function search_result_pagination(int $totalResults, mixed $requestedPage): array
+{
+    $pagination = pagination_values($requestedPage, 10);
+    $totalPages = max(1, (int) ceil(max($totalResults, 0) / $pagination['per_page']));
+    $page = min($pagination['page'], $totalPages);
+
+    return [
+        'page' => $page,
+        'per_page' => $pagination['per_page'],
+        'offset' => ($page - 1) * $pagination['per_page'],
+        'total_pages' => $totalPages,
+    ];
+}
+
 /**
  * @param array{query: string, type: string, platform: string, difficulty: string, safety: string, recency: string, page: int} $filters
  * @return list<array<string, mixed>>
@@ -48,19 +63,20 @@ function search_documents(mysqli $connection, array $filters): array
 
     if ($filters['type'] === '' || $filters['type'] === 'guide') {
         $where = ['guides.is_published = 1', 'categories.is_published = 1'];
-        $types = 'ssss';
-        $values = [$query, $prefix, $like, $query];
-        $where[] = '(MATCH(guides.title, guides.description, guides.content) AGAINST (? IN NATURAL LANGUAGE MODE) OR guides.title LIKE ? OR guides.description LIKE ? OR guides.content LIKE ? OR categories.name LIKE ?)';
-        $types .= 'sssss';
-        array_push($values, $query, $like, $like, $like, $like);
+        $types = 'sssss';
+        $values = [$query, $prefix, $like, $query, $query];
+        $where[] = '(MATCH(guides.title, guides.description, guides.content) AGAINST (? IN NATURAL LANGUAGE MODE) OR MATCH(guide_search_documents.search_text) AGAINST (? IN NATURAL LANGUAGE MODE) OR guides.title LIKE ? OR guides.description LIKE ? OR guides.content LIKE ? OR guide_search_documents.search_text LIKE ? OR categories.name LIKE ?)';
+        $types .= 'sssssss';
+        array_push($values, $query, $query, $like, $like, $like, $like, $like);
         search_append_guide_filters($where, $types, $values, $filters, 'guides', 'categories');
 
         $statement = $connection->prepare(
-            'SELECT guides.title, guides.slug, guides.description, guides.content, guides.difficulty, guides.risk_level, guides.created_at, '
+            'SELECT guides.title, guides.slug, guides.description, guides.content, guide_search_documents.search_text, guides.difficulty, guides.risk_level, guides.created_at, '
             . 'categories.name AS platform_name, '
             . '(CASE WHEN LOWER(guides.title) = ? THEN 10000 WHEN LOWER(guides.title) LIKE ? THEN 8000 WHEN guides.title LIKE ? THEN 6000 ELSE 0 END '
-            . '+ COALESCE(MATCH(guides.title, guides.description, guides.content) AGAINST (? IN NATURAL LANGUAGE MODE), 0) * 100) AS rank_score '
-            . 'FROM guides JOIN categories ON guides.category_id = categories.id WHERE ' . implode(' AND ', $where) . ' LIMIT 60'
+            . '+ LEAST(COALESCE(MATCH(guides.title, guides.description, guides.content) AGAINST (? IN NATURAL LANGUAGE MODE), 0), 1000) * 100 '
+            . '+ LEAST(COALESCE(MATCH(guide_search_documents.search_text) AGAINST (? IN NATURAL LANGUAGE MODE), 0), 1000) * 100) AS rank_score '
+            . 'FROM guides JOIN categories ON guides.category_id = categories.id LEFT JOIN guide_search_documents ON guide_search_documents.guide_id = guides.id WHERE ' . implode(' AND ', $where) . ' LIMIT 60'
         );
         $statement->bind_param($types, ...$values);
         $statement->execute();
@@ -69,7 +85,7 @@ function search_documents(mysqli $connection, array $filters): array
         while ($row = $result->fetch_assoc()) {
             $documents[] = [
                 'type' => 'guide', 'label' => 'Guide', 'title' => $row['title'], 'platform' => $row['platform_name'],
-                'excerpt' => $row['description'] ?: $row['content'], 'url' => application_url('guide.php?slug=' . rawurlencode($row['slug'])),
+                'excerpt' => $row['description'] ?: $row['content'] ?: $row['search_text'], 'url' => application_url('guide.php?slug=' . rawurlencode($row['slug'])),
                 'rank' => (float) $row['rank_score'], 'created_at' => $row['created_at'], 'difficulty' => $row['difficulty'], 'safety' => $row['risk_level'],
             ];
         }
@@ -238,7 +254,7 @@ function search_filter_options(mysqli $connection): array
     $options = ['platforms' => $platforms, 'difficulties' => [], 'safety_levels' => []];
 
     foreach (['difficulty' => 'difficulties', 'risk_level' => 'safety_levels'] as $column => $key) {
-        $result = $connection->query('SELECT DISTINCT ' . $column . ' FROM guides WHERE is_published = 1 AND ' . $column . " IS NOT NULL AND " . $column . " <> '' ORDER BY " . $column);
+        $result = $connection->query('SELECT DISTINCT guides.' . $column . ' FROM guides JOIN categories ON categories.id = guides.category_id WHERE guides.is_published = 1 AND categories.is_published = 1 AND guides.' . $column . " IS NOT NULL AND guides." . $column . " <> '' ORDER BY guides." . $column);
 
         while ($row = $result->fetch_assoc()) {
             $options[$key][] = $row[$column];
@@ -337,7 +353,7 @@ function search_suggestions(mysqli $connection, string $query): array
     $like = '%' . $query . '%';
     $suggestions = [];
     $statement = $connection->prepare(
-        'SELECT title, slug FROM guides WHERE is_published = 1 AND title LIKE ? ORDER BY title LIMIT 5'
+        'SELECT guides.title, guides.slug FROM guides JOIN categories ON categories.id = guides.category_id WHERE guides.is_published = 1 AND categories.is_published = 1 AND guides.title LIKE ? ORDER BY guides.title LIMIT 5'
     );
     $statement->bind_param('s', $like);
     $statement->execute();
@@ -364,7 +380,7 @@ function search_suggestions(mysqli $connection, string $query): array
 
     if (count($suggestions) < 8) {
         $statement = $connection->prepare(
-            "SELECT title, slug, error_code FROM knowledge_articles WHERE publication_state = 'published' AND (title LIKE ? OR error_code LIKE ?) ORDER BY title LIMIT 5"
+            "SELECT knowledge_articles.title, knowledge_articles.slug, knowledge_articles.error_code FROM knowledge_articles JOIN categories ON categories.id = knowledge_articles.category_id WHERE knowledge_articles.publication_state = 'published' AND categories.is_published = 1 AND (knowledge_articles.title LIKE ? OR knowledge_articles.error_code LIKE ?) ORDER BY knowledge_articles.title LIMIT 5"
         );
         $statement->bind_param('ss', $like, $like);
         $statement->execute();

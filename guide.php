@@ -6,6 +6,8 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/guides.php';
 require_once __DIR__ . '/includes/accounts.php';
 
+require_get();
+
 $slug = required_string($_GET['slug'] ?? null, 150) ?? '';
 $statement = $conn->prepare(
     'SELECT guides.*, categories.name AS category_name, categories.slug AS category_slug '
@@ -42,15 +44,7 @@ if (!in_array($guideId, $_SESSION['viewed_guides'], true)) {
 $userId = current_user_id();
 
 if ($userId > 0 && !empty($_SESSION['_guest_progress'][$guideId]) && is_array($_SESSION['_guest_progress'][$guideId])) {
-    $mergeProgress = $conn->prepare('INSERT INTO user_progress (user_id, guide_step_id, completed) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE completed = 1');
-
-    foreach (array_keys($_SESSION['_guest_progress'][$guideId]) as $guestStepId) {
-        $guestStepId = (int) $guestStepId;
-        $mergeProgress->bind_param('ii', $userId, $guestStepId);
-        $mergeProgress->execute();
-    }
-
-    $mergeProgress->close();
+    guide_merge_guest_progress($conn, $userId, $guideId, array_keys($_SESSION['_guest_progress'][$guideId]));
     unset($_SESSION['_guest_progress'][$guideId]);
     flash('success', 'Your browser-session guide progress was saved to your account.');
 }
@@ -85,14 +79,18 @@ if ($tools === [] && guide_text($guide['required_tools'] ?? '', 2000) !== '') {
     $tools = array_values(array_filter(array_map(static fn (string $tool): string => trim($tool), preg_split('/[\r\n,]+/', $guide['required_tools']) ?: [])));
 }
 
-$sourceStatement = $conn->prepare('SELECT title, official_url FROM guide_sources WHERE guide_id = ? ORDER BY sort_order, id');
+$sourceStatement = $conn->prepare(
+    'SELECT guide_sources.title, guide_sources.official_url, guide_sources.source_last_reviewed_at '
+    . 'FROM guide_sources JOIN trusted_source_domains ON trusted_source_domains.id = guide_sources.trusted_source_domain_id '
+    . 'WHERE guide_sources.guide_id = ? AND trusted_source_domains.is_active = 1 ORDER BY guide_sources.sort_order, guide_sources.id'
+);
 $sourceStatement->bind_param('i', $guideId);
 $sourceStatement->execute();
 $sources = [];
 $sourceResult = $sourceStatement->get_result();
 
 while ($source = $sourceResult->fetch_assoc()) {
-    if (guide_safe_url($source['official_url']) !== null) {
+    if (guide_safe_source_url($source['official_url']) !== null) {
         $sources[] = $source;
     }
 }
@@ -127,6 +125,7 @@ $pageTitle = $guide['title'] . ' | GuideMyPC';
 $pageDescription = $guide['description'] ?: 'Follow clear, safety-conscious troubleshooting steps.';
 $canonicalPath = 'guide.php?slug=' . rawurlencode($guide['slug']);
 $videoEmbedUrl = guide_youtube_embed_url($guide['video_url'] ?? null);
+$videoWatchUrl = guide_youtube_watch_url($guide['video_url'] ?? null);
 
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
@@ -174,7 +173,7 @@ include __DIR__ . '/includes/navbar.php';
             <h2 id="guide-video-title">Optional video walkthrough</h2>
             <p>The written steps below are the complete guide. Loading the video connects to YouTube.</p>
             <button class="secondary-btn" type="button" data-video-consent data-video-url="<?php echo e($videoEmbedUrl); ?>">Load privacy-enhanced YouTube video</button>
-            <p><a href="<?php echo e($guide['video_url']); ?>" target="_blank" rel="noopener noreferrer">Open the video on YouTube</a></p>
+            <p><a href="<?php echo e($videoWatchUrl); ?>" target="_blank" rel="noopener noreferrer">Open the video on YouTube</a></p>
             <div class="video-frame" data-video-frame></div>
         </section>
     <?php endif; ?>
@@ -216,7 +215,7 @@ include __DIR__ . '/includes/navbar.php';
     </section>
 
     <?php if ($guide['next_actions']): ?><aside class="guide-context"><h2>Next actions</h2><p><?php echo nl2br(e($guide['next_actions'])); ?></p></aside><?php endif; ?>
-    <?php if ($sources !== []): ?><section class="guide-sources"><h2>Official sources</h2><ul><?php foreach ($sources as $source): ?><li><a href="<?php echo e($source['official_url']); ?>" target="_blank" rel="noopener noreferrer"><?php echo e($source['title']); ?></a></li><?php endforeach; ?></ul></section><?php endif; ?>
+    <?php if ($sources !== []): ?><section class="guide-sources"><h2>Official sources</h2><ul><?php foreach ($sources as $source): ?><li><a href="<?php echo e($source['official_url']); ?>" target="_blank" rel="noopener noreferrer"><?php echo e($source['title']); ?></a><?php if ($source['source_last_reviewed_at']): ?> <span class="meta">(reviewed <?php echo e($source['source_last_reviewed_at']); ?>)</span><?php endif; ?></li><?php endforeach; ?></ul></section><?php endif; ?>
     <?php if ($related->num_rows > 0): ?><aside class="related-searches"><h2>Related help</h2><ul><?php while ($article = $related->fetch_assoc()): ?><li><a href="<?php echo e(application_url('knowledge_article.php?slug=' . rawurlencode($article['slug']))); ?>"><?php echo e($article['title']); ?></a></li><?php endwhile; ?></ul></aside><?php endif; ?>
 
     <section class="guide-rating no-print" aria-labelledby="rating-heading">

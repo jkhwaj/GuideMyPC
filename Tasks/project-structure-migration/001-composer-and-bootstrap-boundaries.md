@@ -80,15 +80,15 @@ Keep the previous include path usable until every entry point passes validation.
 
 ## Acceptance Criteria
 
-- [ ] `composer validate` succeeds.
-- [ ] A clean dependency installation is deterministic from `composer.lock`.
-- [ ] New classes under `app/` autoload through `GuideMyPC\` without manual `require_once` calls.
+- [x] `composer validate` succeeds.
+- [x] A clean dependency installation is deterministic from `composer.lock`.
+- [x] New classes under `app/` autoload through `GuideMyPC\` without manual `require_once` calls.
 - [ ] Existing global helpers remain available during migration.
 - [ ] Web routes initialize sessions, headers, errors, and request context once.
 - [ ] CLI commands initialize no browser session and emit no web headers.
 - [ ] Test initialization cannot select the normal configured database accidentally.
 - [ ] Static pages can initialize without opening a MariaDB connection.
-- [ ] The source/deployment package either contains production dependencies or documents and verifies installation after extraction.
+- [x] The source/deployment package either contains production dependencies or documents and verifies installation after extraction.
 - [ ] Existing route-contract checks remain unchanged.
 
 ## Validation
@@ -106,8 +106,10 @@ All entry-point types have explicit initialization boundaries, new classes can b
 
 ## Implementation Evidence
 
-- Added `composer.json` with the PHP 8.2 requirement and `GuideMyPC\` PSR-4 mapping. Composer and PHP are not available on the current command path, so `composer.lock`, installation validation, and autoload verification remain blocked pending local tooling.
+- Added `composer.json` with the PHP 8.2 requirement and `GuideMyPC\` PSR-4 mapping, plus the generated `composer.lock`.
 - Added `bootstrap/web.php`, `bootstrap/cli.php`, and `bootstrap/test.php`. They load shared legacy helpers without opening a database connection; only the web bootstrap starts a browser session and sends security headers.
 - `config.php` remains the compatibility facade that loads the web bootstrap and opens the legacy global `$conn` for unmigrated routes.
 - Static/legal routes now use the web bootstrap directly and therefore do not require MariaDB to initialize.
 - `database/runner.php` and the helper test use the CLI/test bootstraps, preventing direct CLI bootstrap callers from starting browser sessions.
+- Composer 2.10.2 now validates the manifest, installs the lockfile deterministically, and resolves `GuideMyPC\Core\Environment` through `vendor/autoload.php`.
+- Added `composer verify` for Composer validation plus tracked-PHP linting, and `scripts/package-deploy.ps1` for a deploy artifact containing locked production dependencies while `scripts/package-source.ps1` remains clean.

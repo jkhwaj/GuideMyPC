@@ -12,40 +12,12 @@ $downloads = [];
 $communityPosts = [];
 
 try {
-    $result = $conn->query(
-        'SELECT name, slug, description, icon FROM categories '
-        . 'WHERE is_published = 1 '
-        . 'ORDER BY featured_order IS NULL, featured_order ASC, name ASC'
-    );
-    $categories = $result->fetch_all(MYSQLI_ASSOC);
-
-    $guideSql = 'SELECT guides.title, guides.slug, guides.description, guides.difficulty, '
-        . 'categories.name AS category_name, categories.slug AS category_slug '
-        . 'FROM guides JOIN categories ON guides.category_id = categories.id '
-        . 'WHERE guides.is_published = 1 AND categories.is_published = 1 '
-        . 'ORDER BY guides.featured_order IS NULL, guides.featured_order ASC, guides.views DESC, guides.created_at DESC LIMIT 4';
-    $result = $conn->query($guideSql);
-    $popularGuides = $result->fetch_all(MYSQLI_ASSOC);
-    $recommendedGuides = array_slice($popularGuides, 0, 3);
-
-    $downloadPolicy = new GuideMyPC\Features\Downloads\DownloadPolicy();
-    $result = $conn->query(
-        'SELECT name, description, official_url, category, is_published, review_state FROM downloads '
-        . 'WHERE ' . $downloadPolicy->publicWhereClause('downloads') . ' '
-        . 'ORDER BY featured_order IS NULL, featured_order ASC, name ASC LIMIT 3'
-    );
-    $downloads = array_values(array_filter(
-        $result->fetch_all(MYSQLI_ASSOC),
-        static fn (array $download): bool => $downloadPolicy->isPublic($download)
-    ));
-
-    $result = $conn->query(
-        'SELECT community_posts.title, community_posts.created_at, users.full_name '
-        . 'FROM community_posts JOIN users ON community_posts.user_id = users.id '
-        . 'WHERE community_posts.is_published = 1 '
-        . 'ORDER BY community_posts.created_at DESC LIMIT 3'
-    );
-    $communityPosts = $result->fetch_all(MYSQLI_ASSOC);
+    $content = (new GuideMyPC\Features\Home\HomeReadModel($conn))->content();
+    $categories = $content['categories'];
+    $popularGuides = $content['popularGuides'];
+    $recommendedGuides = $content['recommendedGuides'];
+    $downloads = $content['downloads'];
+    $communityPosts = $content['communityPosts'];
 } catch (mysqli_sql_exception $exception) {
     application_log('warning', 'Homepage content query failed.', ['exception' => $exception->getMessage()]);
     $homeError = true;
@@ -72,7 +44,6 @@ include __DIR__ . '/includes/navbar.php';
 
         <div class="hero-buttons">
             <a href="#categories" class="secondary-btn">Browse by device</a>
-            <a href="<?php echo e(application_url('ai.php')); ?>" class="text-action">Explore the planned AI assistant</a>
         </div>
     </div>
 </section>

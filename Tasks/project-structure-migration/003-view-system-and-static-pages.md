@@ -1,6 +1,6 @@
 # Task: View System and Static Pages
 
-- Status: In progress
+- Status: Complete with evidence
 - Priority: High
 - Release: M2
 - Dependencies: `002-core-security-and-compatibility-layer.md`
@@ -109,6 +109,10 @@ Static pages and shared presentation use the documented rendering boundary with 
 - Added `GuideMyPC\Core\View` with explicit view data and a plain PHP layout.
 - Added Pages controller and view templates for the About page only; `about.php` remains the legacy compatibility entry point.
 - Layout metadata, navigation state, and flash messages are passed as explicit data rather than inferred from `SCRIPT_NAME` or read from session state by templates.
-- Existing `includes/` layout templates and all other routes remain unchanged while About-page parity is characterized.
+- Existing `includes/` layout templates and database-backed routes remain unchanged while static-page parity is characterized.
 - PHP lint passed for the renderer, Pages controller, About entry point, and new templates; `tests/helpers_test.php` passes and asserts About metadata and body output.
 - Direct CLI rendering of `about.php` produces the expected title, canonical URL, assets, navigation landmarks, and About heading without opening MariaDB.
+- Migrated `contact.php` through the same Pages controller and explicit Contact metadata; the legacy route remains the compatibility entry point.
+- Migrated `privacy.php`, `terms.php`, `disclaimer.php`, `donate.php`, and `ai.php` through `PageController` and `resources/views/pages/`; their legacy entry points, metadata, canonical URLs, content, assets, navigation, and internal links remain intact.
+- Extended `tests/helpers_test.php` to assert each migrated page's title, canonical URL, and heading. Direct CLI rendering of each migrated legal/static route completed without a database request.
+- Validation passed: `php scripts/lint.php`, `php tests/helpers_test.php`, and `composer run verify`.

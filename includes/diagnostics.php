@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 function diagnostic_flow(mysqli $connection, string $slug): ?array
 {
-    $statement = $connection->prepare("SELECT diagnostic_flows.*, diagnostic_flow_versions.id AS version_id, diagnostic_flow_versions.initial_node_key FROM diagnostic_flows JOIN diagnostic_flow_versions ON diagnostic_flow_versions.flow_id = diagnostic_flows.id WHERE diagnostic_flows.slug = ? AND diagnostic_flows.publication_state = 'published' AND diagnostic_flow_versions.publication_state = 'published' ORDER BY diagnostic_flow_versions.version_number DESC LIMIT 1");
-    $statement->bind_param('s', $slug); $statement->execute(); $flow = $statement->get_result()->fetch_assoc(); $statement->close();
-    return is_array($flow) ? $flow : null;
+    return (new GuideMyPC\Features\Diagnostics\DiagnosticRepository($connection))->publishedFlow($slug);
 }
 
 function diagnostic_start(mysqli $connection, array $flow): array
@@ -31,6 +29,5 @@ function diagnostic_session(mysqli $connection, string $publicId): ?array
 
 function diagnostic_node(mysqli $connection, int $versionId, string $nodeKey): ?array
 {
-    $statement = $connection->prepare('SELECT * FROM diagnostic_nodes WHERE version_id = ? AND node_key = ? LIMIT 1'); $statement->bind_param('is', $versionId, $nodeKey); $statement->execute(); $node = $statement->get_result()->fetch_assoc(); $statement->close();
-    return is_array($node) ? $node : null;
+    return (new GuideMyPC\Features\Diagnostics\DiagnosticRepository($connection))->node($versionId, $nodeKey);
 }

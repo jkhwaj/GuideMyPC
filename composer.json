@@ -2,6 +2,7 @@
     "name": "jkhwaj/guidemypc",
     "description": "Consumer technology support application",
     "type": "project",
+    "license": "proprietary",
     "require": {
         "php": "^8.2"
     },
@@ -9,6 +10,17 @@
         "psr-4": {
             "GuideMyPC\\": "app/"
         }
+    },
+    "scripts": {
+        "verify:fast": [
+            "@composer validate --strict",
+            "@php scripts/lint.php",
+            "@php tests/helpers_test.php"
+        ],
+        "verify": [
+            "@verify:fast",
+            "@php scripts/verify.php"
+        ]
     },
     "minimum-stability": "stable",
     "prefer-stable": true

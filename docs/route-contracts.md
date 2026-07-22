@@ -2,6 +2,8 @@
 
 This baseline supports task `000` of `Tasks/project-structure-migration/`. It records the current route groups that must retain their legacy path and behavior during structural migration. It is not a specification for new product behavior; known inconsistent publication and model behavior is recorded separately for approval.
 
+See [`route-inventory.md`](route-inventory.md) for the route-by-route method, protection, input, side-effect, caller, and test-coverage baseline.
+
 ## Compatibility Rules
 
 - Legacy `*.php` paths remain canonical through the public-document-root migration.
@@ -50,6 +52,7 @@ This baseline supports task `000` of `Tasks/project-structure-migration/`. It re
 | `login.php`, `register.php`, `forgot_password.php`, `reset_password.php` | GET/POST HTML | Preserve authentication, validation, reset-link paths, and session behavior. |
 | `settings.php` | GET/POST HTML | Authenticated settings workflow. |
 | `profile.php` | GET HTML | Authenticated profile view. |
+| `dashboard.php` | GET HTML or redirect | Authenticated role-aware dashboard. Guests receive the standard HTTP 303 login redirect. Active users receive only personal progress/favorites/activity; editors and administrators receive bounded aggregate content projections; only administrators receive user identities and audit details. Account role/status is refreshed before projection selection; unavailable, disabled, or invalid accounts are signed out and redirected to login without receiving a projection. |
 | `logout.php`, `account_request.php` | POST redirect | Preserve CSRF, authentication, PRG, and flash behavior. |
 | `save_progress.php` | POST HTML redirect or JSON | Preserve both response modes and ownership checks. |
 | `toggle_favorite.php`, `rate_guide.php` | POST redirect | Preserve CSRF, authorization, redirects, and guide ownership/state rules. |
@@ -67,11 +70,22 @@ The active routes use `community_posts`, `community_comments`, and `community_li
 
 | Paths | Method and response | Migration contract |
 | --- | --- | --- |
-| `admin.php`, `admin_categories.php`, `admin_guides.php`, `admin_downloads.php`, `admin_users.php`, `admin_community.php`, `admin_comments.php` | GET HTML | Administrator listings/dashboard. Queries must complete before output. |
-| `add_category.php`, `add_download.php`, `add_guide.php`, `edit_category.php`, `edit_download.php`, `edit_guide.php`, `edit_user.php` | GET/POST HTML | Administrator editor workflows. Preserve validation, CSRF, authorization, and PRG. |
-| `delete_category.php`, `delete_comment.php`, `delete_download.php`, `delete_guide.php`, `delete_post.php`, `delete_user.php` | POST redirect | Administrator deletion actions. Preserve authorization, CSRF, flash, redirect, and audit behavior. |
+| `admin_categories.php` | GET HTML | Editor/administrator category listing with bounded search, publication filter, allowlisted sorting, and pagination. Delete controls are administrator-only. |
+| `add_category.php`, `edit_category.php` | GET/POST HTML | Editor/administrator category workflows. Preserve validation, CSRF, publication capability, audit, and HTTP 303 PRG behavior. Unpublishing a category hides its category-scoped public content. |
+| `admin_guides.php` | GET HTML | Editor/administrator guide listing with bounded search, publication/category filters, allowlisted sorting, and pagination. Delete controls are administrator-only. |
+| `add_guide.php`, `edit_guide.php` | GET/POST HTML | Editor/administrator Guide workflows. Draft/publication, curation, official sources, structured steps, CSRF, audit, and HTTP 303 PRG are required. |
+| `admin.php`, `admin_downloads.php`, `admin_users.php`, `admin_community.php`, `admin_comments.php` | GET HTML | Administrator listings/dashboard. Queries must complete before output. |
+| `add_download.php`, `edit_download.php`, `edit_user.php` | GET/POST HTML | Administrator editor workflows until their feature-specific capability contracts are approved. Preserve validation, CSRF, authorization, and PRG. |
+| `delete_category.php` | POST redirect | Administrator-only hard deletion. Block deletion when any known feature references the category; preserve CSRF, flash, audit, and HTTP 303 PRG behavior. |
+| `delete_guide.php` | POST redirect | Administrator-only hard deletion. Block deletion when durable user or knowledge dependencies exist; preserve CSRF, flash, audit, and HTTP 303 PRG behavior. |
+| `admin_knowledge.php` | GET HTML | Editor/administrator knowledge listing with bounded search, publication/type/category filters, allowlisted sorting, and pagination. Delete controls are administrator-only. |
+| `add_knowledge.php`, `edit_knowledge.php` | GET/POST HTML | Editor/administrator knowledge article workflows. Publication lifecycle, tags, official sources, CSRF, audit, and HTTP 303 PRG are required. |
+| `delete_knowledge.php` | POST redirect | Administrator-only hard deletion. Preserve CSRF, dependency checks, flash, audit, and HTTP 303 PRG behavior. |
+| `delete_comment.php`, `delete_download.php`, `delete_post.php`, `delete_user.php` | POST redirect | Administrator deletion actions. Preserve authorization, CSRF, flash, redirect, and audit behavior. |
 
 Administration moves into the feature that owns its data. The shared audit service is a dependency, not an excuse for a separate generic admin repository.
+
+Guide step identity is persistent across edits. `edit_guide.php` must update and reorder submitted steps by their existing IDs, insert only new steps, and delete only intentionally omitted steps. Metadata-only edits, text corrections, additions, and reordering preserve progress on retained IDs. Removing a step deletes progress for that step only; cross-guide or duplicate IDs reject the complete transaction.
 
 ## Known Policy Differences
 

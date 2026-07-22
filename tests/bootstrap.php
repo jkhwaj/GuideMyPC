@@ -8,6 +8,16 @@ require_once dirname(__DIR__) . '/bootstrap/test.php';
 restore_error_handler();
 restore_exception_handler();
 
+foreach ($_SERVER['argv'] ?? [] as $argument) {
+    if (is_string($argument) && str_starts_with($argument, '--database=')) {
+        $database = substr($argument, strlen('--database='));
+
+        if ($database !== '') {
+            $guideMyPcEnvironment['DB_TEST_NAME'] = $database;
+        }
+    }
+}
+
 function test_database_name_is_safe(string $database, string $applicationDatabase): bool
 {
     return $database !== ''

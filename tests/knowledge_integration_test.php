@@ -21,6 +21,14 @@ if ($article === null) {
     exit(1);
 }
 
+$repository = new GuideMyPC\Features\Knowledge\KnowledgeRepository($conn);
+$articles = $repository->publishedArticles('error_code', (string) $article['category_slug']);
+
+if (!in_array($slug, array_column($articles, 'slug'), true)) {
+    fwrite(STDERR, "FAIL: published Knowledge list filtering excluded the seeded article.\n");
+    exit(1);
+}
+
 $conn->begin_transaction();
 
 try {
@@ -31,6 +39,10 @@ try {
 
     if (knowledge_published_article($conn, $slug) !== null) {
         throw new RuntimeException('Draft content was available through the direct article helper.');
+    }
+
+    if (in_array($slug, array_column($repository->publishedArticles('error_code', (string) $article['category_slug']), 'slug'), true)) {
+        throw new RuntimeException('Draft content was available through the Knowledge list query.');
     }
 
     $results = search_documents($conn, search_filters(['q' => '0x0000007B', 'type' => 'article']));

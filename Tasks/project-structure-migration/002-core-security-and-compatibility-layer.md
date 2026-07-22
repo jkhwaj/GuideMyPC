@@ -117,3 +117,6 @@ Shared runtime and security behavior is implemented behind clear namespaced boun
 - Existing `load_environment()`, `config_value()`, `private_storage_path()`, and `configure_error_handling()` remain compatibility delegates with unchanged signatures.
 - Added `bootstrap/autoload.php`, which uses Composer when `vendor/autoload.php` exists and otherwise provides the project PSR-4 mapping until Composer tooling is available.
 - Session, HTTPS/proxy, CSRF, authorization, response, logging, and database behavior remain unchanged in this increment.
+- Extracted URL and versioned asset URL construction into `GuideMyPC\Core\Url`; `application_url()` and `asset_url()` remain signature-compatible delegates with direct helper coverage.
+- PHP lint, `tests/helpers_test.php`, and `composer run verify` pass after regenerating the authoritative Composer autoloader for the new class.
+- Extracted the `mysqli` connection factory into `GuideMyPC\Core\Database`; `application_database_connection()` remains a compatibility delegate and retains its incomplete-configuration error contract.

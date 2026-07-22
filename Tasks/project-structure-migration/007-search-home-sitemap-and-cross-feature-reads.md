@@ -107,5 +107,7 @@ All cross-feature read paths use named, policy-consistent projections, remain co
 
 - Characterization found duplicated Download and Community publication rules. Task `006` now enforces the approved policy in current public projections; task `007` must retain it while replacing remaining cross-feature SQL with named read models.
 - Extracted pure Search query normalization and aggregate-telemetry safety checks into `GuideMyPC\Features\Search\SearchQuery`, retaining existing helper delegates and the route's current HTML/JSON/telemetry behavior.
-- Home, Sitemap, dashboard, Search ranking/filtering, suggestions, event recording, and the approved non-CSRF telemetry exception remain unchanged in this increment.
+- Extracted `HomeReadModel` for the category, curated Guide, approved Download, and published Community projections. `index.php` remains the legacy HTML route and preserves its section order, limits, empty states, URLs, logging, and unavailable-content behavior.
+- Extracted `SitemapReadModel` for named static legacy paths plus published Guide and Knowledge URLs. `sitemap.php` retains its XML content type, XML shape, URL escaping, and canonical legacy paths.
+- Added Home and Sitemap integration coverage for unpublished categories/content, unpublished Community posts, unsafe Downloads, and `/GuideMyPC/` base URLs. Run the focused test after provisioning `DB_TEST_NAME`; task status remains in progress because Search and dashboard extraction are outside this increment.
 - Added helper coverage for direct namespaced normalization of overlength input.

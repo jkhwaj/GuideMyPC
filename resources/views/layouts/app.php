@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** @var array{title: string, description: string, canonicalPath: string} $page */
+/** @var array{title: string, description: string, canonicalPath: string, scripts?: list<array{src: string, integrity?: string}>} $page */
 /** @var string $content */
 
 $canonicalUrl = application_url($page['canonicalPath']);
@@ -30,6 +30,9 @@ $canonicalUrl = application_url($page['canonicalPath']);
 <main id="main-content" tabindex="-1">
 <?php echo $content; ?>
 </main>
+<?php foreach ($page['scripts'] ?? [] as $script): ?>
+    <script src="<?php echo e($script['src']); ?>"<?php if (isset($script['integrity'])): ?> integrity="<?php echo e($script['integrity']); ?>" crossorigin="anonymous" referrerpolicy="no-referrer"<?php endif; ?>></script>
+<?php endforeach; ?>
 <?php require __DIR__ . '/../partials/footer.php'; ?>
 </body>
 </html>

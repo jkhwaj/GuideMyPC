@@ -22,17 +22,22 @@ C:\xampp\php\php.exe database\migrate.php --database=guidemypc_test
 C:\xampp\php\php.exe database\seed.php --database=guidemypc_test
 ```
 
-The integration suite requires the seeded test database:
+Run the fast gate without a database, then run the complete release gate only after the isolated database has been migrated and seeded:
 
 ```powershell
-C:\xampp\php\php.exe scripts\verify.php
+composer run verify:fast
+composer run verify
 ```
+
+`composer run verify` discovers every `tests/*_test.php` file in sorted order and forwards an optional `--database=<name>` argument to each test. It fails when no matching tests are present or any test fails. It does not bypass the test bootstrap: `DB_TEST_NAME` must still be explicitly configured, end in `_test`, and differ from `DB_NAME` before any integration-test connection is opened.
 
 ## Adding Migrations
 
 Create a new file in `database/migrations/` with the next zero-padded number and a lowercase underscore name, for example `004_add_search_index.sql`. Migrations run in natural filename order. Do not alter a migration that may already be installed; add a corrective migration instead.
 
 Each feature task owns its schema change. Keep migrations small, reviewable, and compatible with the currently supported MariaDB version. Use a backup and a tested forward-fix or restoration procedure before applying a destructive change. The runner does not provide automatic down migrations because MariaDB DDL can commit implicitly.
+
+If a migration fails or its checksum does not match the recorded ledger, stop rather than rerunning it blindly. Follow [`recovery.md`](recovery.md) to investigate partial DDL, restore an approved backup, or rehearse a forward recovery migration.
 
 ## Local Admins
 

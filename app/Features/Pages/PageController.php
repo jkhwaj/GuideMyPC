@@ -25,8 +25,86 @@ final class PageController
         ]);
     }
 
+    public function contact(): void
+    {
+        $this->view->render('pages/contact', [
+            'page' => [
+                'title' => 'Contact | GuideMyPC',
+                'description' => 'Find the current support options for GuideMyPC.',
+                'canonicalPath' => 'contact.php',
+            ],
+            'navigation' => $this->navigation(),
+            'flashMessages' => $this->flashMessages(),
+        ]);
+    }
+
+    public function privacy(): void
+    {
+        $this->view->render('pages/privacy', [
+            'page' => [
+                'title' => 'Privacy | GuideMyPC',
+                'description' => 'Read how GuideMyPC handles account and support information.',
+                'canonicalPath' => 'privacy.php',
+            ],
+            'navigation' => $this->navigation(),
+            'flashMessages' => $this->flashMessages(),
+        ]);
+    }
+
+    public function terms(): void
+    {
+        $this->view->render('pages/terms', [
+            'page' => [
+                'title' => 'Terms | GuideMyPC',
+                'description' => 'Read the terms for using GuideMyPC.',
+                'canonicalPath' => 'terms.php',
+            ],
+            'navigation' => $this->navigation(),
+            'flashMessages' => $this->flashMessages(),
+        ]);
+    }
+
+    public function disclaimer(): void
+    {
+        $this->view->render('pages/disclaimer', [
+            'page' => [
+                'title' => 'Disclaimer | GuideMyPC',
+                'description' => 'Understand the limits of GuideMyPC troubleshooting guidance.',
+                'canonicalPath' => 'disclaimer.php',
+            ],
+            'navigation' => $this->navigation(),
+            'flashMessages' => $this->flashMessages(),
+        ]);
+    }
+
+    public function donate(): void
+    {
+        $this->view->render('pages/donate', [
+            'page' => [
+                'title' => 'Support GuideMyPC | GuideMyPC',
+                'description' => 'Learn how to support the continued development of GuideMyPC.',
+                'canonicalPath' => 'donate.php',
+            ],
+            'navigation' => $this->navigation(),
+            'flashMessages' => $this->flashMessages(),
+        ]);
+    }
+
+    public function ai(): void
+    {
+        $this->view->render('pages/ai', [
+            'page' => [
+                'title' => 'AI Assistant | GuideMyPC',
+                'description' => 'Learn about the planned GuideMyPC AI troubleshooting assistant.',
+                'canonicalPath' => 'ai.php',
+            ],
+            'navigation' => $this->navigation(),
+            'flashMessages' => $this->flashMessages(),
+        ]);
+    }
+
     /**
-     * @return array{user: array{name: string, isAdmin: bool}|null}
+     * @return array{user: array{name: string, canViewDashboard: bool, isAdmin: bool}|null}
      */
     private function navigation(): array
     {
@@ -37,7 +115,8 @@ final class PageController
         return [
             'user' => [
                 'name' => is_string($_SESSION['full_name'] ?? null) ? $_SESSION['full_name'] : '',
-                'isAdmin' => ($_SESSION['role'] ?? null) === 'admin',
+                'canViewDashboard' => user_can(\GuideMyPC\Security\Authorization::VIEW_PERSONAL_DASHBOARD),
+                'isAdmin' => is_admin(),
             ],
         ];
     }
