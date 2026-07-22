@@ -1,6 +1,8 @@
 # Submission Sources
 
-This directory contains reviewable source material for the four final academic deliverables. It is not a replacement for the instructor-required Word and Visual Paradigm files.
+This directory contains tracked, reviewable source material for the final academic submission. Final Word documents and screenshots stay local and ignored by Git. The packaging command overlays them into the generated submission ZIP.
+
+## Tracked review sources
 
 | Source | Supports | Status |
 | --- | --- | --- |
@@ -10,9 +12,45 @@ This directory contains reviewable source material for the four final academic d
 | `third-party-inventory.md` | Dependency section | Current local environment recorded |
 | `screenshots/README.md` | Screenshot appendix | Capture manifest awaiting final release |
 | `final-checklist.md` | Final artifact and package sign-off | Template awaiting final release |
-| `docs/team/README.md` | Separate team Readme source | Requires member details outside this public repository where appropriate |
-| `scripts/package-source.ps1` | `GuideMyPC-Source.zip` | Ready for a reviewed release commit |
+| `docs/team/README.md` | Separate team Readme source | Requires final review before transfer to Word |
+| `scripts/package-source.ps1` | Standalone source archive | Optional supporting artifact |
 
-Before submission, transfer the verified content to `Readme.docx` and `GuideMyPC-Final-Report.docx`, create `GuideMyPC.vpp` with the four required diagrams, and inspect all exported files. Use the release commit, not `HEAD`, when recording evidence or creating the source archive.
+## Local final materials
 
-Do not commit personal contact information, final Word files, Visual Paradigm projects, screenshots, or submission ZIPs unless course policy explicitly requires them in the repository.
+Place the instructor-facing files in these ignored paths:
+
+```text
+docs/submission/
+|-- documents/
+|   |-- Readme.docx
+|   `-- GuideMyPC-Final-Report.docx
+`-- screenshots/
+    `-- 8 to 10 final PNG, JPG, or WebP images
+
+uml/
+|-- source/
+|   `-- GuideMyPC.vpp
+`-- exports/
+    |-- use-case.png or .pdf
+    |-- class-diagram.png or .pdf
+    |-- activity-diagram.png or .pdf
+    `-- state-machine.png or .pdf
+```
+
+Do not commit personal contact information, final Word files, Visual Paradigm projects, screenshots, or generated ZIPs. Keep them in the ignored folders above and back them up outside the repository.
+
+## Package commands
+
+Build a review ZIP before every final artifact is ready:
+
+```powershell
+composer run package:submission
+```
+
+Run the strict final gate after the Word files, four UML diagrams, and 8 to 10 screenshots are present:
+
+```powershell
+composer run package:submission:strict
+```
+
+Both commands create `build/GuideMyPC_Submission.zip`. The ZIP contains the course-facing `frontend/`, `backend/`, `database/`, `uml/`, and `docs/` folders while preserving a runnable source tree under `backend/`.
