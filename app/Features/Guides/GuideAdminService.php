@@ -80,8 +80,27 @@ final class GuideAdminService
             $errors[] = 'Provide at least one valid step.';
         }
 
-        if (in_array($publication, ['1', 1], true) && $sources === []) {
-            $errors[] = 'A published guide requires at least one approved official source.';
+        if (in_array($publication, ['1', 1], true)) {
+            $requiredMetadata = [
+                'platform/version' => $platformVersion,
+                'difficulty' => $difficulty,
+                'estimated time' => $estimatedTime,
+                'risk level' => $riskLevel,
+                'required tools' => $tools,
+                'prerequisites' => $prerequisites,
+                'backup and safety warning' => $backupWarning,
+                'last reviewed date' => $reviewedAt,
+                'next actions' => $nextActions,
+            ];
+            $missingMetadata = array_keys(array_filter($requiredMetadata, static fn (mixed $value): bool => $value === ''));
+
+            if ($missingMetadata !== []) {
+                $errors[] = 'Published guides require: ' . implode(', ', $missingMetadata) . '.';
+            }
+
+            if ($sources === []) {
+                $errors[] = 'A published guide requires at least one approved official source.';
+            }
         }
 
         return [

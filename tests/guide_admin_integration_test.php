@@ -59,6 +59,15 @@ try {
     guide_admin_assert($valid['errors'] === [], 'Valid Guide administration input passes validation.');
     guide_admin_assert($valid['values']['is_published'] === 0 && count($valid['values']['sources']) === 2 && $valid['values']['sources'][1]['title'] === 'Apple Support', 'Draft state and ordered official sources normalize correctly.');
     guide_admin_assert($valid['values']['video_url'] === 'https://www.youtube.com/watch?v=M7lc1UVf-VE', 'Guide administration stores a canonical YouTube watch URL.');
+    $incompletePublished = $service->validate([
+        'category' => $categoryId,
+        'title' => 'Incomplete Published Guide ' . $token,
+        'slug' => 'incomplete-published-guide-' . $token,
+        'is_published' => '1',
+        'sources' => [['title' => 'Microsoft Support', 'official_url' => 'https://support.microsoft.com/published-' . $token]],
+        'steps' => [['text' => 'Test publication metadata requirements.']],
+    ]);
+    guide_admin_assert(in_array('Published guides require: platform/version, difficulty, estimated time, risk level, required tools, prerequisites, backup and safety warning, last reviewed date, next actions.', $incompletePublished['errors'], true), 'Published guides require complete structured metadata.');
     $unapprovedSource = $service->validate([
         'category' => $categoryId,
         'title' => 'Unapproved Source ' . $token,
