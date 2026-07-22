@@ -58,6 +58,14 @@ $viewOutput = (static function (): string {
 })();
 assert_same(true, str_contains($viewOutput, '<title>About | GuideMyPC</title>'), 'Pages controller passes explicit metadata to the layout.');
 assert_same(true, str_contains($viewOutput, '<h1 id="about-title">Practical technology support</h1>'), 'Pages controller renders the about view.');
+$contactViewOutput = (static function (): string {
+    ob_start();
+    (new GuideMyPC\Features\Pages\PageController(new GuideMyPC\Core\View()))->contact();
+
+    return (string) ob_get_clean();
+})();
+assert_same(true, str_contains($contactViewOutput, '<title>Contact | GuideMyPC</title>'), 'Pages controller passes Contact metadata to the layout.');
+assert_same(true, str_contains($contactViewOutput, '<h1 id="contact-title">Contact support</h1>'), 'Pages controller renders the contact view.');
 assert_same(null, required_string('Long value', 3), 'required_string rejects long values.');
 assert_same(['page' => 2, 'per_page' => 20, 'offset' => 20], pagination_values('2'), 'pagination_values calculates offsets.');
 assert_same(['password' => '[redacted]', 'title' => 'Guide'], redact_log_context(['password' => 'secret', 'title' => 'Guide']), 'redact_log_context removes sensitive values.');

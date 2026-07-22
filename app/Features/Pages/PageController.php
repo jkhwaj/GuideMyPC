@@ -25,6 +25,19 @@ final class PageController
         ]);
     }
 
+    public function contact(): void
+    {
+        $this->view->render('pages/contact', [
+            'page' => [
+                'title' => 'Contact | GuideMyPC',
+                'description' => 'Find the current support options for GuideMyPC.',
+                'canonicalPath' => 'contact.php',
+            ],
+            'navigation' => $this->navigation(),
+            'flashMessages' => $this->flashMessages(),
+        ]);
+    }
+
     /**
      * @return array{user: array{name: string, canViewDashboard: bool, isAdmin: bool}|null}
      */
