@@ -9,71 +9,21 @@ require_get();
 $categorySlug = required_string($_GET['category'] ?? null, 100) ?? '';
 $search = required_string($_GET['search'] ?? null, 120) ?? '';
 $category = null;
+$repository = new GuideMyPC\Features\Guides\GuideRepository($conn);
 
 if ($categorySlug !== '') {
-    $categoryStatement = $conn->prepare('SELECT * FROM categories WHERE slug = ? AND is_published = 1');
-    $categoryStatement->bind_param('s', $categorySlug);
-    $categoryStatement->execute();
-    $category = $categoryStatement->get_result()->fetch_assoc();
-    $categoryStatement->close();
+    $category = $repository->publishedCategory($categorySlug);
 
     if ($category === null) {
         abort_request(404, 'category_not_found', 'The requested guide category was not found.');
     }
 }
 
-$where = ['guides.is_published = 1', 'categories.is_published = 1'];
-$types = '';
-$values = [];
 $pagination = pagination_values($_GET['page'] ?? null, 12);
-
-if ($category !== null) {
-    $where[] = 'guides.category_id = ?';
-    $types .= 'i';
-    $values[] = (int) $category['id'];
-}
-
-if ($search !== '') {
-    $where[] = '(guides.title LIKE ? OR guides.description LIKE ? OR guide_search_documents.search_text LIKE ?)';
-    $types .= 'sss';
-    $searchTerm = '%' . $search . '%';
-    $values[] = $searchTerm;
-    $values[] = $searchTerm;
-    $values[] = $searchTerm;
-}
-
-$countStatement = $conn->prepare(
-    'SELECT COUNT(*) AS total FROM guides JOIN categories ON guides.category_id = categories.id LEFT JOIN guide_search_documents ON guide_search_documents.guide_id = guides.id WHERE ' . implode(' AND ', $where)
-);
-
-if ($types !== '') {
-    $countStatement->bind_param($types, ...$values);
-}
-
-$countStatement->execute();
-$totalGuides = (int) ($countStatement->get_result()->fetch_assoc()['total'] ?? 0);
-$countStatement->close();
-$totalPages = max(1, (int) ceil($totalGuides / $pagination['per_page']));
-$pagination['page'] = min($pagination['page'], $totalPages);
-$pagination['offset'] = ($pagination['page'] - 1) * $pagination['per_page'];
-
-$guidesSql = 'SELECT guides.*, categories.name AS category_name, categories.slug AS category_slug, '
-    . 'ROUND(AVG(guide_ratings.rating), 1) AS average_rating, COUNT(guide_ratings.id) AS total_ratings '
-    . 'FROM guides JOIN categories ON guides.category_id = categories.id '
-    . 'LEFT JOIN guide_search_documents ON guide_search_documents.guide_id = guides.id '
-    . 'LEFT JOIN guide_ratings ON guides.id = guide_ratings.guide_id '
-    . 'WHERE ' . implode(' AND ', $where) . ' '
-    . 'GROUP BY guides.id, categories.name, categories.slug '
-    . 'ORDER BY guides.featured_order IS NULL, guides.featured_order ASC, guides.created_at DESC LIMIT ? OFFSET ?';
-
-$guidesStatement = $conn->prepare($guidesSql);
-$queryTypes = $types . 'ii';
-$queryValues = [...$values, $pagination['per_page'], $pagination['offset']];
-
-$guidesStatement->bind_param($queryTypes, ...$queryValues);
-
-$guidesStatement->execute();
-$guidesResult = $guidesStatement->get_result();
+$listing = $repository->publishedGuides($category === null ? null : (int) $category['id'], $search, $pagination);
+$pagination = $listing['pagination'];
+$totalPages = max(1, (int) ceil($listing['total'] / $pagination['per_page']));
+$guides = $listing['guides'];
 
 $pageTitle = $category !== null
     ? $category['name'] . ' Guides | GuideMyPC'
@@ -117,8 +67,8 @@ include __DIR__ . '/includes/navbar.php';
     <p class="guide-library-links"><a href="<?php echo e(application_url('index.php#categories')); ?>">Browse by category</a> <span aria-hidden="true">·</span> <a href="<?php echo e(application_url('search.php')); ?>">Search all support</a></p>
 
     <div class="card-grid">
-        <?php if ($guidesResult->num_rows > 0): ?>
-            <?php while ($guide = $guidesResult->fetch_assoc()): ?>
+        <?php if ($guides !== []): ?>
+            <?php foreach ($guides as $guide): ?>
                 <a class="card" href="<?php echo e(application_url('guide.php?slug=' . rawurlencode($guide['slug']))); ?>">
                     <p class="eyebrow"><?php echo e($guide['category_name']); ?></p>
                     <h2><?php echo e($guide['title']); ?></h2>
@@ -126,7 +76,7 @@ include __DIR__ . '/includes/navbar.php';
                     <p class="meta">Rating: <?php echo e((string) ($guide['average_rating'] ?? '0')); ?> / 5 (<?php echo (int) $guide['total_ratings']; ?> ratings)</p>
                     <p class="meta"><?php echo e($guide['difficulty'] ?: 'Practical'); ?> · <?php echo e($guide['estimated_time'] ?: 'Self-paced'); ?> · <?php echo e($guide['risk_level'] ?: 'Low'); ?> risk</p>
                 </a>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         <?php else: ?>
             <div class="content-empty"><p>No published guides match this view. Try a different filter or <a href="<?php echo e(application_url('guides.php')); ?>">browse all guides</a>.</p></div>
         <?php endif; ?>
@@ -142,5 +92,4 @@ include __DIR__ . '/includes/navbar.php';
 </section>
 
 <?php
-$guidesStatement->close();
 include __DIR__ . '/includes/footer.php';

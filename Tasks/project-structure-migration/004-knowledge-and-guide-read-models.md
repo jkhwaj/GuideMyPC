@@ -108,3 +108,5 @@ Knowledge and guide read behavior is feature-owned, rendered through the new vie
 - No publication policy, route, rendering, Guide behavior, or database schema changed in this increment.
 - The current Knowledge integration test still depends on seeded content; deterministic fixture work remains required before this task can complete.
 - Validation evidence for this increment: `php scripts/lint.php`, `php tests/helpers_test.php`, and `composer verify` passed after the extraction. `php tests/knowledge_integration_test.php` could not run because this shell has no safe `DB_TEST_NAME` configuration; it failed before connecting to a database.
+- Extracted published guide-category lookup and Guide library list/filter/pagination reads into `GuideMyPC\Features\Guides\GuideRepository`. The legacy route retains request validation, category 404 behavior, metadata, links, and rendering while consuming explicit guide arrays.
+- PHP lint and `composer run verify:fast` pass for the Guide repository increment. `tests/guide_library_integration_test.php` is guarded by `DB_TEST_NAME` and currently fails before opening a database connection.
