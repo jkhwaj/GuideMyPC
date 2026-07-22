@@ -2,6 +2,8 @@
 
 This baseline supports task `000` of `Tasks/project-structure-migration/`. It records the current route groups that must retain their legacy path and behavior during structural migration. It is not a specification for new product behavior; known inconsistent publication and model behavior is recorded separately for approval.
 
+See [`route-inventory.md`](route-inventory.md) for the route-by-route method, protection, input, side-effect, caller, and test-coverage baseline.
+
 ## Compatibility Rules
 
 - Legacy `*.php` paths remain canonical through the public-document-root migration.

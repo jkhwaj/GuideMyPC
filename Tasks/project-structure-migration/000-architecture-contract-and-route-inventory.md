@@ -107,15 +107,15 @@ This task changes documentation only. Revert inaccurate documentation while pres
 
 ## Acceptance Criteria
 
-- [ ] Every web entry script has a complete route-contract record.
-- [ ] Route callers in PHP, JavaScript, forms, email links, sitemap output, and navigation have been cross-checked.
+- [x] Every web entry script has a complete route-contract record.
+- [x] Route callers in PHP, JavaScript, forms, email links, sitemap output, and navigation have been cross-checked.
 - [x] Existing behavior and desired behavior are clearly distinguished.
 - [x] Session, CSRF, redirect, JSON, error, and publication contracts are documented.
 - [x] Community, Downloads, Composer deployment, proxy handling, URL compatibility, and private-storage decisions are approved or explicitly blocked.
 - [x] `docs/project-structure.md` defines current, transitional, and target structures and dependency rules.
 - [x] `AGENTS.md` links to the structural guide and migration roadmap without duplicating them.
 - [x] Foundation-only AI, maintenance, uploads, confidence, and community code is not represented as a completed module.
-- [ ] Downstream tasks can identify exactly which contracts they must preserve.
+- [x] Downstream tasks can identify exactly which contracts they must preserve.
 
 ## Validation
 
@@ -135,4 +135,5 @@ The current application contracts and target structural rules are approved, link
 - `docs/route-contracts.md` records legacy route groups, shared response/session contracts, known policy differences, and characterization requirements.
 - `AGENTS.md`, `docs/application-conventions.md`, and `docs/submission/system-overview.md` now reference the migration accurately without claiming the target structure is already implemented.
 - The project owner approved the active legacy Community model and a public Download rule requiring publication, approval, and a safe HTTPS URL; `docs/project-structure.md` and `docs/route-contracts.md` record both decisions.
-- Remaining work: create route-by-route characterization evidence and cross-check every caller.
+- `docs/route-inventory.md` records all 55 root web entry scripts, including their intended methods, response type, protection, input, side effects, callers, and current test coverage. It also confirms that the three public route maps cover the same inventory.
+- Remaining work: capture the manual HTTP behavior matrix for applicable guest, authenticated, administrator, JSON, XML, wrong-method, invalid-CSRF, rate-limit, absent-resource, and unexpected-error paths before this task can be marked complete with evidence.
