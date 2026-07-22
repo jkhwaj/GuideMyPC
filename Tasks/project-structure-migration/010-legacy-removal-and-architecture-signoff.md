@@ -111,12 +111,12 @@ GuideMyPC runs solely through the approved feature-oriented structure and public
 This task was audited after the first task `009` hardening increment. Legacy removal must not begin yet.
 
 - `config.php` remains the compatibility facade and creates the global `$conn` connection for root routes.
-- Root page and action scripts still load `config.php` and/or feature files under `includes/`; only the About page is routed through the new view boundary.
+- Root page and action scripts still load `config.php` and/or feature files under `includes/`; static/legal Pages routes use the new view boundary, while most feature routes retain compatibility dispatch.
 - `bootstrap/web.php` and `bootstrap/cli.php` still compose the procedural bootstrap, function, security, error, and database includes while their namespaced replacements are extracted incrementally.
-- The repository root remains the documented Apache document root. Its protection relies in part on rewrite-dependent `.htaccess` rules, and no public front controller or legacy route map is active.
-- The temporary PSR-4 fallback remains necessary until Composer is installed and the approved deploy artifact workflow is verified.
-- Task `006` must now centralize the approved canonical Community and Download eligibility policies; task `007` aggregators depend on that work; task `008` has not migrated assets or activated public-root routing.
-- The full integration suite now refuses to run without an explicit `DB_TEST_NAME`; a migrated and seeded dedicated database must be configured before final release evidence can pass.
+- A public front controller, assets, and legacy allowlist route maps now exist, but local Apache still serves the repository root through transitional rewrite rules instead of a verified `public/` virtual host or Alias.
+- Composer is installed and the locked deploy-artifact workflow has been validated. The compatibility fallback remains until all runtime callers use generated autoloading only.
+- Task `006` centralizes approved Download and Community policies; Home and Sitemap read models exist. Remaining Search extraction is outside this task's cleanup scope while its unrelated worktree changes remain protected.
+- The full integration suite now refuses to run without an explicit `DB_TEST_NAME`; a migrated and seeded dedicated database, partial-migration rehearsal, and backup restoration must be configured before final release evidence can pass.
 - The code graph still has a low-cohesion `includes-require` community and reports untested hotspots in legacy Search, Security, Diagnostics, database, and error-handling paths.
 
 ## Removal Exit Gates
