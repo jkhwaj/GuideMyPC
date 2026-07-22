@@ -1,4 +1,4 @@
-name: Repository cleanup audit
+name: Repository cleanup validation
 
 on:
   pull_request:
@@ -9,32 +9,35 @@ permissions:
   contents: read
 
 jobs:
-  audit:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           show-progress: false
 
-      - name: Create cleanup report and source snapshot
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, mbstring, openssl, fileinfo, curl
+          tools: composer:v2
+          coverage: none
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Audit repository files
+        run: php scripts/audit-repository-cleanup.php
+
+      - name: Lint tracked PHP files
+        run: php scripts/lint.php
+
+      - name: Run dependency-free tests
         run: |
-          php scripts/audit-repository-cleanup.php > cleanup-audit.txt
-          git archive --format=zip --output=repository-snapshot.zip HEAD
-
-      - name: Upload cleanup report
-        uses: actions/upload-artifact@v4
-        with:
-          name: repository-cleanup-audit
-          path: cleanup-audit.txt
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Upload source snapshot
-        uses: actions/upload-artifact@v4
-        with:
-          name: repository-snapshot
-          path: repository-snapshot.zip
-          if-no-files-found: error
-          retention-days: 1
+          php tests/helpers_test.php
+          php tests/authorization_test.php
+          php tests/route_map_test.php
+          php tests/submission_structure_test.php
