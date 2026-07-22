@@ -204,7 +204,10 @@ if ($caseCollisions === []) {
     }
 }
 
-$hasHighConfidenceIssue = $unexpectedRootFiles !== [] || $generatedArtifacts !== [] || $caseCollisions !== [];
+$hasHighConfidenceIssue = $unexpectedRootFiles !== []
+    || $duplicateGroups !== []
+    || $generatedArtifacts !== []
+    || $caseCollisions !== [];
 echo "\nRESULT: " . ($hasHighConfidenceIssue ? 'REVIEW REQUIRED' : 'NO HIGH-CONFIDENCE CLEANUP ISSUE') . "\n";
 
-exit(0);
+exit($hasHighConfidenceIssue ? 1 : 0);
