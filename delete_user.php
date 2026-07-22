@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/admin.php';
 require_post();
 require_admin();
 require_csrf();
@@ -15,8 +16,6 @@ if ($id == $_SESSION["user_id"]) {
     redirect('admin_users.php');
 }
 
-$stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
+(new GuideMyPC\Features\Accounts\UserAdminService($conn))->delete($id);
 
 redirect('admin_users.php?success=user_deleted');

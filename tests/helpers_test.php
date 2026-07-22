@@ -45,6 +45,7 @@ if ($requestMethod === null) {
 
 assert_same('value', GuideMyPC\Core\Environment::value(['KEY' => 'value'], 'KEY'), 'PSR-4 Core classes autoload without Composer.');
 assert_same(true, class_exists(GuideMyPC\Features\Diagnostics\DiagnosticRepository::class), 'Diagnostic repository autoloads through Composer.');
+assert_same(true, class_exists(GuideMyPC\Features\Accounts\UserAdminService::class), 'User administration service autoloads through Composer.');
 assert_same('https://example.test/guides.php', GuideMyPC\Core\Url::applicationUrl('https://example.test/', '/guides.php'), 'Core URL generation preserves the legacy path contract.');
 assert_same('https://example.test/css/style.css?v=2', GuideMyPC\Core\Url::assetUrl('https://example.test', '2', 'css/style.css'), 'Core asset URLs preserve the version query contract.');
 try {

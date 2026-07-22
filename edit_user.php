@@ -11,11 +11,8 @@ if ($id <= 0) {
     exit;
 }
 
-$stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$user = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+$service = new GuideMyPC\Features\Accounts\UserAdminService($conn);
+$user = $service->find($id);
 
 if (!$user) {
     redirect('admin_users.php');
@@ -34,29 +31,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $user['full_name'] = is_string($_POST['full_name'] ?? null) ? trim($_POST['full_name']) : $user['full_name'];
         $user['email'] = is_string($_POST['email'] ?? null) ? trim($_POST['email']) : $user['email'];
     } else {
-        $conflictStatement = $conn->prepare('SELECT id FROM users WHERE email = ? AND id <> ? LIMIT 1');
-        $conflictStatement->bind_param('si', $email, $id);
-        $conflictStatement->execute();
-        $emailConflict = $conflictStatement->get_result()->fetch_assoc() !== null;
-        $conflictStatement->close();
-
-        if ($emailConflict) {
+        if ($service->emailInUse($email, $id)) {
             $message = 'That email address is already used by another account.';
             $user['full_name'] = $full_name;
             $user['email'] = $email;
         } else {
-            in_transaction($conn, static function () use ($conn, $full_name, $email, $role, $id): void {
-                $stmt = $conn->prepare("
-                    UPDATE users
-                    SET full_name = ?, email = ?, role = ?
-                    WHERE id = ?
-                ");
-
-                $stmt->bind_param("sssi", $full_name, $email, $role, $id);
-                $stmt->execute();
-                $stmt->close();
-                admin_audit($conn, 'user.updated', 'user', $id, ['role' => $role]);
-            });
+            $service->update($id, $full_name, $email, $role);
 
             if ((int) $_SESSION["user_id"] === $id) {
                 $_SESSION["full_name"] = $full_name;
