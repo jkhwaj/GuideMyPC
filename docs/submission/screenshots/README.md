@@ -1,6 +1,6 @@
 # Screenshot Manifest
 
-Capture exactly 8-10 screenshots only after task 020 validation against the final release commit. The rows below are a capture plan, not evidence that any image has been captured. Replace `Pending` with the final filename, commit, and date only after reviewing redactions.
+Capture exactly 8 to 10 screenshots only after final validation against the release commit. Image files in this directory are ignored by Git and copied into the generated submission ZIP. Replace `Pending` with the final filename, commit, and date only after reviewing redactions.
 
 | File | Route | Role | Viewport | Commit | Caption | Alt Text | Capture Date | Redaction Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
