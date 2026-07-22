@@ -22,13 +22,18 @@ if (-not (Test-Path -LiteralPath $package -PathType Leaf)) {
 if ($Database -notmatch '^[A-Za-z0-9_]+_test$') {
     throw 'Database must be a disposable name ending in _test.'
 }
+$applicationDatabase = $Database + '_app'
+if ($applicationDatabase.Length -gt 64) {
+    throw 'Database name is too long to derive the disposable application database.'
+}
 
 $temporaryDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ('guidemypc-package-check-' + [Guid]::NewGuid().ToString('N'))
 $extractionDirectory = Join-Path $temporaryDirectory 'extracted'
 $backendDirectory = Join-Path $extractionDirectory 'GuideMyPC\backend'
 $privateDirectory = Join-Path $temporaryDirectory 'private'
-$databaseCreated = $false
+$databaseCleanupRequired = $false
 $verificationPassed = $false
+$verificationFailure = $null
 
 function Invoke-CheckedCommand {
     param(
@@ -174,42 +179,62 @@ try {
     $environment = [System.IO.File]::ReadAllText((Join-Path $backendDirectory '.env.example'))
     $environment = [regex]::Replace($environment, '(?m)^APP_URL=.*$', "APP_URL=http://127.0.0.1:$ApachePort")
     $environment = [regex]::Replace($environment, '(?m)^# APP_PRIVATE_PATH=.*$', "APP_PRIVATE_PATH=$privatePath")
-    $environment = [regex]::Replace($environment, '(?m)^DB_NAME=.*$', "DB_NAME=$Database")
+    $environment = [regex]::Replace($environment, '(?m)^DB_NAME=.*$', "DB_NAME=$applicationDatabase")
     $environment = [regex]::Replace($environment, '(?m)^DB_TEST_NAME=.*$', "DB_TEST_NAME=$Database")
     $environment = [regex]::Replace($environment, '(?m)^DB_USER=.*$', "DB_USER=$DatabaseUser")
     $environment = [regex]::Replace($environment, '(?m)^DB_PASSWORD=.*$', "DB_PASSWORD=$DatabasePassword")
     [System.IO.File]::WriteAllText((Join-Path $backendDirectory '.env'), $environment, [System.Text.UTF8Encoding]::new($false))
 
-    Invoke-CheckedCommand -Command $MysqlCommand -Arguments (Get-MysqlArguments -Additional @('--execute', "DROP DATABASE IF EXISTS $Database; CREATE DATABASE $Database CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")) -FailureMessage 'Unable to create the disposable package database.'
-    $databaseCreated = $true
+    $createSql = "DROP DATABASE IF EXISTS $applicationDatabase; DROP DATABASE IF EXISTS $Database; CREATE DATABASE $applicationDatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; CREATE DATABASE $Database CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+    $databaseCleanupRequired = $true
+    Invoke-CheckedCommand -Command $MysqlCommand -Arguments (Get-MysqlArguments -Additional @('--execute', $createSql)) -FailureMessage 'Unable to create the disposable package databases.'
 
+    Invoke-CheckedCommand -Command $PhpCommand -Arguments @('database/migrate.php', "--database=$applicationDatabase") -FailureMessage 'Fresh application-database migration failed.' -WorkingDirectory $backendDirectory
+    Invoke-CheckedCommand -Command $PhpCommand -Arguments @('database/migrate.php', "--database=$applicationDatabase") -FailureMessage 'Repeat application-database migration failed.' -WorkingDirectory $backendDirectory
+    Invoke-CheckedCommand -Command $PhpCommand -Arguments @('database/seed.php', "--database=$applicationDatabase") -FailureMessage 'Application-database seed failed.' -WorkingDirectory $backendDirectory
     Invoke-CheckedCommand -Command $PhpCommand -Arguments @('database/migrate.php', "--database=$Database") -FailureMessage 'Fresh package migration failed.' -WorkingDirectory $backendDirectory
     Invoke-CheckedCommand -Command $PhpCommand -Arguments @('database/migrate.php', "--database=$Database") -FailureMessage 'Repeat package migration failed.' -WorkingDirectory $backendDirectory
     Invoke-CheckedCommand -Command $PhpCommand -Arguments @('database/seed.php', "--database=$Database") -FailureMessage 'Package seed failed.' -WorkingDirectory $backendDirectory
     Invoke-CheckedCommand -Command $PhpCommand -Arguments @('scripts/verify.php', "--database=$Database") -FailureMessage 'Package full verification failed.' -WorkingDirectory $backendDirectory
     Invoke-CheckedCommand -Command 'powershell.exe' -Arguments @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $backendDirectory 'scripts\verify-public-root.ps1'), '-Port', $ApachePort.ToString()) -FailureMessage 'Package public-root verification failed.' -WorkingDirectory $backendDirectory
     $verificationPassed = $true
+} catch {
+    $verificationFailure = $_
 } finally {
-    $cleanupFailure = $null
+    $cleanupFailures = [System.Collections.Generic.List[string]]::new()
     try {
-        if ($databaseCreated) {
-            $cleanupArguments = Get-MysqlArguments -Additional @('--execute', "DROP DATABASE IF EXISTS $Database;")
+        if ($databaseCleanupRequired) {
+            $cleanupArguments = Get-MysqlArguments -Additional @('--execute', "DROP DATABASE IF EXISTS $applicationDatabase; DROP DATABASE IF EXISTS $Database;")
             & $MysqlCommand @cleanupArguments
             if ($LASTEXITCODE -ne 0) {
-                $cleanupFailure = 'Unable to remove the disposable package database.'
+                $cleanupFailures.Add('Unable to remove the disposable package databases.')
             }
         }
-    } finally {
+    } catch {
+        $cleanupFailures.Add('Disposable database cleanup failed: ' + $_.Exception.Message)
+    }
+
+    try {
         if (Test-Path -LiteralPath $temporaryDirectory) {
             Remove-Item -LiteralPath $temporaryDirectory -Recurse -Force
         }
+    } catch {
+        $cleanupFailures.Add('Temporary extraction cleanup failed: ' + $_.Exception.Message)
     }
 
-    if ($cleanupFailure -ne $null) {
-        throw $cleanupFailure
+    if ($cleanupFailures.Count -gt 0) {
+        $cleanupMessage = $cleanupFailures -join [Environment]::NewLine
+        if ($verificationFailure -ne $null) {
+            throw ($verificationFailure.Exception.Message + [Environment]::NewLine + $cleanupMessage)
+        }
+        throw $cleanupMessage
     }
 }
 
+if ($verificationFailure -ne $null) {
+    throw $verificationFailure
+}
+
 if ($verificationPassed) {
-    Write-Host 'PASS: strict source package layout, commit binding, complete manifest, dependency install, clean database setup and cleanup, full suite, and public-root checks passed from a clean extraction.'
+    Write-Host 'PASS: strict source package layout, commit binding, complete manifest, dependency install, isolated application/test database setup and cleanup, full suite, and public-root checks passed from a clean extraction.'
 }

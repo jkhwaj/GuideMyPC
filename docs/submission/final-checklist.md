@@ -57,7 +57,7 @@ Complete this checklist against the exact release commit before the internal dea
 
 - [ ] `composer run audit:cleanup` passed, then `scripts/package-source.ps1` was run with the submitted commit, reviewed UML directory, reviewed 8-10 screenshot directory, and a new output path.
 - [ ] `GuideMyPC-Source.zip` contains only the required `frontend/`, runnable `backend/`, `database/`, `uml/`, `docs/`, README, and verified SHA-256 manifest layout; it was inspected for `.env`, secrets, local data, uploads, logs, backups, dependencies, Git metadata, and workspace tooling.
-- [ ] `scripts/verify-source-package.ps1` was given the exact 40-character release SHA, verified the archive root and complete unique manifest binding, configured a clean extraction from `.env.example`, installed the lockfile, migrated and seeded a fresh `_test` database, ran the full suite, passed the isolated public-root matrix, and removed the disposable database.
+- [ ] `scripts/verify-source-package.ps1` was given the exact 40-character release SHA, verified the archive root and complete unique manifest binding, configured a clean extraction from `.env.example`, installed the lockfile, migrated and seeded distinct disposable runtime and `_test` databases, ran the full suite, passed the runtime public-root matrix, and removed both databases.
 - [ ] Final document properties, image metadata, screenshots, and evidence contain no personal data, credentials, local paths, tokens, or private content.
 - [ ] The outer submission ZIP contains all four required artifacts with instructor-approved names and formats.
 - [ ] The independent reviewer opened the outer ZIP and signed the final result.
