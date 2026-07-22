@@ -22,11 +22,14 @@ C:\xampp\php\php.exe database\migrate.php --database=guidemypc_test
 C:\xampp\php\php.exe database\seed.php --database=guidemypc_test
 ```
 
-The integration suite requires the seeded test database:
+Run the fast gate without a database, then run the complete release gate only after the isolated database has been migrated and seeded:
 
 ```powershell
-C:\xampp\php\php.exe scripts\verify.php
+composer run verify:fast
+composer run verify
 ```
+
+`composer run verify` discovers every `tests/*_test.php` file in sorted order and forwards an optional `--database=<name>` argument to each test. It fails when no matching tests are present or any test fails. It does not bypass the test bootstrap: `DB_TEST_NAME` must still be explicitly configured, end in `_test`, and differ from `DB_NAME` before any integration-test connection is opened.
 
 ## Adding Migrations
 

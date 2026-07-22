@@ -4,13 +4,19 @@ Record the exact commit, environment, tester, date, expected result, actual resu
 
 ## Fast Gate
 
-Run from the repository root after starting local MariaDB and applying migrations:
+Run the fast gate from the repository root:
 
 ```powershell
-C:\xampp\php\php.exe scripts\verify.php
+composer run verify:fast
 ```
 
-Before a release, also run PHP lint, `git diff --check`, the documented migration command against an isolated database, browser smoke journeys, accessibility checks, internal-link checks, and a backup/restore drill.
+Before a release, migrate and seed the explicitly configured isolated `DB_TEST_NAME` database, then run the complete gate:
+
+```powershell
+composer run verify
+```
+
+The complete gate discovers all `tests/*_test.php` files, including new integration suites, and fails rather than omitting an undiscovered test. It refuses normal database names through `tests/bootstrap.php`; do not point it at `DB_NAME`. Also run `git diff --check`, the documented migration command against an isolated database, browser smoke journeys, accessibility checks, internal-link checks, and a backup/restore drill.
 
 ## Sign-off
 

@@ -12,9 +12,14 @@
         }
     },
     "scripts": {
+        "verify:fast": [
+            "@composer validate --strict",
+            "@php scripts/lint.php",
+            "@php tests/helpers_test.php"
+        ],
         "verify": [
-            "@composer validate",
-            "@php scripts/lint.php"
+            "@verify:fast",
+            "@php scripts/verify.php"
         ]
     },
     "minimum-stability": "stable",

@@ -16,30 +16,21 @@ foreach ($_SERVER['argv'] ?? [] as $argument) {
     }
 }
 
-$tests = [
-    'tests/helpers_test.php',
-    'tests/authorization_test.php',
-    'tests/category_integration_test.php',
-    'tests/search_integration_test.php',
-    'tests/guide_library_integration_test.php',
-    'tests/knowledge_integration_test.php',
-    'tests/guide_integration_test.php',
-    'tests/guide_admin_integration_test.php',
-    'tests/guide_seed_integration_test.php',
-    'tests/account_integration_test.php',
-    'tests/dashboard_integration_test.php',
-];
+$testPaths = glob($root . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR . '*_test.php');
+
+if ($testPaths === false || $testPaths === []) {
+    fwrite(STDERR, "FAIL: no test files matching tests/*_test.php were found.\n");
+    exit(1);
+}
+
+sort($testPaths, SORT_STRING);
 $failures = 0;
 
-foreach ($tests as $test) {
-    $path = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $test);
-    if (!is_file($path)) {
-        fwrite(STDERR, 'FAIL: missing required test file ' . $test . PHP_EOL);
-        $failures++;
-        continue;
-    }
+foreach ($testPaths as $path) {
+    $test = str_replace(DIRECTORY_SEPARATOR, '/', substr($path, strlen($root) + 1));
     passthru(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($path) . $databaseArgument, $exitCode);
     if ($exitCode !== 0) $failures++;
 }
 
+fwrite(STDOUT, sprintf("%s: %d test file(s); %d failure(s).\n", $failures === 0 ? 'PASS' : 'FAIL', count($testPaths), $failures));
 exit($failures === 0 ? 0 : 1);
