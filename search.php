@@ -5,6 +5,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/search.php';
 
+require_get();
+
 $filters = search_filters($_GET);
 $enteredQuery = $filters['query'];
 $resolvedQuery = search_resolve_alias($conn, $enteredQuery);
