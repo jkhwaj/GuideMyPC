@@ -1,17 +1,19 @@
 'use strict';
 
 const urls = process.argv.slice(2);
+const debugPort = Number.parseInt(process.env.GUIDEMYPC_CHROME_DEBUG_PORT || '9222', 10);
+const requirePackageStyles = process.env.GUIDEMYPC_REQUIRE_PACKAGE_STYLES === '1';
 
-if (urls.length === 0) {
+if (urls.length === 0 || !Number.isInteger(debugPort) || debugPort < 1024 || debugPort > 65535) {
     console.error('Usage: node scripts/check-browser-accessibility.js <url> [url ...]');
     process.exit(1);
 }
 
 async function createTarget(url) {
-    const response = await fetch('http://127.0.0.1:9222/json/new?' + encodeURIComponent(url), { method: 'PUT' });
+    const response = await fetch('http://127.0.0.1:' + debugPort + '/json/new?' + encodeURIComponent(url), { method: 'PUT' });
 
     if (!response.ok) {
-        throw new Error('Chrome DevTools is unavailable at port 9222.');
+        throw new Error('Chrome DevTools is unavailable at port ' + debugPort + '.');
     }
 
     return response.json();
@@ -91,6 +93,22 @@ async function audit(url, viewport) {
                     focusableCount: interactive.filter((element) => !element.disabled && element.getClientRects().length > 0).length,
                     clientWidth: document.documentElement.clientWidth,
                     scrollWidth: document.documentElement.scrollWidth,
+                    requiredStylesheets: ['css/style.css', 'css/design-system.css'].map((requiredPath) => {
+                        const link = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find((element) => new URL(element.href).pathname.endsWith('/' + requiredPath));
+                        if (!link || !link.sheet) return { requiredPath, loaded: false, rules: 0 };
+                        try {
+                            return { requiredPath, loaded: true, rules: link.sheet.cssRules.length };
+                        } catch {
+                            // Cross-origin local APP_URL deployments prevent rule inspection,
+                            // but a non-null sheet still proves the browser loaded the stylesheet.
+                            return { requiredPath, loaded: true, rules: 1 };
+                        }
+                    }),
+                    duplicateBaseNavigation: Array.from(document.querySelectorAll('a[href]')).filter((element) => {
+                        const href = element.href;
+                        const base = location.origin;
+                        return href.indexOf(base) !== href.lastIndexOf(base);
+                    }).map((element) => element.getAttribute('href')),
                 };
             })())`,
             returnByValue: true,
@@ -129,7 +147,7 @@ async function audit(url, viewport) {
         return findings;
     } finally {
         socket.close();
-        await fetch('http://127.0.0.1:9222/json/close/' + target.id).catch(() => {});
+        await fetch('http://127.0.0.1:' + debugPort + '/json/close/' + target.id).catch(() => {});
     }
 }
 
@@ -148,6 +166,11 @@ function failuresFor(result, mobile) {
     if (result.unnamedAccessibilityNodes.length) failures.push(`unnamed accessibility-tree nodes: ${result.unnamedAccessibilityNodes.join(', ')}`);
     if (result.accessibilityNodeCount === 0) failures.push('empty accessibility tree');
     if (result.browserErrors.length) failures.push(`browser exception(s): ${result.browserErrors.join('; ')}`);
+    if (requirePackageStyles) {
+        const missingStylesheets = result.requiredStylesheets.filter((stylesheet) => !stylesheet.loaded || stylesheet.rules === 0);
+        if (missingStylesheets.length) failures.push(`required stylesheet(s) missing or empty: ${missingStylesheets.map((stylesheet) => stylesheet.requiredPath).join(', ')}`);
+        if (result.duplicateBaseNavigation.length) failures.push(`navigation contains duplicated application base URL(s): ${result.duplicateBaseNavigation.join(', ')}`);
+    }
     if (mobile && result.scrollWidth > result.clientWidth) failures.push(`horizontal overflow ${result.scrollWidth}px > ${result.clientWidth}px`);
 
     if (!mobile) {

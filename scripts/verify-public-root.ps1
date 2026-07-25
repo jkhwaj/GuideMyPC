@@ -2,7 +2,9 @@
 param(
     [int]$Port = 8765,
     [string]$ApacheRoot = 'C:\xampp\apache',
-    [string]$PhpRoot = 'C:\xampp\php'
+    [string]$PhpRoot = 'C:\xampp\php',
+    [string]$ChromePath = 'C:\Program Files\Google\Chrome\Application\chrome.exe',
+    [int]$BrowserPort = 0
 )
 
 $ErrorActionPreference = 'Stop'
@@ -10,6 +12,12 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 
 if ($Port -lt 1024 -or $Port -gt 65535) {
     throw 'Port must be between 1024 and 65535.'
+}
+if ($BrowserPort -eq 0) {
+    $BrowserPort = $Port + 1
+}
+if ($BrowserPort -lt 1024 -or $BrowserPort -gt 65535 -or $BrowserPort -eq $Port) {
+    throw 'BrowserPort must be between 1024 and 65535 and differ from Port.'
 }
 
 $httpd = Join-Path $ApacheRoot 'bin\httpd.exe'
@@ -30,6 +38,17 @@ $publicRootConfig = $publicRoot.Replace('\', '/')
 $errorLogConfig = $errorLog.Replace('\', '/')
 $pidFileConfig = $pidFile.Replace('\', '/')
 $process = $null
+$browserProcess = $null
+$browserProfile = Join-Path $temporaryDirectory 'chrome-profile'
+
+function Stop-ProcessTree {
+    param([System.Diagnostics.Process]$RootProcess)
+
+    if ($RootProcess -ne $null -and -not $RootProcess.HasExited) {
+        & taskkill.exe /PID $RootProcess.Id /T /F | Out-Null
+        $RootProcess.WaitForExit()
+    }
+}
 
 function Invoke-HttpProbe {
     param(
@@ -65,6 +84,65 @@ function Invoke-HttpProbe {
 
     if ($ContentType -ne '' -and $headers -notmatch ('(?im)^Content-Type:\s*' + [regex]::Escape($ContentType))) {
         throw "HTTP probe for $Path did not return Content-Type $ContentType."
+    }
+
+    return $body
+}
+
+function Invoke-BrowserStyleProbe {
+    param([Parameter(Mandatory)][string]$Url)
+
+    if (-not (Test-Path -LiteralPath $ChromePath -PathType Leaf)) {
+        throw "Chrome is required for the rendered package check: $ChromePath"
+    }
+    & curl.exe --silent --max-time 1 --output NUL "http://127.0.0.1:$BrowserPort/json/version"
+    if ($LASTEXITCODE -eq 0) {
+        throw "BrowserPort $BrowserPort is already in use; refuse to attach the package check to an existing browser."
+    }
+
+    $browserProcess = Start-Process -FilePath $ChromePath -ArgumentList @(
+        "--remote-debugging-port=$BrowserPort",
+        "--user-data-dir=$browserProfile",
+        '--headless=new',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-default-browser-check',
+        'about:blank'
+    ) -PassThru -WindowStyle Hidden
+
+    try {
+        for ($attempt = 0; $attempt -lt 40; $attempt++) {
+            Start-Sleep -Milliseconds 250
+            if ($browserProcess.HasExited) {
+                break
+            }
+
+            & curl.exe --silent --output NUL "http://127.0.0.1:$BrowserPort/json/version"
+            if ($LASTEXITCODE -eq 0) {
+                $previousPort = $env:GUIDEMYPC_CHROME_DEBUG_PORT
+                $previousStyleRequirement = $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES
+                $env:GUIDEMYPC_CHROME_DEBUG_PORT = $BrowserPort
+                $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES = '1'
+                try {
+                    $browserOutput = & node (Join-Path $repositoryRoot 'scripts\check-browser-accessibility.js') $Url 2>&1 | Out-String
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "Rendered package browser check failed.`n$browserOutput"
+                    }
+                    Write-Host $browserOutput.TrimEnd()
+                } finally {
+                    $env:GUIDEMYPC_CHROME_DEBUG_PORT = $previousPort
+                    $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES = $previousStyleRequirement
+                }
+                return $browserProcess
+            }
+        }
+
+        throw 'Chrome did not expose a DevTools endpoint for the rendered package check.'
+    } catch {
+        if (-not $browserProcess.HasExited) {
+            Stop-ProcessTree -RootProcess $browserProcess
+        }
+        throw
     }
 }
 
@@ -137,20 +215,29 @@ DirectoryIndex index.php
         throw "Temporary Apache did not start. $details"
     }
 
-    Invoke-HttpProbe -Path '/' -ExpectedStatus 200 -Contains '<title>GuideMyPC'
-    Invoke-HttpProbe -Path '/guides.php' -ExpectedStatus 200 -Contains '<title>All Guides | GuideMyPC</title>'
-    Invoke-HttpProbe -Path '/contact.php' -ExpectedStatus 200 -Contains '<title>Contact | GuideMyPC</title>'
-    Invoke-HttpProbe -Path '/assets/css/style.css' -ExpectedStatus 200 -Contains 'box-sizing: border-box'
-    Invoke-HttpProbe -Path '/css/style.css' -ExpectedStatus 200 -Contains 'box-sizing: border-box'
-    Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Excludes 'ai.php'
-    Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Contains 'Sitemap: http://guidemypc.test/sitemap.php'
-    Invoke-HttpProbe -Path '/missing-page.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot
-    Invoke-HttpProbe -Path '/ai.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>'
-    Invoke-HttpProbe -Path '/donate.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>'
-    Invoke-HttpProbe -Path '/search_suggestions.php' -Method POST -ExpectedStatus 405 -Contains '"code":"method_not_allowed"' -ContentType 'application/json; charset=utf-8'
-    Invoke-HttpProbe -Path '/search_event.php' -Method GET -ExpectedStatus 405 -Contains '"code":"method_not_allowed"' -ContentType 'application/json; charset=utf-8'
-    Invoke-HttpProbe -Path '/.env' -ExpectedStatus 403 -Contains '<title>403 Forbidden</title>' -Excludes $repositoryRoot
-    Invoke-HttpProbe -Path '/.git/config' -ExpectedStatus 403 -Contains '<title>403 Forbidden</title>' -Excludes $repositoryRoot
+    $homeBody = Invoke-HttpProbe -Path '/' -ExpectedStatus 200 -Contains '<title>GuideMyPC'
+    Invoke-HttpProbe -Path '/guides.php' -ExpectedStatus 200 -Contains '<title>All Guides | GuideMyPC</title>' | Out-Null
+    Invoke-HttpProbe -Path '/contact.php' -ExpectedStatus 200 -Contains '<title>Contact | GuideMyPC</title>' | Out-Null
+    Invoke-HttpProbe -Path '/assets/css/style.css' -ExpectedStatus 200 -Contains 'box-sizing: border-box' -ContentType 'text/css' | Out-Null
+    Invoke-HttpProbe -Path '/assets/css/design-system.css' -ExpectedStatus 200 -Contains ':root' -ContentType 'text/css' | Out-Null
+    Invoke-HttpProbe -Path '/css/style.css' -ExpectedStatus 200 -Contains 'box-sizing: border-box' -ContentType 'text/css' | Out-Null
+    Invoke-HttpProbe -Path '/assets/js/script.js' -ExpectedStatus 200 -Contains 'function toggleStep' -ContentType 'text/javascript' | Out-Null
+    Invoke-HttpProbe -Path '/assets/js/guide-editor.js' -ExpectedStatus 200 -Contains 'const container' -ContentType 'text/javascript' | Out-Null
+    Invoke-HttpProbe -Path '/assets/js/chart.umd.min.js' -ExpectedStatus 200 -Contains 'Chart.js' -ContentType 'text/javascript' | Out-Null
+    Invoke-HttpProbe -Path '/js/script.js' -ExpectedStatus 200 -Contains 'function toggleStep' -ContentType 'text/javascript' | Out-Null
+    if ($homeBody -match 'href="[^"]*https?://[^"]*https?://') {
+        throw 'Homepage navigation contains a duplicated application base URL.'
+    }
+    $browserProcess = Invoke-BrowserStyleProbe -Url "http://127.0.0.1:$Port/"
+    Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Excludes 'ai.php' | Out-Null
+    Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Contains 'Sitemap: http://guidemypc.test/sitemap.php' | Out-Null
+    Invoke-HttpProbe -Path '/missing-page.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot | Out-Null
+    Invoke-HttpProbe -Path '/ai.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' | Out-Null
+    Invoke-HttpProbe -Path '/donate.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' | Out-Null
+    Invoke-HttpProbe -Path '/search_suggestions.php' -Method POST -ExpectedStatus 405 -Contains '"code":"method_not_allowed"' -ContentType 'application/json; charset=utf-8' | Out-Null
+    Invoke-HttpProbe -Path '/search_event.php' -Method GET -ExpectedStatus 405 -Contains '"code":"method_not_allowed"' -ContentType 'application/json; charset=utf-8' | Out-Null
+    Invoke-HttpProbe -Path '/.env' -ExpectedStatus 403 -Contains '<title>403 Forbidden</title>' -Excludes $repositoryRoot | Out-Null
+    Invoke-HttpProbe -Path '/.git/config' -ExpectedStatus 403 -Contains '<title>403 Forbidden</title>' -Excludes $repositoryRoot | Out-Null
 
     foreach ($privatePath in @(
         '/config.php',
@@ -164,7 +251,7 @@ DirectoryIndex index.php
         '/Tasks/web-init/README.md',
         '/tests/helpers_test.php'
     )) {
-        Invoke-HttpProbe -Path $privatePath -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot
+        Invoke-HttpProbe -Path $privatePath -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot | Out-Null
     }
 
     Write-Host 'PASS: isolated Apache exposes only public assets and approved legacy routes; private and retired paths return bounded responses.'
@@ -175,6 +262,9 @@ DirectoryIndex index.php
         Stop-Process -Id $process.Id -Force
         $process.WaitForExit()
     }
+    if ($browserProcess -ne $null -and -not $browserProcess.HasExited) {
+        Stop-ProcessTree -RootProcess $browserProcess
+    }
 
     Start-Sleep -Milliseconds 500
     $details = if ((Test-Path -LiteralPath $stderrLog) -and (Get-Item -LiteralPath $stderrLog).Length -gt 0) { [System.IO.File]::ReadAllText($stderrLog) } elseif (Test-Path -LiteralPath $errorLog) { [System.IO.File]::ReadAllText($errorLog) } else { 'No Apache error log was created.' }
@@ -183,6 +273,9 @@ DirectoryIndex index.php
     if ($process -ne $null -and -not $process.HasExited) {
         Stop-Process -Id $process.Id -Force
         $process.WaitForExit()
+    }
+    if ($browserProcess -ne $null -and -not $browserProcess.HasExited) {
+        Stop-ProcessTree -RootProcess $browserProcess
     }
 
     if (Test-Path -LiteralPath $temporaryDirectory) {

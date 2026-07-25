@@ -125,6 +125,18 @@ try {
         Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $backendDirectory $_.Name)
     }
 
+    foreach ($requiredBackendAsset in @(
+        'public\assets\css\style.css',
+        'public\assets\css\design-system.css',
+        'public\assets\js\script.js',
+        'public\assets\js\guide-editor.js',
+        'public\assets\js\chart.umd.min.js'
+    )) {
+        if (-not (Test-Path -LiteralPath (Join-Path $backendDirectory $requiredBackendAsset) -PathType Leaf)) {
+            throw "Runnable backend is missing required public asset: $requiredBackendAsset"
+        }
+    }
+
     Copy-RequiredEntry -RelativePath 'public/assets' -DestinationRoot $frontendDirectory
     Copy-RequiredEntry -RelativePath 'resources/views' -DestinationRoot $frontendDirectory
     Copy-Item -LiteralPath (Join-Path $sourceDirectory 'database') -Destination $databaseDirectory -Recurse
