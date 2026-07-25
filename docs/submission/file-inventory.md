@@ -38,7 +38,7 @@ remain byte-for-byte immutable even when their dormant feature is excluded.
 | `.env.example` | configuration | Sanitized local environment template | setup checker, README, bootstrap users | Environment keys; no secrets | setup smoke | install template | KEEP / same path | BASE, PKG | restore file | documented |
 | `.gitignore` | configuration | Excludes secrets, dependencies and runtime/build data | Git, package workflow | Must retain `.env`, vendor, logs, uploads, backups and build exclusions | package audit | repository-only | REWRITE / final exclusions | PKG | restore rules | updated Phase 2 |
 | `.htaccess` | configuration | Temporary root exposure protection and asset aliases | Apache root-document mode | Transitional only; paired with `public/.htaccess` | private-path HTTP gap | repository compatibility | DEFER / remove only after public-root sign-off | HTTP, PKG | restore root document-root config | documented |
-| `AGENTS.md` | technical documentation | Contributor and graph-first rules | OpenCode and maintainers | Links structure, route and migration authorities | link review | source repository only | KEEP | PKG inclusion decision | R-doc | documented |
+| `AGENTS.md` | technical documentation | Contributor, graph-first, migration and final-readiness rules | OpenCode and maintainers | Links structure, route, migration and final-submission authorities | link review | source repository only | KEEP | PKG inclusion decision | R-doc | updated with final-readiness guide |
 | `README.md` | technical documentation | Installation, runtime and validation entry point | evaluators, developers, package users | Must become clean-extraction/public-root truth | commands partially proven | package root README | REWRITE / verified release instructions | BASE, HTTP, PKG | R-doc | documented |
 | `about.php` | compatibility route | About entry wrapper | web map, footer | bootstrap -> PageController -> view; public GET HTML | route-map, helper render | backend route | DEFER / named legacy route | HTTP | R-route | documented |
 | `account_request.php` | compatibility route | Account export/deletion request action | profile form, web map | config/accounts; authenticated CSRF POST 303 | account indirect | backend route | DEFER / Accounts command | HTTP | R-route | documented |
@@ -327,8 +327,10 @@ remain byte-for-byte immutable even when their dormant feature is excluded.
 
 ## Phase-Generated Files
 
-These files were created after the 259-file baseline. They must be added to the
-release commit and package-source allowlist, then included in the final manifest.
+These files were created after the 259-file baseline. Add each to the release
+commit. Include package-runtime and submission-source rows in the source-package
+allowlist and final manifest; source-repository governance rows remain outside
+the categorized package by design.
 
 | Path | Type | Role | Decision | Validation | Rollback | Status |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -347,6 +349,7 @@ release commit and package-source allowlist, then included in the final manifest
 | `scripts/check-browser-accessibility.js` | browser release test | Uses dependency-free Chrome DevTools checks for desktop/mobile structure, labels, accessible names, focus progression, overflow, IDs and browser exceptions; package stylesheet/navigation assertions are enabled only by the public-root verifier | KEEP | run against representative retained routes and safe 404; the public-root verifier supplies its isolated Chrome profile | remove only if replaced by equivalent browser/accessibility automation | updated for package style scope |
 | `scripts/audit-repository-cleanup.php` | release audit | Audits current tracked/untracked source for prohibited paths, duplicates, collisions, retired runtime references, obvious secrets, user-home paths, migration edits and exact route count | KEEP | `composer run audit:cleanup`; inspect any failure, never whitelist silently | remove only if replaced by an equivalent fail-closed source audit | created |
 | `scripts/verify-source-package.ps1` | package integration test | Clean-extracts a strict ZIP, requires the runnable backend's canonical CSS/JS assets, rejects extra roots and duplicate/unsafe manifest paths, binds every packaged file to the expected release commit/hash, installs dependencies, migrates/seeds distinct disposable runtime/test databases, runs the full suite and browser-backed runtime Apache matrix, and verifies both database cleanups | KEEP | run against exact final ZIP, exact 40-character SHA and a fresh `_test` name | fix/rebuild package; temporary extraction and both databases must be removed before success | updated for backend asset gate |
+| `Tasks/final-project-submission-readiness/README.md` | readiness governance | Durable authority, verified-core scope, change discipline, release gates and current-status record restored from the PR #3 comparison | AGENTS, maintainers and release reviewers | Links route/structure contracts and submission evidence; not a runtime or source-package dependency | link review and complete release gates after any later change | source repository governance only | KEEP | restore from Git history; do not weaken package gate | ported from PR #3 as a current final-status guide |
 
 ## Reconciliation And Findings
 
