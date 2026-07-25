@@ -5,6 +5,8 @@
 - Release: Submission
 - Dependencies: `000-product-scope-and-architecture.md` for drafting; `020-testing-security-and-release.md` for finalization; `021-production-deployment.md` only when production deployment is claimed
 
+> **Final-release scope notice (2026-07-22):** The report, diagrams, and screenshots must represent only verified-core scope. Omit AI Assistant, Uploads, Maintenance Center, Knowledge administration, product Reports, full-resource APIs, Donate, Community v2, unproven mail/CSV options, clean URLs/framework/SPA/ORM/template-engine changes, and production-hosting claims. Describe the platform as validated local XAMPP/Apache/PHP/MariaDB unless separate evidence proves more. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Produce a truthful, professionally organized academic submission that documents the implemented GuideMyPC release, demonstrates team contribution and engineering decisions, and packages the required evidence without leaking secrets or generated local data.

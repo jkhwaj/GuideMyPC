@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+define('GUIDEMYPC_JSON_ENDPOINT', true);
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/search.php';
 
@@ -13,5 +15,5 @@ if (!rate_limit_allows('search-events', 60, 60)) {
 
 $query = normalize_search_query(required_string($_POST['query'] ?? null, 120));
 $resultType = required_string($_POST['result_type'] ?? null, 20) ?? '';
-record_search_event($conn, $query, 0, $resultType, 'selection');
-json_response(200, ['recorded' => true]);
+$recorded = record_search_event($conn, $query, 0, $resultType, 'selection');
+json_response(200, ['recorded' => $recorded]);

@@ -5,10 +5,8 @@ declare(strict_types=1);
 return array_fill_keys([
     'index.php',
     'about.php',
-    'ai.php',
     'contact.php',
     'disclaimer.php',
-    'donate.php',
     'privacy.php',
     'terms.php',
     'guides.php',

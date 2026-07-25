@@ -5,6 +5,8 @@
 - Release: R1
 - Dependencies: `005-responsive-design-system-and-layout.md`
 
+> **Final-release scope notice (2026-07-22):** This completed task and its validation remain historical evidence, not authority to expand final scope. The final homepage/navigation excludes AI Assistant entry points, Maintenance Center promotions, and Donate links/pages. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Turn the homepage into a clear first step for users who describe a problem, browse by platform, or need a trusted guide, download, maintenance recommendation, or community answer.

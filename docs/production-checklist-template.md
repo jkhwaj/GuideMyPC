@@ -1,5 +1,7 @@
 # Production Checklist v1
 
+This is a future-hosting planning template only. Completing fields in this file is not evidence that the verified-core release has been deployed to or validated on a production host.
+
 - Release commit:
 - Migration version before/after:
 - Environment and operator:

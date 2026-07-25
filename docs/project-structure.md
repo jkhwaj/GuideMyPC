@@ -6,7 +6,7 @@ This guide governs the incremental migration described in `Tasks/project-structu
 
 - Keep PHP 8.2, MariaDB, `mysqli`, server-rendered PHP, and progressive vanilla JavaScript.
 - Move one vertical feature slice at a time; do not perform a directory-only rewrite.
-- Preserve legacy `*.php` paths, form field names, redirects, status codes, session effects, and HTML/JSON/XML contracts until an approved URL migration.
+- Preserve canonical legacy `*.php` paths, form field names, redirects, status codes, session effects, and HTML/JSON/XML contracts. No alternate URL scheme is in verified-core scope.
 - Add a controller, service, repository, validator, or query object only when it has a real responsibility.
 - Keep runtime storage outside the repository and web root.
 - Never edit, rename, reorder, or move applied historical database migrations.
@@ -70,6 +70,7 @@ GuideMyPC/
 |       |-- Downloads/
 |       |-- Community/
 |       |-- Search/
+|       |-- Dashboard/
 |       `-- Home/
 |-- bootstrap/
 |   |-- web.php
@@ -84,7 +85,7 @@ GuideMyPC/
 |-- routes/
 |   |-- web.php
 |   |-- admin.php
-|   `-- api.php
+|   `-- api.php            two narrow Search JSON endpoints only
 |-- database/
 |-- scripts/
 |-- tests/
@@ -107,6 +108,8 @@ Runtime data remains external:
 
 `PRIVATE_STORAGE_PATH` must be writable by the PHP process, outside the repository and web root, and excluded from source archives and version control.
 
+The reserved `uploads/` storage name is a defensive private-path boundary, not an implemented Uploads feature.
+
 ## Dependency Rules
 
 | Layer | May depend on | Must not depend on |
@@ -119,7 +122,7 @@ Runtime data remains external:
 | `database` | database runner utilities | web routes, views |
 | `scripts` and `tests` | CLI/test bootstrap and explicit application services | web bootstrap or browser session behavior |
 
-Cross-feature reads use named projections such as Home, Search, Sitemap, or an administrator dashboard. Cross-feature writes use a named application service. Do not make feature repositories import each other or create a generic repository for unrelated tables.
+Cross-feature reads use named projections such as Home, Search, Sitemap, or the role-scoped Dashboard. Dashboard summaries and charts are read projections, not a Reports feature. Cross-feature writes use a named application service. Do not make feature repositories import each other or create a generic repository for unrelated tables.
 
 ## Responsibilities
 
@@ -142,15 +145,16 @@ Feature code owns request coordination, feature validation, business rules, quer
 - `Pages` owns static and legal pages.
 - `Accounts` owns registration, login, reset, profile, settings, and account data workflows.
 - `Guides` initially owns categories, guide reads, steps, progress, favorites, and ratings because their current lifecycle is coupled.
-- `Knowledge` owns articles, glossary, and error-code content.
-- `Diagnostics` owns the working diagnostic session and transition flow.
+- `Knowledge` owns public articles, glossary, and error-code content. Knowledge administration is not implemented.
+- `Diagnostics` owns the working diagnostic session and transition flow. Both navigation implementations link to it; outcome transitions set `completed_at`, while back and restart clear completion as state is recomputed.
 - `Downloads` owns public eligibility, trusted URL validation, and download administration after its policy is approved.
-- `Community` owns only the approved canonical community model.
-- `Search` and `Home` are explicit cross-feature read models.
+- `Community` owns only the approved canonical `community_posts`, `community_comments`, and `community_likes` model.
+- `Search` and `Home` are explicit cross-feature read models. Search exposes only its two documented bounded JSON endpoints.
+- `Dashboard` owns role-scoped personal or operational KPI, chart, and recent-activity projections. It does not own report generation or exports.
 
 Administration belongs to the feature that owns the data. Shared administrator authorization and audit recording belong in `Security` or `Core`; a monolithic admin data layer is not a target.
 
-Foundation-only AI, maintenance, uploads, confidence, trusted-download verification, and community-v2 code must remain labeled deferred until each has a working, approved vertical slice.
+Historical migrations, dormant schema, or defensive dependency checks for AI, maintenance, uploads, confidence, or Community v2 do not make those areas release capabilities. AI Assistant, Uploads, Maintenance Center, Community v2, Knowledge administration, product Reports, full-resource APIs, mail delivery, and CSV export are outside verified-core scope.
 
 ### Views
 
@@ -166,12 +170,12 @@ Keep `scripts/` top-level. Operational commands use CLI bootstrap and must not e
 
 ## Routing and Compatibility
 
-Until a separately approved URL migration:
+For the verified-core release:
 
 - Existing `*.php` paths remain canonical.
 - Existing query/form field names and HTTP methods remain supported.
 - Password-reset links, navigation, JavaScript requests, sitemap URLs, robots rules, and canonical metadata retain compatible paths.
-- A front controller maps legacy paths to named routes; it does not redirect them merely because a cleaner path exists.
+- A front controller maps legacy paths to named routes without replacing or redirecting their canonical paths.
 - Route metadata comes from the named route, not a physical script filename.
 
 See `docs/route-contracts.md` for the baseline route groups and compatibility rules.
@@ -179,6 +183,7 @@ See `docs/route-contracts.md` for the baseline route groups and compatibility ru
 ## Response and Security Contracts
 
 - Browser mutations use POST, CSRF validation, authorization, validation feedback, flash messages, and PRG unless a documented endpoint contract says otherwise.
+- JSON is limited to explicitly documented route contracts; `routes/api.php` contains only the two narrow Search endpoints and is not a full-resource API.
 - JSON success responses contain `ok: true`, `data`, and `meta.request_id`.
 - JSON failures contain `ok: false`, bounded `error.code` and `error.message`, and `meta.request_id`.
 - Browser and JSON responses never expose SQL, stack traces, filesystem paths, credentials, private content, or another user's data.
@@ -189,11 +194,11 @@ See `docs/route-contracts.md` for the baseline route groups and compatibility ru
 
 | Decision | Status | Safe migration rule | Blocking tasks |
 | --- | --- | --- | --- |
-| Legacy URL compatibility | Approved | Preserve `*.php` paths and form contracts; defer clean URLs. | None |
+| Legacy URL compatibility | Approved | Preserve canonical `*.php` paths and form contracts; no alternate URL scheme is in scope. | None |
 | Private runtime storage | Approved | Keep it configurable and external to repository/web root. | None |
 | Canonical Community model | Approved | Keep the active `community_posts`, `community_comments`, and `community_likes` model. Public projections require `is_published = 1`; defer the unwired question/answer schema. | None |
 | Public Download eligibility | Approved | Public records require `is_published`, `review_state = 'approved'`, and a safe HTTPS URL under the existing trusted-URL policy. | None |
-| Production Composer strategy | Approved | Build deploy artifacts with locked production dependencies; source archives remain clean. | `001`, `008`, `009` |
+| Artifact Composer strategy | Approved | Build local artifacts with the locked Composer autoloader; keep source archives dependency-free. Artifact creation is not production-hosting proof. | `001`, `008`, `009` |
 | Trusted proxy and HTTPS policy | Approved | Support direct Apache HTTPS only; do not trust forwarded headers without a separately approved allowlist. | `002`, `008` |
 
 Each pending decision needs an owner, deadline, and decision record before its blocking task can pass. The Community and Download decisions were approved by the project owner on 2026-07-18.

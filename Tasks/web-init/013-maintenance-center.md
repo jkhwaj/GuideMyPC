@@ -5,6 +5,8 @@
 - Release: R2
 - Dependencies: `008-knowledge-base.md`, `009-structured-repair-guides.md`, `010-authentication-and-user-profile.md`
 
+> **Final-release scope notice (2026-07-22):** This task is wholly deferred and excluded from the final release. Its `Not started` status, scope, acceptance criteria, and definition of done are retained only as historical planning and are not active release requirements. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Give users a practical daily, weekly, and monthly maintenance checklist linked to reviewed GuideMyPC instructions.

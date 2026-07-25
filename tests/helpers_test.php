@@ -74,12 +74,18 @@ $contactViewOutput = (static function (): string {
 })();
 assert_same(true, str_contains($contactViewOutput, '<title>Contact | GuideMyPC</title>'), 'Pages controller passes Contact metadata to the layout.');
 assert_same(true, str_contains($contactViewOutput, '<h1 id="contact-title">Contact support</h1>'), 'Pages controller renders the contact view.');
+assert_same(true, str_contains($contactViewOutput, 'diagnostic.php?flow=pc-no-power'), 'Primary navigation keeps Diagnostics reachable without retired pages.');
+assert_same(false, str_contains($contactViewOutput, 'ai.php'), 'Primary static-page layout does not link the retired AI route.');
+assert_same(false, str_contains($contactViewOutput, 'donate.php'), 'Primary static-page layout does not link the retired Donate route.');
+$legacyNavigation = file_get_contents(dirname(__DIR__) . '/includes/navbar.php');
+$legacyFooter = file_get_contents(dirname(__DIR__) . '/includes/footer.php');
+assert_same(true, is_string($legacyNavigation) && str_contains($legacyNavigation, 'diagnostic.php?flow=pc-no-power'), 'Legacy navigation keeps Diagnostics reachable.');
+assert_same(false, str_contains((string) $legacyNavigation . (string) $legacyFooter, 'ai.php'), 'Legacy navigation and footer do not link the retired AI route.');
+assert_same(false, str_contains((string) $legacyNavigation . (string) $legacyFooter, 'donate.php'), 'Legacy navigation and footer do not link the retired Donate route.');
 foreach ([
     'privacy' => ['Privacy | GuideMyPC', 'privacy-heading', 'privacy.php'],
     'terms' => ['Terms | GuideMyPC', 'terms-heading', 'terms.php'],
     'disclaimer' => ['Disclaimer | GuideMyPC', 'disclaimer-heading', 'disclaimer.php'],
-    'donate' => ['Support GuideMyPC | GuideMyPC', 'donate-heading', 'donate.php'],
-    'ai' => ['AI Assistant | GuideMyPC', 'ai-title', 'ai.php'],
 ] as $method => [$title, $headingId, $canonicalPath]) {
     $staticPageOutput = (static function () use ($method): string {
         ob_start();

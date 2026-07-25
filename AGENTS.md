@@ -50,3 +50,12 @@ Preserve documented legacy route and response contracts during the migration.
 Keep runtime storage outside the repository and expose only `public/` through
 the web server once task `008` is complete. Follow the active migration task
 and record validation evidence before starting a dependent phase.
+
+## Final Project Submission Readiness
+
+Before changing final-submission scope, cleanup, package layout, submission
+documents, UML, screenshots, or release validation, read
+`Tasks/final-project-submission-readiness/README.md` in full. It records the
+authoritative readiness boundaries, required evidence, and current release
+status. Preserve the verified-core scope and do not weaken the strict
+clean-extraction package gate.

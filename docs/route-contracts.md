@@ -6,11 +6,27 @@ See [`route-inventory.md`](route-inventory.md) for the route-by-route method, pr
 
 ## Compatibility Rules
 
-- Legacy `*.php` paths remain canonical through the public-document-root migration.
-- Existing forms, JavaScript, email links, navigation, sitemap output, and redirects must continue to resolve those paths.
+- Legacy `*.php` paths remain canonical for the verified-core release.
+- Existing forms, JavaScript, reset-link paths, navigation, sitemap output, and redirects must continue to resolve those paths. This path contract does not claim outbound mail delivery.
 - Mutations retain their documented POST, CSRF, authorization, flash, and HTTP 303 PRG contracts unless a route-specific exception is recorded.
 - JSON endpoints retain the `ok`, `data` or `error`, and `meta.request_id` contract.
 - Controllers may change internally, but each route must preserve its approved status, response type, session effects, and database side effects.
+- Owner-approved retirements are explicit compatibility exceptions. Retired paths must use the standard safe `404` response and must not redirect to another feature.
+
+## Approved Release-Scope Retirements
+
+The project owner approved the following final-release changes on 2026-07-22:
+
+| Retired path or scope | Final contract |
+| --- | --- |
+| `ai.php` | The AI Assistant placeholder and its runtime slice are removed. Requests receive the standard safe `404` response. Diagnostics remains independently available. |
+| `donate.php` | Donate and its runtime slice are removed. Requests receive the standard safe `404` response. Contact remains independently available. |
+| Knowledge administration | No Knowledge administration route was implemented or allowlisted. It is excluded from the release; the verified public Knowledge routes remain active. |
+| Reports | No Reports route was implemented or allowlisted. Dashboard projections remain active and are not a Reports feature. |
+| Full-resource APIs | No resource API is claimed. The two narrow Search JSON endpoints documented below remain active. |
+| Uploads and Maintenance Center | No active route is implemented or allowlisted. Historical schema and defensive private-path/dependency checks do not make either feature active. |
+| Community v2 | The question/answer schema is not an active runtime model. The canonical legacy Community remains active. |
+| Mail delivery and CSV export | Neither option is a verified release capability. Password-reset route security remains documented without a delivery guarantee. |
 
 ## Shared Contracts
 
@@ -28,7 +44,7 @@ See [`route-inventory.md`](route-inventory.md) for the route-by-route method, pr
 | Paths | Method and response | Migration contract |
 | --- | --- | --- |
 | `index.php` | GET HTML | Homepage aggregator for categories, guides, downloads, and Community. Migrate last as a named read model. |
-| `about.php`, `contact.php`, `privacy.php`, `terms.php`, `disclaimer.php`, `donate.php`, `ai.php` | GET HTML | Static or placeholder pages. Migrate first through the new view boundary. |
+| `about.php`, `contact.php`, `privacy.php`, `terms.php`, `disclaimer.php` | GET HTML | Static and legal pages rendered through the shared view boundary. |
 | `sitemap.php` | GET XML | Preserve content type, public URL filtering, and legacy paths. |
 
 ## Knowledge, Guides, Downloads, Search, and Diagnostics
@@ -40,19 +56,19 @@ See [`route-inventory.md`](route-inventory.md) for the route-by-route method, pr
 | `knowledge.php`, `knowledge_article.php`, `glossary.php`, `error-code.php` | GET HTML | Knowledge content routes. Migrate as the first database-backed read slice. |
 | `downloads.php` | GET HTML | Public records require `is_published`, `review_state = 'approved'`, and a safe HTTPS URL. Preserve legacy path while centralizing this policy in task `006`. |
 | `search.php` | GET HTML | Search results and aggregate search event recording. |
-| `search_suggestions.php` | GET JSON | File-rate-limited suggestions endpoint. |
-| `search_event.php` | POST JSON | Search-selection telemetry. It is a documented CSRF exception that must not be broken by broad middleware. |
-| `diagnostic.php` | GET HTML and redirect | May create a persistent diagnostic session and redirect. |
-| `diagnostic_action.php` | POST HTML/redirect | CSRF-protected diagnostic state transition. |
+| `search_suggestions.php` | GET JSON | File-rate-limited suggestions endpoint. It rejects other methods and forces bounded JSON success and error envelopes. |
+| `search_event.php` | POST JSON | Search-selection telemetry. It forces bounded JSON envelopes, reports whether privacy filtering actually recorded the event, and is a documented CSRF exception that must not be broken by broad middleware. |
+| `diagnostic.php` | GET HTML and redirect | May create a persistent diagnostic session and redirect. Both navigation implementations link to the seeded public flow. |
+| `diagnostic_action.php` | POST HTML/redirect | CSRF-protected diagnostic state transition. Reaching an outcome sets `completed_at`; back and restart clear completion as state is recomputed. |
 
 ## Accounts and Personalization
 
 | Paths | Method and response | Migration contract |
 | --- | --- | --- |
-| `login.php`, `register.php`, `forgot_password.php`, `reset_password.php` | GET/POST HTML | Preserve authentication, validation, reset-link paths, and session behavior. |
+| `login.php`, `register.php`, `forgot_password.php`, `reset_password.php` | GET/POST HTML | Preserve authentication, validation, reset-link paths, and session behavior. Native mail delivery is not a verified contract. |
 | `settings.php` | GET/POST HTML | Authenticated settings workflow. |
 | `profile.php` | GET HTML | Authenticated profile view. |
-| `dashboard.php` | GET HTML or redirect | Authenticated role-aware dashboard. Guests receive the standard HTTP 303 login redirect. Active users receive only personal progress/favorites/activity; editors and administrators receive bounded aggregate content projections; only administrators receive user identities and audit details. Account role/status is refreshed before projection selection; unavailable, disabled, or invalid accounts are signed out and redirected to login without receiving a projection. |
+| `dashboard.php` | GET HTML or redirect | Authenticated role-aware dashboard. Guests receive the standard HTTP 303 login redirect. Active users receive four personal progress/favorite/rating summaries plus activity; editors and administrators receive six operational KPIs, two bounded charts, and public recent-content projections; only administrators receive user identities and audit details. Account role/status is refreshed before projection selection; unavailable, disabled, or invalid accounts are signed out and redirected to login without receiving a projection. Dashboard is not Reports. |
 | `logout.php`, `account_request.php` | POST redirect | Preserve CSRF, authentication, PRG, and flash behavior. |
 | `save_progress.php` | POST HTML redirect or JSON | Preserve both response modes and ownership checks. |
 | `toggle_favorite.php`, `rate_guide.php` | POST redirect | Preserve CSRF, authorization, redirects, and guide ownership/state rules. |
@@ -78,9 +94,6 @@ The active routes use `community_posts`, `community_comments`, and `community_li
 | `add_download.php`, `edit_download.php`, `edit_user.php` | GET/POST HTML | Administrator editor workflows until their feature-specific capability contracts are approved. Preserve validation, CSRF, authorization, and PRG. |
 | `delete_category.php` | POST redirect | Administrator-only hard deletion. Block deletion when any known feature references the category; preserve CSRF, flash, audit, and HTTP 303 PRG behavior. |
 | `delete_guide.php` | POST redirect | Administrator-only hard deletion. Block deletion when durable user or knowledge dependencies exist; preserve CSRF, flash, audit, and HTTP 303 PRG behavior. |
-| `admin_knowledge.php` | GET HTML | Editor/administrator knowledge listing with bounded search, publication/type/category filters, allowlisted sorting, and pagination. Delete controls are administrator-only. |
-| `add_knowledge.php`, `edit_knowledge.php` | GET/POST HTML | Editor/administrator knowledge article workflows. Publication lifecycle, tags, official sources, CSRF, audit, and HTTP 303 PRG are required. |
-| `delete_knowledge.php` | POST redirect | Administrator-only hard deletion. Preserve CSRF, dependency checks, flash, audit, and HTTP 303 PRG behavior. |
 | `delete_comment.php`, `delete_download.php`, `delete_post.php`, `delete_user.php` | POST redirect | Administrator deletion actions. Preserve authorization, CSRF, flash, redirect, and audit behavior. |
 
 Administration moves into the feature that owns its data. The shared audit service is a dependency, not an excuse for a separate generic admin repository.

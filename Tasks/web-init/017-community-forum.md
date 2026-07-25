@@ -5,6 +5,8 @@
 - Release: R4
 - Dependencies: `002-security-bootstrap.md`, `010-authentication-and-user-profile.md`, `016-secure-file-uploads.md`
 
+> **Final-release scope notice (2026-07-22):** Community v2 is wholly deferred. Final scope retains only canonical legacy Community posts, comments, and likes, with no question/answer, vote, accepted-solution, report, attachment, or Community-v2 migration claim. The task body remains historical planning; apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Create a moderated support forum where account holders can ask clear questions, provide answers, vote on helpful content, and identify accepted solutions.

@@ -5,6 +5,8 @@
 - Release: R4
 - Dependencies: `001-xampp-local-setup.md` through `019-accessibility-seo-and-performance.md`
 
+> **Final-release scope notice (2026-07-22):** The final release gate covers only included verified-core behavior. Tests or sign-offs for AI Assistant, Uploads, Maintenance Center, Community v2, Knowledge administration, product Reports, full-resource APIs, mail delivery, CSV, clean URLs/framework changes, or production operations are not required and must not be claimed. Historical criteria remain unchanged; apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Create an automated and manual release gate proving that the MVP's core behavior, permissions, safety controls, and operational requirements work together.

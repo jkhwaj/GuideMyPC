@@ -1,5 +1,7 @@
 # GuideMyPC Web Initialization Roadmap
 
+> **Final-release scope notice (2026-07-22):** This roadmap is retained as historical planning. Its release slices, execution order, task-index descriptions, and R0-R4 definition of MVP do not expand the verified-core final release or make excluded features and production hosting release requirements. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 This directory converts the GuideMyPC product requirements into executable development tasks for the existing PHP and MariaDB application.
 
 ## Target Stack

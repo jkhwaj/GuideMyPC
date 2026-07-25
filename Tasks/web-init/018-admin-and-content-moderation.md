@@ -5,6 +5,8 @@
 - Release: R4
 - Dependencies: `008-knowledge-base.md` through `017-community-forum.md`
 
+> **Final-release scope notice (2026-07-22):** Final-release administration is limited to independently verified legacy/core workflows. Knowledge administration, Maintenance and AI administration, Community-v2 reporting, product Reports, unproven exports/CSV, bulk workflows, and unverified queue dashboards are excluded; verified Dashboard KPI cards/charts remain separately in scope. Dated evidence remains historical; apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Consolidate content operations into a secure administration area with publishing workflows, moderation queues, auditability, and safe previews.

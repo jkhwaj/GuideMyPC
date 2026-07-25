@@ -316,21 +316,21 @@ function search_event_hash(string $query): string
     return hash('sha256', $query);
 }
 
-function record_search_event(mysqli $connection, string $query, int $resultCount, string $type = 'search', string $state = 'results'): void
+function record_search_event(mysqli $connection, string $query, int $resultCount, string $type = 'search', string $state = 'results'): bool
 {
     if ($query === '' || !search_query_is_aggregate_safe($query)) {
-        return;
+        return false;
     }
 
-    record_search_event_hash($connection, search_event_hash($query), $resultCount, $type, $state);
+    return record_search_event_hash($connection, search_event_hash($query), $resultCount, $type, $state);
 }
 
-function record_search_event_hash(mysqli $connection, string $queryHash, int $resultCount, string $type = 'search', string $state = 'results'): void
+function record_search_event_hash(mysqli $connection, string $queryHash, int $resultCount, string $type = 'search', string $state = 'results'): bool
 {
     if (preg_match('/^[a-f0-9]{64}$/', $queryHash) !== 1
         || !in_array($type, ['search', 'guide', 'download', 'community', 'article'], true)
         || !in_array($state, ['results', 'zero', 'selection'], true)) {
-        return;
+        return false;
     }
 
     $resultCount = min(max($resultCount, 0), 9999);
@@ -341,6 +341,8 @@ function record_search_event_hash(mysqli $connection, string $queryHash, int $re
     $statement->bind_param('sssi', $queryHash, $type, $state, $resultCount);
     $statement->execute();
     $statement->close();
+
+    return true;
 }
 
 /** @return list<array{label: string, type: string, url: string}> */

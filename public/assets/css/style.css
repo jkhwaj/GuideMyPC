@@ -623,7 +623,7 @@ a {
 
 .admin-table{
     width:100%;
-    margin-top:30px;
+    margin:0;
     border-collapse:collapse;
 }
 

@@ -20,7 +20,8 @@
         "verify": [
             "@verify:fast",
             "@php scripts/verify.php"
-        ]
+        ],
+        "audit:cleanup": "@php scripts/audit-repository-cleanup.php"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

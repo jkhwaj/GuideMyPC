@@ -3,6 +3,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/diagnostics.php';
 
+require_get();
+
 $publicId = required_string($_GET['session'] ?? null, 48);
 if ($publicId === null) {
     $flow = diagnostic_flow($conn, required_string($_GET['flow'] ?? null, 120) ?? '');

@@ -1,22 +1,18 @@
-# Production Deployment Runbook
+# Future Deployment Template
 
-XAMPP is local development tooling only. Production requires a hardened PHP 8.2 host, managed or least-privilege MariaDB, HTTPS, private object/file storage, host-managed secrets, and an Apache/Nginx public root that excludes repository source, `.env`, migrations, tasks, logs, backups, and private uploads.
+The verified-core release is validated only in the documented local XAMPP environment; production hosting is not claimed. This file records future security requirements and local packaging guidance, not proof that any public host, provider, monitoring service, backup system, or rollback process has been configured or tested. Any future deployment would require a hardened PHP host, least-privilege MariaDB, HTTPS, private runtime storage, host-managed secrets, and a public root that excludes repository source, `.env`, migrations, tasks, logs, and backups.
 
-## Release Steps
+## Local Packaging
 
-1. Record the release commit, operator, target environment, and migration version.
-2. Confirm task 020 passed for the same commit and staging data is sanitized.
-3. Create and verify encrypted database and private-file backups outside the web root.
-4. Create the immutable deployment artifact with `scripts/package-deploy.ps1 -Commit <release-commit> -OutputPath <artifact.zip>`. It installs locked production dependencies into `vendor/`; `scripts/package-source.ps1` remains the clean dependency-free source archive tool.
-5. Enable accessible maintenance status if needed; deploy the immutable release artifact and host-managed secrets.
-6. Serve only the artifact's `public/` directory through Apache or Nginx.
-7. Run migrations once with a least-privilege migration account, then run smoke checks for home, search, guides, account, diagnostics, and provider-degraded paths.
-8. Verify HTTPS, secure cookies, headers, blocked private paths, logs, health checks, scheduled jobs, backup monitoring, and alert ownership.
-9. Record outcome, timestamps, evidence, and rollback decision in the checklist.
+1. Record the exact commit and migration version used for the package.
+2. Run the complete local verification gate against the isolated test database and retain non-sensitive evidence.
+3. Run `composer run audit:cleanup`, then create the strict source archive with `scripts/package-source.ps1 -Commit <release-commit> -OutputPath <source.zip> -UmlDirectory <reviewed-uml-directory> -ScreenshotsDirectory <reviewed-screenshots-directory>`. The archive contains `frontend/`, runnable `backend/`, `database/`, `uml/`, `docs/` with 8-10 reviewed screenshots, README, and a SHA-256 manifest. The builder rejects a backend without its own canonical CSS and JavaScript assets; `frontend/` remains a categorized review copy and is never a runtime dependency.
+4. When evaluating a future deployable artifact locally, use `scripts/package-deploy.ps1 -Commit <release-commit> -OutputPath <artifact.zip>`. It installs the locked Composer autoloader into `vendor/`; successful packaging does not validate a production host.
+5. Validate a clean extraction with `scripts/verify-source-package.ps1 -PackagePath <source.zip> -Database <disposable_name_test> -ExpectedCommit <40-character-release-sha>`. It rejects extra archive roots, binds the complete unique manifest to that commit, then installs dependencies, provisions distinct disposable runtime and test databases, migrates/seeds both, runs the full suite, and starts Apache against `backend/public`. The package gate requires both canonical CSS files, compatibility CSS rewrite, required JavaScript assets, rendered stylesheet loading, and non-duplicated navigation URLs before it removes both databases.
 
-## Public Web Root
+## Future Public-Web-Root Requirement
 
-Deploy the release artifact outside the web root. Configure the server to expose only its `public/` directory and preserve legacy `*.php` URLs through `public/index.php`; do not point a virtual host, Alias, or Nginx `root` at the repository/artifact root.
+Any future host must place the artifact outside the web root and expose only its `public/` directory. It must preserve canonical legacy `*.php` URLs through `public/index.php`; do not point a virtual host, Alias, or Nginx `root` at the repository or artifact root. The following configurations are unvalidated reference examples.
 
 Apache example:
 
@@ -67,12 +63,12 @@ server {
 
 Adjust the PHP-FPM socket for the host. The exact `index.php` location is the only PHP file executed by Nginx; legacy route requests are dispatched by the front controller.
 
-## Rollback
+## Future Rollback Requirements
 
-Stop if a migration, smoke check, privacy boundary, or critical security check fails. Restore the previous application artifact first. Restore a database/private-file backup only when the migration cannot be safely forward-fixed and the recovery point has been approved. Record the incident, affected commit, migration version, operator, and recovery outcome.
+Any future deployment procedure must stop if a migration, smoke check, privacy boundary, or critical security check fails. It must define artifact rollback, approved database recovery, evidence retention, and named operator responsibility before use.
 
-Keep the prior release artifact and its public-root server configuration available until the smoke matrix passes. To roll back a failed public-root activation, repoint the server's `DocumentRoot` or Nginx `root` to the prior artifact's `public/` directory, reload the server, and rerun the private-path and legacy-route checks. Do not work around a failure by exposing the artifact root.
+The future procedure should keep the prior artifact and public-root configuration available until its smoke matrix passes. A failed activation must never be worked around by exposing the artifact root.
 
-## Provider Degradation
+## Current External-Service Boundary
 
-If AI, mail, analytics, storage, or monitoring fails, do not expose provider errors or retry indefinitely. Keep guides, search, diagnostics, and community available where safe; show a clear accessible fallback message; alert the assigned owner; and avoid sending queued private data until the provider is healthy.
+No AI, outbound-mail, analytics, or file-storage provider is a verified release dependency. Optional privacy-enhanced guide video embeds retain written steps as the accessible fallback and are loaded only after visitor action.

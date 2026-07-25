@@ -5,6 +5,8 @@
 - Release: M2
 - Dependencies: `002-core-security-and-compatibility-layer.md`
 
+> **Final-release scope notice (2026-07-22):** This file's dated implementation evidence remains immutable technical history. The recorded migration of `donate.php` and `ai.php` does not authorize either route to be advertised, navigated, screenshotted, or claimed as a final-release capability. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Establish a plain PHP rendering boundary with explicit page metadata and prove it by migrating static and legal pages before database-backed features.

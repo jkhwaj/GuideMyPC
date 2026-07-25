@@ -114,6 +114,10 @@ try {
 
     $urls = (new SitemapReadModel($test))->publicUrls('https://example.test/GuideMyPC');
     home_sitemap_assert(in_array('https://example.test/GuideMyPC/index.php', $urls, true), 'Sitemap retains static legacy paths under an application subdirectory.');
+    home_sitemap_assert(in_array('https://example.test/GuideMyPC/contact.php', $urls, true), 'Sitemap retains the Contact route after Donate retirement.');
+    home_sitemap_assert(!in_array('https://example.test/GuideMyPC/ai.php', $urls, true), 'Sitemap excludes the retired AI route.');
+    home_sitemap_assert(!in_array('https://example.test/GuideMyPC/donate.php', $urls, true), 'Sitemap excludes the retired Donate route.');
+    home_sitemap_assert(!in_array('https://example.test/GuideMyPC/admin_reports.php', $urls, true), 'Sitemap does not advertise an excluded Reports route.');
     home_sitemap_assert(in_array('https://example.test/GuideMyPC/guide.php?slug=' . rawurlencode($visibleGuideSlug), $urls, true), 'Sitemap includes published Guide URLs.');
     home_sitemap_assert(!in_array('https://example.test/GuideMyPC/guide.php?slug=' . rawurlencode($hiddenGuideSlug), $urls, true) && !in_array('https://example.test/GuideMyPC/guide.php?slug=' . rawurlencode($categoryHiddenGuideSlug), $urls, true), 'Sitemap excludes unpublished and hidden-category Guides.');
     home_sitemap_assert(in_array('https://example.test/GuideMyPC/knowledge_article.php?slug=' . rawurlencode($visibleArticleSlug), $urls, true), 'Sitemap includes published Knowledge URLs.');

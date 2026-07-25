@@ -6,6 +6,8 @@
 - Input: `GuideMyPC_Final_Project_Implementation_Plan.md`
 - Governing architecture plan: `Tasks/project-structure-migration/README.md`
 
+> **Final release scope addendum (2026-07-22; supersedes conflicting scope below):** The submitted release is verified-core only. It excludes the AI Assistant, user file uploads, Maintenance Center, Knowledge administration, the product Reports page/module, unproven full-resource APIs, Donate, clean-URL migration, framework/SPA/ORM/template-engine migration, production-hosting claims, Community v2, unproven outbound-mail delivery, and CSV export. Public read-only Knowledge, verified Dashboard KPI cards/charts, the canonical legacy Community posts/comments/likes model, and the two narrow Search JSON endpoints `search_suggestions.php` and `search_event.php` remain in scope. Existing legacy `*.php` paths remain canonical. No unchecked criterion, earlier milestone, dormant route/table, placeholder, or conditional option expands this scope. Dated Implementation Evidence and validation records below remain immutable historical evidence of what was observed at that time; they are not current release-scope or release-completion claims.
+
 ## Objective
 
 Deliver a focused, testable academic MVP without creating a second application architecture. Final-project features must advance the existing compatibility-first migration, preserve legacy route and response contracts, and use the documented PHP 8.2, MariaDB, `mysqli`, server-rendered PHP, and vanilla JavaScript stack.

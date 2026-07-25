@@ -5,6 +5,8 @@
 - Release: M5
 - Dependencies: `007-search-home-sitemap-and-cross-feature-reads.md`; approved Composer deployment and proxy decisions from task `000`
 
+> **Final-release scope notice (2026-07-22):** Production Apache/Nginx examples and deploy artifacts are documentation or packaging evidence only; they do not prove production hosting or deployment completion. `routes/api.php` is a route grouping, not evidence of a full-resource API, and canonical legacy `*.php` URLs remain unchanged. Dated evidence remains historical; apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Expose only `public/` through the web server and route every approved legacy path through a centralized entry point without changing public URL or form contracts.

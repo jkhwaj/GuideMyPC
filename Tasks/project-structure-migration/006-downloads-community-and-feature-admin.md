@@ -5,6 +5,8 @@
 - Release: M4
 - Dependencies: `005-guide-actions-accounts-and-diagnostics.md`; approved Community and Downloads decisions from task `000`
 
+> **Final-release scope notice (2026-07-22):** This task retains only the canonical legacy Community posts/comments/likes model. References below to answers, votes, or reporting are inventory-era labels and do not authorize Community-v2 routes, schemas, or behavior. Dated evidence remains historical; apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Resolve policy-sensitive data boundaries, migrate Downloads and Community using their approved models, and place administrative commands with the features they modify while applying consistent authorization and audit behavior.

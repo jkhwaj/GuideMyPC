@@ -5,6 +5,8 @@
 - Release: R1
 - Dependencies: `003-database-migrations-and-seeds.md`, `005-responsive-design-system-and-layout.md`, `008-knowledge-base.md`
 
+> **Final-release scope notice (2026-07-22):** This task's dated guide evidence remains historical. AI escalation and AI recommendations are excluded and are not part of the completed guide claim or final-release acceptance scope. Apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Deliver safe, understandable repair guides with enough context for nontechnical users to complete and verify each step.

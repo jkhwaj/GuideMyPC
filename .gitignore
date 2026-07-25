@@ -19,12 +19,27 @@
 /.phpunit.cache/
 
 # IDE and operating-system files
+opencode.json
 /.idea/
 /.vscode/
 *.code-workspace
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Private/generated submission artifacts (overlaid only during packaging)
+/docs/submission/documents/
+/docs/submission/uml/
+/docs/submission/screenshots/*.png
+/docs/submission/screenshots/*.jpg
+/docs/submission/screenshots/*.jpeg
+/docs/submission/screenshots/*.webp
+/Readme.docx
+/GuideMyPC-Final-Report.docx
+/GuideMyPC.vpp
+/GuideMyPC-Source.zip
+/GuideMyPC-Submission.zip
+
 # Added by code-review-graph
 .code-review-graph/
 *.pdf

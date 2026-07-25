@@ -12,18 +12,19 @@ $result = $conn->query("SELECT * FROM downloads ORDER BY id DESC");
         <h1>Manage Downloads</h1>
         <p>Add, edit or delete trusted software download links.</p>
 
-        <br>
-
-        <a class="primary-btn" href="add_download.php">
-            + Add New Download
-        </a>
+        <div class="admin-page-actions">
+            <a class="primary-btn" href="add_download.php">
+                + Add New Download
+            </a>
+        </div>
         <?php if (isset($_GET["success"]) && $_GET["success"] === "download_deleted"): ?>
              <div class="success-message">
                 Download deleted successfully.
             </div>
         <?php endif; ?>
 
-        <table class="admin-table">
+        <div class="admin-table-wrap">
+        <table class="admin-table admin-downloads-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -56,18 +57,20 @@ $result = $conn->query("SELECT * FROM downloads ORDER BY id DESC");
                         </td>
 
                         <td>
+                            <div class="admin-table-actions">
                             <a href="edit_download.php?id=<?php echo $download["id"]; ?>">Edit</a>
-                            |
                             <form class="inline-action" action="delete_download.php" method="POST" onsubmit="return confirm('Delete this download?');">
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="id" value="<?php echo (int) $download["id"]; ?>">
                                 <button type="submit">Delete</button>
                             </form>
+                            </div>
                         </td>
                     </tr>
                 <?php endwhile; ?>
             </tbody>
         </table>
+        </div>
     </div>
 </section>
 

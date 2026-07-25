@@ -5,6 +5,8 @@
 - Release: R3
 - Dependencies: `002-security-bootstrap.md`, `010-authentication-and-user-profile.md`, `015-ai-assistant.md`
 
+> **Final-release scope notice (2026-07-22):** The user-upload feature is wholly deferred and excluded from the final release. References elsewhere to private storage, upload-path denial, or package exclusions are security hygiene, not proof of an Uploads capability. The task body remains historical planning; apply the superseding scope addendum in `Tasks/final-project-mvp/README.md`.
+
 ## Objective
 
 Allow authorized screenshot and text-log uploads for AI and community troubleshooting without creating a public file-hosting or code-execution risk.
