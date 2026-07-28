@@ -148,6 +148,11 @@ try {
 declare(strict_types=1);
 
 $_SERVER['GUIDEMYPC_ENTRY_SCRIPT_NAME'] = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+$requestPath = (string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
+$entryBasePath = str_ends_with($requestPath, '/') ? rtrim($requestPath, '/') : dirname($requestPath);
+if ($entryBasePath !== '' && $entryBasePath !== '/' && preg_match('#^/(?:[A-Za-z0-9_-][A-Za-z0-9._~-]*(?:/[A-Za-z0-9_-][A-Za-z0-9._~-]*)*)$#', $entryBasePath) === 1) {
+    $_SERVER['GUIDEMYPC_ENTRY_BASE_PATH'] = $entryBasePath;
+}
 
 require __DIR__ . '/backend/public/index.php';
 '@
