@@ -1,28 +1,21 @@
 # Screenshot Manifest
 
-The ten screenshots below were captured on 2026-07-23 from the reviewed
-release-candidate tree using a disposable seeded `guidemypc_screenshot_test`
-database and a sanitized `Submission Reviewer` account. The strict package
-manifest binds their hashes to the final release commit. Canonical root legacy
-`*.php` URLs were used; the private image files remain ignored in Git and are
-overlaid only by the package builder.
+The ten ignored PNG files below are the reviewed evidence embedded in
+`GuideMyPC-Final-Report.docx` (images 5 through 14) and copied into the strict
+source package. They were captured on 2026-07-29 from the reviewed local
+release tree with seeded content and sanitized test accounts. The evidence
+contains no passwords, cookies, tokens, credentials, real email addresses,
+personal information, bookmarks, or private local paths.
 
-The visual narrative covers the retained verified core: Home, Guides, public
-Knowledge, approved Downloads/Search where useful, accounts/progress,
-Diagnostics, role-aware Dashboard KPI/charts, canonical legacy Community, and
-documented administration. Do not add screenshots for AI Assistant, Uploads,
-Maintenance Center, Knowledge administration, product Reports, full-resource
-APIs, Donate, Community v2, mail, CSV, clean URLs, or production hosting.
-
-| File | Route | Role | Viewport | Commit | Caption | Alt Text | Capture Date | Redaction Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `01-home-desktop.png` | `index.php` | Guest | 1440x900 | Bound by package manifest | Verified-core entry point | Homepage navigation and bounded support search | 2026-07-23 | Reviewed seeded public content only; no account data |
-| `02-guides-desktop.png` | `guides.php` | Guest | 1440x900 | Bound by package manifest | Published Guide library | Filtered published Guides and category navigation | 2026-07-23 | Reviewed seeded public content only |
-| `03-guide-mobile.png` | `guide.php?slug=check-windows-update-issue` | Guest | 320x800 | Bound by package manifest | Responsive structured Guide | Narrow view of safe steps and Guide metadata | 2026-07-23 | No account, session, or local environment data |
-| `04-knowledge-desktop.png` | `knowledge.php` | Guest | 1440x900 | Bound by package manifest | Public Knowledge library | Published Knowledge articles, types, and categories | 2026-07-23 | Reviewed seeded public content only |
-| `05-search-desktop.png` | `search.php?q=windows&type=guide` | Guest | 1440x900 | Bound by package manifest | Bounded public Search | Published Guide results and retained filters | 2026-07-23 | Public query and sample content only |
-| `06-diagnostic-desktop.png` | `diagnostic.php?flow=pc-no-power` | Guest | 1440x900 | Bound by package manifest | Guided Diagnostic step | Diagnostic question, answer options, back, and restart controls | 2026-07-23 | Browser chrome omitted; no session identifier visible |
-| `07-community-authenticated.png` | `community.php` | Sanitized authenticated test user | 1440x900 | Bound by package manifest | Canonical Community workflow | Legacy Community posting interface for a sanitized authenticated user | 2026-07-23 | Disposable `Submission Reviewer`; no Community v2 data |
-| `08-dashboard-admin.png` | `dashboard.php` | Sanitized administrator | 1440x900 | Bound by package manifest | Role-aware Dashboard | Six operational KPIs and two charts for a bounded administrator projection | 2026-07-23 | Disposable account; explicitly not product Reports |
-| `09-guide-admin.png` | `admin_guides.php` | Sanitized administrator | 1440x900 | Bound by package manifest | Verified Guide administration | Bounded Guide administration listing and permitted controls | 2026-07-23 | Disposable account and seeded test content only |
-| `10-safe-404-mobile.png` | `missing-page.php` | Guest | 320x800 | Bound by package manifest | Responsive safe error state | Narrow standard 404 page without internal details | 2026-07-23 | Cookies cleared; no request ID, local path, or account data |
+| File | Route | User role | Viewport | Caption | Alt text | Capture date | Redaction notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `01-homepage.png` | `index.php` | Guest | 1440x900 | Home categories use emoji icons | GuideMyPC homepage with Android, iPhone/iPad, Linux, macOS, Wi-Fi, and Windows category cards | 2026-07-29 | Public seeded content only; no account or browser data |
+| `02-downloads-public.png` | `downloads.php` | Guest | 1425x1937 full-page desktop | Approved official Download catalog without duplicates | Public Download cards for approved official resources including Rufus, CPU-Z, HWMonitor, Windows 11, NVIDIA, and Samsung Magician | 2026-07-29 | Public seeded catalog only; external destinations are not opened |
+| `03-admin-downloads.png` | `admin_downloads.php` | Sanitized administrator test account | 1425x1730 full-page desktop | Admin Downloads sorted by descending ID | Manage Downloads table showing approved, published resources and permitted actions | 2026-07-29 | Sanitized role label only; no email, token, or credential is shown |
+| `04-login-remember-me.png` | `login.php` | Guest | 1440x900 | Login offers explicit Remember me | Empty login form with the optional Keep me signed in for up to 30 days control | 2026-07-29 | Empty fields; no email address, password, or remembered cookie is shown |
+| `05-remembered-devices.png` | `devices.php` | Sanitized regular test account | 1440x900 | Remembered-browser management | Signed-in browsers page with current-browser sign-out and sign-out-all controls | 2026-07-29 | Safe device metadata only; no selector, validator, token, hash, IP address, or email is shown |
+| `06-user-dashboard.png` | `dashboard.php` | Sanitized regular test account | 1440x900 | Personal user dashboard | My dashboard with personal guide, favorite, rating, and recent-activity projections | 2026-07-29 | Sanitized role label and zero-value seeded projections only; no personal profile details |
+| `07-admin-guides.png` | `admin_guides.php` | Sanitized administrator test account | 1425x1781 full-page desktop | Responsive Guide administration | Manage Guides filters and a published Guide table with permitted edit and delete actions | 2026-07-29 | Sanitized role label and seeded Guide content only |
+| `08-diagnostics.png` | `diagnostic.php?flow=pc-no-power` | Guest | 1440x900 | Guided diagnostic flow | PC power diagnostic question with answer choices, Continue, Back, and Restart controls | 2026-07-29 | Guest flow only; no session identifier or account data is shown |
+| `09-safe-404.png` | `missing-page.php` | Guest | 1440x900 | Safe public 404 response | Page not found response with a return-home action and no implementation details | 2026-07-29 | No directory listing, request identifier, server path, or private detail is shown |
+| `10-mobile-320px.png` | `downloads.php` | Guest | 320x800 | Responsive public Downloads at 320px | Narrow mobile layout with readable approved Download cards and no horizontal overflow | 2026-07-29 | Public seeded catalog only; no account or browser data |
