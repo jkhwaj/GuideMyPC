@@ -60,7 +60,7 @@ function Stop-ProcessTree {
 function Invoke-HttpProbe {
     param(
         [Parameter(Mandatory)][string]$Path,
-        [Parameter(Mandatory)][int]$ExpectedStatus,
+        [Parameter(Mandatory)][int[]]$ExpectedStatus,
         [string]$Method = 'GET',
         [string]$Contains = '',
         [string]$Excludes = '',
@@ -73,9 +73,9 @@ function Invoke-HttpProbe {
     $url = "http://127.0.0.1:$Port$urlPrefix$Path"
     $status = & curl.exe --silent --show-error --max-redirs 0 --request $Method --output $bodyPath --dump-header $headerPath --write-out '%{http_code}' $url
 
-    if ($LASTEXITCODE -ne 0 -or [int]$status -ne $ExpectedStatus) {
+    if ($LASTEXITCODE -ne 0 -or [int]$status -notin $ExpectedStatus) {
         $details = if (Test-Path -LiteralPath $bodyPath) { [System.IO.File]::ReadAllText($bodyPath) } else { 'No response body was created.' }
-        throw "HTTP probe failed for $Method $Path. Expected $ExpectedStatus, received $status. $details"
+        throw "HTTP probe failed for $Method $Path. Expected $($ExpectedStatus -join ' or '), received $status. $details"
     }
 
     $body = [System.IO.File]::ReadAllText($bodyPath)
@@ -334,7 +334,6 @@ DirectoryIndex index.php
     if ($Mode -eq 'PackageRoot') {
         foreach ($packagePrivatePath in @(
             '/backend/config.php',
-            '/backend/public/index.php',
             '/database/README.md',
             '/docs/project-structure.md',
             '/frontend/public/assets/css/style.css',
@@ -346,6 +345,7 @@ DirectoryIndex index.php
         )) {
             Invoke-HttpProbe -Path $packagePrivatePath -ExpectedStatus 403 -Excludes $repositoryRoot | Out-Null
         }
+        Invoke-HttpProbe -Path '/backend/public/index.php' -ExpectedStatus @(403, 404) -Excludes $repositoryRoot | Out-Null
     }
 
     Write-Host "PASS: isolated Apache $Mode exposes only public assets and approved legacy routes; private and retired paths return bounded responses."
