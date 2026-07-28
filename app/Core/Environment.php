@@ -47,6 +47,12 @@ final class Environment
      */
     public static function value(array $values, string $key, ?string $default = null): ?string
     {
+        $environmentValue = getenv($key);
+
+        if (is_string($environmentValue) && $environmentValue !== '') {
+            return $environmentValue;
+        }
+
         return $values[$key] ?? $default;
     }
 

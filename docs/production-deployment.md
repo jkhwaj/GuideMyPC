@@ -12,6 +12,10 @@ The verified-core release is validated only in the documented local XAMPP enviro
 
 The generated package-root launcher and `.htaccess` support local XAMPP extraction under `htdocs/<folder>` without a virtual host. They are a compatibility shim only: production and hardened deployments must continue to expose only `backend/public`.
 
+## v1.1 Managed Hosting Prerequisites
+
+The post-submission v1.1 shared-account branch adds optional remembered-browser tokens but does not make a deployment claim. A future managed PHP/MariaDB host must inject database and token-secret environment variables privately, set `SESSION_COOKIE_SECURE=true`, expose only `public/`, keep `APP_PRIVATE_PATH` outside the web root, and use HTTPS before remembered-browser login is enabled. See [`v1.1-shared-account-hosting.md`](v1.1-shared-account-hosting.md) for staging, backup/restore, and rollback evidence required before claiming hosted operation.
+
 ## Future Public-Web-Root Requirement
 
 Any future host must place the artifact outside the web root and expose only its `public/` directory. It must preserve canonical legacy `*.php` URLs through `public/index.php`; do not point a virtual host, Alias, or Nginx `root` at the repository or artifact root. The following configurations are unvalidated reference examples.

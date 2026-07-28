@@ -99,7 +99,7 @@ function refresh_current_user_authorization(mysqli $connection): bool
     $role = GuideMyPC\Security\Authorization::normalizeRole($user['role'] ?? null);
 
     if ($user === null || $role === null || $user['status'] !== 'active' || $user['deleted_at'] !== null) {
-        unset($_SESSION['user_id'], $_SESSION['full_name'], $_SESSION['role']);
+        unset($_SESSION['user_id'], $_SESSION['full_name'], $_SESSION['role'], $_SESSION['_remember_selector']);
         session_regenerate_id(true);
 
         return false;
