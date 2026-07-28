@@ -48,6 +48,9 @@ assert_same(true, class_exists(GuideMyPC\Features\Diagnostics\DiagnosticReposito
 assert_same(true, class_exists(GuideMyPC\Features\Accounts\UserAdminService::class), 'User administration service autoloads through Composer.');
 assert_same('https://example.test/guides.php', GuideMyPC\Core\Url::applicationUrl('https://example.test/', '/guides.php'), 'Core URL generation preserves the legacy path contract.');
 assert_same('https://example.test/css/style.css?v=2', GuideMyPC\Core\Url::assetUrl('https://example.test', '2', 'css/style.css'), 'Core asset URLs preserve the version query contract.');
+assert_same('/FinalProject/guides.php', GuideMyPC\Core\Url::applicationUrl('', 'guides.php', '/FinalProject'), 'Blank package APP_URL uses the dispatcher-derived localhost subdirectory.');
+assert_same('/FinalProject/assets/css/style.css?v=2', GuideMyPC\Core\Url::assetUrl('', '2', 'assets/css/style.css', '/FinalProject'), 'Blank package APP_URL prefixes versioned assets with the dispatcher-derived subdirectory.');
+assert_same('http://localhost/Configured/guides.php', GuideMyPC\Core\Url::applicationUrl('http://localhost/Configured', 'guides.php', '/FinalProject'), 'An explicit APP_URL remains authoritative over the request base path.');
 try {
     GuideMyPC\Core\Database::connect(['host' => null, 'user' => null, 'password' => '', 'database' => null, 'port' => '3306']);
     assert_same(true, false, 'Core database factory rejects incomplete configuration.');

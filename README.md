@@ -120,6 +120,29 @@ dispatched by `public/index.php`. This is local validation only, not a
 production-hosting claim. Run `scripts/verify-public-root.ps1` to validate the
 same boundary in an isolated temporary Apache process.
 
+## Source Package Localhost Entry
+
+The strict source package includes a generated package-root `index.php` and
+`.htaccess` for local XAMPP convenience only. It keeps `backend/public` as the
+canonical application root while allowing an extracted package to run without
+a virtual host or hosts-file edit:
+
+1. Extract `GuideMyPC-Source.zip` to `C:\xampp\htdocs\<folder>`.
+2. Open PowerShell in `C:\xampp\htdocs\<folder>\backend`.
+3. Copy `.env.example` to `.env`, set `APP_PRIVATE_PATH` to a location outside
+   `C:\xampp\htdocs`, and leave `APP_URL` blank for safe automatic detection
+   of the current folder name.
+4. Run `composer install --no-interaction`, then `php database\migrate.php`
+   and `php database\seed.php`.
+5. Start Apache and MySQL, then open `http://localhost/<folder>/`.
+
+The generated root rewrite policy blocks package source, documentation,
+database, UML, manifest, and frontend-review paths while preserving legacy
+`*.php`, `/assets`, `/css`, and `/js` routes. If `APP_URL` is explicitly set,
+it remains authoritative; use it for a configured virtual host or deployment.
+The package-root mode is local-installation compatibility, not a replacement
+for exposing only `backend/public` in production.
+
 ## Local File Access and Mail
 
 - Keep the checkout readable by the Windows user running Apache; do not grant broad write access such as `Everyone:Full Control`.

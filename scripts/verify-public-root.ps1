@@ -5,7 +5,11 @@ param(
     [string]$PhpRoot = 'C:\xampp\php',
     [string]$ChromePath = 'C:\Program Files\Google\Chrome\Application\chrome.exe',
     [int]$BrowserPort = 0,
-    [switch]$RequireCategoryIcons
+    [switch]$RequireCategoryIcons,
+    [ValidateSet('PublicRoot', 'PackageRoot')][string]$Mode = 'PublicRoot',
+    [string]$PackageRoot = '',
+    [string]$MountName = '',
+    [switch]$DisableRewrite
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,12 +39,14 @@ $stderrLog = Join-Path $temporaryDirectory 'stderr.log'
 $pidFile = Join-Path $temporaryDirectory 'httpd.pid'
 $apacheRootConfig = $ApacheRoot.Replace('\', '/')
 $phpRootConfig = $PhpRoot.Replace('\', '/')
-$publicRootConfig = $publicRoot.Replace('\', '/')
 $errorLogConfig = $errorLog.Replace('\', '/')
 $pidFileConfig = $pidFile.Replace('\', '/')
 $process = $null
 $browserProcess = $null
 $browserProfile = Join-Path $temporaryDirectory 'chrome-profile'
+$documentRoot = $publicRoot
+$servedDirectory = $publicRoot
+$urlPrefix = ''
 
 function Stop-ProcessTree {
     param([System.Diagnostics.Process]$RootProcess)
@@ -64,7 +70,7 @@ function Invoke-HttpProbe {
     $probeId = [Guid]::NewGuid().ToString('N')
     $bodyPath = Join-Path $temporaryDirectory ($probeId + '.body')
     $headerPath = Join-Path $temporaryDirectory ($probeId + '.headers')
-    $url = "http://127.0.0.1:$Port$Path"
+    $url = "http://127.0.0.1:$Port$urlPrefix$Path"
     $status = & curl.exe --silent --show-error --max-redirs 0 --request $Method --output $bodyPath --dump-header $headerPath --write-out '%{http_code}' $url
 
     if ($LASTEXITCODE -ne 0 -or [int]$status -ne $ExpectedStatus) {
@@ -157,6 +163,34 @@ function Invoke-BrowserStyleProbe {
 
 try {
     New-Item -ItemType Directory -Path $temporaryDirectory | Out-Null
+    if ($Mode -eq 'PackageRoot') {
+        if ($PackageRoot -eq '' -or -not (Test-Path -LiteralPath $PackageRoot -PathType Container)) {
+            throw 'PackageRoot must name an extracted package directory in PackageRoot mode.'
+        }
+        if ($MountName -eq '') {
+            $MountName = 'FinalProject-' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
+        }
+        if ($MountName -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$') {
+            throw 'MountName must be a safe arbitrary htdocs folder name.'
+        }
+        foreach ($requiredPackageEntry in @('index.php', '.htaccess', 'backend\public\index.php')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $PackageRoot $requiredPackageEntry) -PathType Leaf)) {
+                throw "PackageRoot is missing required local entry point: $requiredPackageEntry"
+            }
+        }
+
+        $packageParent = Join-Path $temporaryDirectory 'htdocs'
+        $mountedPackage = Join-Path $packageParent $MountName
+        New-Item -ItemType Directory -Path $packageParent | Out-Null
+        Copy-Item -LiteralPath $PackageRoot -Destination $mountedPackage -Recurse
+        $documentRoot = $packageParent
+        $servedDirectory = $mountedPackage
+        $urlPrefix = '/' + $MountName
+    }
+
+    $documentRootConfig = $documentRoot.Replace('\', '/')
+    $servedDirectoryConfig = $servedDirectory.Replace('\', '/')
+    $rewriteModule = if ($DisableRewrite) { '' } else { 'LoadModule rewrite_module modules/mod_rewrite.so' }
     $config = @"
 ServerRoot "$apacheRootConfig"
 Listen 127.0.0.1:$Port
@@ -171,7 +205,7 @@ LoadModule dir_module modules/mod_dir.so
 LoadModule env_module modules/mod_env.so
 LoadModule headers_module modules/mod_headers.so
 LoadModule mime_module modules/mod_mime.so
-LoadModule rewrite_module modules/mod_rewrite.so
+$rewriteModule
 LoadFile "$phpRootConfig/php8ts.dll"
 LoadFile "$phpRootConfig/libpq.dll"
 LoadFile "$phpRootConfig/libsqlite3.dll"
@@ -182,7 +216,7 @@ PHPIniDir "$phpRootConfig"
     SetHandler application/x-httpd-php
 </FilesMatch>
 
-DocumentRoot "$publicRootConfig"
+DocumentRoot "$documentRootConfig"
 DirectoryIndex index.php
 
 <Directory />
@@ -190,8 +224,14 @@ DirectoryIndex index.php
     Require all denied
 </Directory>
 
-<Directory "$publicRootConfig">
-    Options FollowSymLinks
+<Directory "$documentRootConfig">
+    Options -Indexes +FollowSymLinks
+    AllowOverride None
+    Require all granted
+</Directory>
+
+<Directory "$servedDirectoryConfig">
+    Options -Indexes +FollowSymLinks
     AllowOverride All
     Require all granted
 </Directory>
@@ -224,7 +264,17 @@ DirectoryIndex index.php
         throw "Temporary Apache did not start. $details"
     }
 
-    $homeBody = Invoke-HttpProbe -Path '/' -ExpectedStatus 200 -Contains '<title>GuideMyPC'
+    if ($DisableRewrite) {
+        if ($Mode -ne 'PackageRoot') {
+            throw 'DisableRewrite is only valid for PackageRoot mode.'
+        }
+        Invoke-HttpProbe -Path '/' -ExpectedStatus 403 -Excludes 'Index of' | Out-Null
+        Invoke-HttpProbe -Path '/database/README.md' -ExpectedStatus 403 | Out-Null
+        Write-Host 'PASS: package-root Apache fails closed when mod_rewrite is unavailable.'
+        return
+    }
+
+    $homeBody = Invoke-HttpProbe -Path '/' -ExpectedStatus 200 -Contains '<title>GuideMyPC' -Excludes 'Index of'
     Invoke-HttpProbe -Path '/guides.php' -ExpectedStatus 200 -Contains '<title>All Guides | GuideMyPC</title>' | Out-Null
     Invoke-HttpProbe -Path '/contact.php' -ExpectedStatus 200 -Contains '<title>Contact | GuideMyPC</title>' | Out-Null
     Invoke-HttpProbe -Path '/assets/css/style.css' -ExpectedStatus 200 -Contains 'box-sizing: border-box' -ContentType 'text/css' | Out-Null
@@ -237,9 +287,22 @@ DirectoryIndex index.php
     if ($homeBody -match 'href="[^"]*https?://[^"]*https?://') {
         throw 'Homepage navigation contains a duplicated application base URL.'
     }
-    $browserProcess = Invoke-BrowserStyleProbe -Url "http://127.0.0.1:$Port/"
+    if ($Mode -eq 'PackageRoot') {
+        foreach ($requiredMountedUrl in @(
+            ('href="' + $urlPrefix + '/guides.php"'),
+            ('href="' + $urlPrefix + '/assets/css/style.css'),
+            ('src="' + $urlPrefix + '/assets/js/script.js')
+        )) {
+            if (-not $homeBody.Contains($requiredMountedUrl)) {
+                throw "Package homepage does not preserve the arbitrary localhost subdirectory URL: $requiredMountedUrl"
+            }
+        }
+    }
+    $browserProcess = Invoke-BrowserStyleProbe -Url "http://127.0.0.1:$Port$urlPrefix/"
     Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Excludes 'ai.php' | Out-Null
-    Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Contains 'Sitemap: http://guidemypc.test/sitemap.php' | Out-Null
+    if ($Mode -eq 'PublicRoot') {
+        Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Contains 'Sitemap: http://guidemypc.test/sitemap.php' | Out-Null
+    }
     Invoke-HttpProbe -Path '/missing-page.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot | Out-Null
     Invoke-HttpProbe -Path '/ai.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' | Out-Null
     Invoke-HttpProbe -Path '/donate.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' | Out-Null
@@ -263,7 +326,24 @@ DirectoryIndex index.php
         Invoke-HttpProbe -Path $privatePath -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot | Out-Null
     }
 
-    Write-Host 'PASS: isolated Apache exposes only public assets and approved legacy routes; private and retired paths return bounded responses.'
+    if ($Mode -eq 'PackageRoot') {
+        foreach ($packagePrivatePath in @(
+            '/backend/config.php',
+            '/backend/public/index.php',
+            '/database/README.md',
+            '/docs/project-structure.md',
+            '/frontend/public/assets/css/style.css',
+            '/uml/source/GuideMyPC.vpp',
+            '/PACKAGE-MANIFEST.txt',
+            '/README.md',
+            '/.env',
+            '/backend/.env'
+        )) {
+            Invoke-HttpProbe -Path $packagePrivatePath -ExpectedStatus 403 -Excludes $repositoryRoot | Out-Null
+        }
+    }
+
+    Write-Host "PASS: isolated Apache $Mode exposes only public assets and approved legacy routes; private and retired paths return bounded responses."
 } catch {
     $failure = $_
 

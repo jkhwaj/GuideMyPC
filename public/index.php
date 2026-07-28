@@ -11,6 +11,7 @@ $routes = array_replace(
 $requestPath = rawurldecode((string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/'));
 $basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
 $basePath = $basePath === '/' ? '' : rtrim($basePath, '/');
+$_SERVER['GUIDEMYPC_BASE_PATH'] = $basePath;
 
 if ($basePath !== '' && str_starts_with($requestPath, $basePath . '/')) {
     $requestPath = substr($requestPath, strlen($basePath));

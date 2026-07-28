@@ -80,6 +80,8 @@ try {
     }
 
     foreach ($requiredPath in @(
+        'GuideMyPC\index.php',
+        'GuideMyPC\.htaccess',
         'GuideMyPC\frontend\public\assets',
         'GuideMyPC\frontend\resources\views',
         'GuideMyPC\backend\public\index.php',
@@ -201,7 +203,13 @@ try {
     Invoke-CheckedCommand -Command $PhpCommand -Arguments @('database/migrate.php', "--database=$Database") -FailureMessage 'Repeat package migration failed.' -WorkingDirectory $backendDirectory
     Invoke-CheckedCommand -Command $PhpCommand -Arguments @('database/seed.php', "--database=$Database") -FailureMessage 'Package seed failed.' -WorkingDirectory $backendDirectory
     Invoke-CheckedCommand -Command $PhpCommand -Arguments @('scripts/verify.php', "--database=$Database") -FailureMessage 'Package full verification failed.' -WorkingDirectory $backendDirectory
-    Invoke-CheckedCommand -Command 'powershell.exe' -Arguments @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $backendDirectory 'scripts\verify-public-root.ps1'), '-Port', $ApachePort.ToString(), '-RequireCategoryIcons') -FailureMessage 'Package public-root verification failed.' -WorkingDirectory $backendDirectory
+    $publicRootScript = Join-Path $backendDirectory 'scripts\verify-public-root.ps1'
+    Invoke-CheckedCommand -Command 'powershell.exe' -Arguments @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $publicRootScript, '-Port', $ApachePort.ToString(), '-RequireCategoryIcons', '-Mode', 'PublicRoot') -FailureMessage 'Package backend/public verification failed.' -WorkingDirectory $backendDirectory
+    $environment = [regex]::Replace($environment, '(?m)^APP_URL=.*$', 'APP_URL=')
+    [System.IO.File]::WriteAllText((Join-Path $backendDirectory '.env'), $environment, [System.Text.UTF8Encoding]::new($false))
+    $mountName = 'FinalProject-' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
+    Invoke-CheckedCommand -Command 'powershell.exe' -Arguments @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $publicRootScript, '-Port', ($ApachePort + 2).ToString(), '-RequireCategoryIcons', '-Mode', 'PackageRoot', '-PackageRoot', $packageRoot, '-MountName', $mountName) -FailureMessage 'Package localhost subdirectory verification failed.' -WorkingDirectory $backendDirectory
+    Invoke-CheckedCommand -Command 'powershell.exe' -Arguments @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $publicRootScript, '-Port', ($ApachePort + 4).ToString(), '-Mode', 'PackageRoot', '-PackageRoot', $packageRoot, '-MountName', $mountName, '-DisableRewrite') -FailureMessage 'Package root did not fail closed without mod_rewrite.' -WorkingDirectory $backendDirectory
     $verificationPassed = $true
 } catch {
     $verificationFailure = $_
@@ -241,5 +249,5 @@ if ($verificationFailure -ne $null) {
 }
 
 if ($verificationPassed) {
-    Write-Host 'PASS: strict source package layout, commit binding, complete manifest, dependency install, isolated application/test database setup and cleanup, full suite, and public-root checks passed from a clean extraction.'
+    Write-Host 'PASS: strict source package layout, commit binding, complete manifest, dependency install, isolated application/test database setup and cleanup, full suite, canonical backend/public and localhost package-root checks passed from a clean extraction.'
 }
