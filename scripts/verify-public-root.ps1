@@ -10,7 +10,10 @@ param(
     [string]$PackageRoot = '',
     [string]$MountName = '',
     [switch]$DisableRewrite,
-    [switch]$VerifyNestedBackendGuard
+    [switch]$VerifyNestedBackendGuard,
+    [string]$DatabaseName = '',
+    [string]$AdminEmail = '',
+    [string]$AdminPasswordEnvironmentVariable = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -48,6 +51,33 @@ $browserProfile = Join-Path $temporaryDirectory 'chrome-profile'
 $documentRoot = $publicRoot
 $servedDirectory = $publicRoot
 $urlPrefix = ''
+$previousDatabaseName = $env:DB_NAME
+$adminPassword = ''
+
+if (($AdminEmail -eq '') -ne ($AdminPasswordEnvironmentVariable -eq '')) {
+    throw 'AdminEmail and AdminPasswordEnvironmentVariable must be supplied together.'
+}
+if ($AdminEmail -ne '' -and $DatabaseName -eq '') {
+    throw 'Authenticated browser checks require an isolated DatabaseName.'
+}
+if ($AdminPasswordEnvironmentVariable -ne '') {
+    if ($AdminPasswordEnvironmentVariable -notmatch '^[A-Z][A-Z0-9_]*$') {
+        throw 'AdminPasswordEnvironmentVariable must name an uppercase process environment variable.'
+    }
+    $adminPassword = [Environment]::GetEnvironmentVariable($AdminPasswordEnvironmentVariable, 'Process')
+    if ([string]::IsNullOrWhiteSpace($adminPassword)) {
+        throw 'The supplied administrator password environment variable is empty.'
+    }
+}
+if ($DatabaseName -ne '') {
+    if ($DatabaseName -notmatch '^[A-Za-z0-9_]+_test$') {
+        throw 'DatabaseName must be an isolated _test database.'
+    }
+    if ($DatabaseName -eq $previousDatabaseName) {
+        throw 'DatabaseName must differ from the inherited application database.'
+    }
+    $env:DB_NAME = $DatabaseName
+}
 
 function Stop-ProcessTree {
     param([System.Diagnostics.Process]$RootProcess)
@@ -108,7 +138,11 @@ function Invoke-HttpProbe {
 }
 
 function Invoke-BrowserStyleProbe {
-    param([Parameter(Mandatory)][string[]]$Urls)
+    param(
+        [Parameter(Mandatory)][string[]]$Urls,
+        [string]$AdminLoginUrl = '',
+        [string]$AdminDownloadsUrl = ''
+    )
 
     if (-not (Test-Path -LiteralPath $ChromePath -PathType Leaf)) {
         throw "Chrome is required for the rendered package check: $ChromePath"
@@ -137,7 +171,28 @@ function Invoke-BrowserStyleProbe {
 
             & curl.exe --silent --output NUL "http://127.0.0.1:$BrowserPort/json/version"
             if ($LASTEXITCODE -eq 0) {
-                foreach ($Url in $Urls) {
+                $auditUrls = @($Urls)
+                $previousBrowserPort = $env:GUIDEMYPC_CHROME_DEBUG_PORT
+                $env:GUIDEMYPC_CHROME_DEBUG_PORT = $BrowserPort
+                if ($AdminLoginUrl -ne '') {
+                    $previousAdminPassword = $env:GUIDEMYPC_BROWSER_ADMIN_PASSWORD
+                    $env:GUIDEMYPC_BROWSER_ADMIN_PASSWORD = $adminPassword
+                    try {
+                        $loginOutput = & node (Join-Path $repositoryRoot 'scripts\login-browser-session.js') $AdminLoginUrl $AdminDownloadsUrl $AdminEmail 2>&1 | Out-String
+                        if ($LASTEXITCODE -ne 0) {
+                            throw "Browser admin login failed.`n$loginOutput"
+                        }
+                    } finally {
+                        if ($null -eq $previousAdminPassword) {
+                            Remove-Item Env:GUIDEMYPC_BROWSER_ADMIN_PASSWORD -ErrorAction SilentlyContinue
+                        } else {
+                            $env:GUIDEMYPC_BROWSER_ADMIN_PASSWORD = $previousAdminPassword
+                        }
+                    }
+                    Write-Host $loginOutput.TrimEnd()
+                    $auditUrls += $AdminDownloadsUrl
+                }
+                foreach ($Url in $auditUrls) {
                     $previousPort = $env:GUIDEMYPC_CHROME_DEBUG_PORT
                     $previousStyleRequirement = $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES
                     $previousIconRequirement = $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS
@@ -161,6 +216,7 @@ function Invoke-BrowserStyleProbe {
                         $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS = $previousIconRequirement
                     }
                 }
+                $env:GUIDEMYPC_CHROME_DEBUG_PORT = $previousBrowserPort
                 return $browserProcess
             }
         }
@@ -323,10 +379,17 @@ DirectoryIndex index.php
             }
         }
     }
-    $browserProcess = Invoke-BrowserStyleProbe -Urls @(
+    $browserArguments = @{
+        Urls = @(
         "http://127.0.0.1:$Port$urlPrefix/",
         "http://127.0.0.1:$Port$urlPrefix/downloads.php"
-    )
+        )
+    }
+    if ($AdminEmail -ne '') {
+        $browserArguments.AdminLoginUrl = "http://127.0.0.1:$Port$urlPrefix/login.php"
+        $browserArguments.AdminDownloadsUrl = "http://127.0.0.1:$Port$urlPrefix/admin_downloads.php"
+    }
+    $browserProcess = Invoke-BrowserStyleProbe @browserArguments
     Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Excludes 'ai.php' | Out-Null
     if ($Mode -eq 'PublicRoot') {
         Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Contains 'Sitemap: http://guidemypc.test/sitemap.php' | Out-Null
@@ -392,6 +455,11 @@ DirectoryIndex index.php
     $details = if ((Test-Path -LiteralPath $stderrLog) -and (Get-Item -LiteralPath $stderrLog).Length -gt 0) { [System.IO.File]::ReadAllText($stderrLog) } elseif (Test-Path -LiteralPath $errorLog) { [System.IO.File]::ReadAllText($errorLog) } else { 'No Apache error log was created.' }
     throw "$failure`nApache error log:`n$details"
 } finally {
+    if ($null -eq $previousDatabaseName) {
+        Remove-Item Env:DB_NAME -ErrorAction SilentlyContinue
+    } else {
+        $env:DB_NAME = $previousDatabaseName
+    }
     if ($process -ne $null -and -not $process.HasExited) {
         Stop-Process -Id $process.Id -Force
         $process.WaitForExit()

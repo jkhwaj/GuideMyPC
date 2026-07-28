@@ -108,7 +108,7 @@ function database_run_sql(mysqli $connection, string $sql, string $name): void
         throw new RuntimeException(sprintf('%s failed: %s', $name, $connection->error));
     }
 
-    do {
+    while (true) {
         $result = $connection->store_result();
 
         if ($result instanceof mysqli_result) {
@@ -118,10 +118,16 @@ function database_run_sql(mysqli $connection, string $sql, string $name): void
         if (!$connection->more_results()) {
             break;
         }
-    } while ($connection->next_result());
 
-    if ($connection->errno !== 0) {
-        throw new RuntimeException(sprintf('%s failed: %s', $name, $connection->error));
+        try {
+            $advanced = $connection->next_result();
+        } catch (Throwable $exception) {
+            throw new RuntimeException(sprintf('%s failed: %s', $name, $exception->getMessage()), 0, $exception);
+        }
+
+        if (!$advanced) {
+            throw new RuntimeException(sprintf('%s failed: %s', $name, $connection->error));
+        }
     }
 }
 

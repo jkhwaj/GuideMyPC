@@ -63,11 +63,86 @@ SELECT id, 2, 'Confirm that the device has a stable internet connection and enou
 FROM guides WHERE slug = 'check-windows-update-issue'
 ON DUPLICATE KEY UPDATE step_text = VALUES(step_text);
 
-INSERT INTO downloads (name, description, official_url, category) VALUES
-    ('Microsoft Support', 'Official Microsoft support and recovery resources.', 'https://support.microsoft.com/', 'Windows'),
-    ('Apple Support', 'Official Apple support resources.', 'https://support.apple.com/', 'macOS'),
-    ('Android Help', 'Official Android help resources.', 'https://support.google.com/android/', 'Android')
-ON DUPLICATE KEY UPDATE id = id;
+CREATE TEMPORARY TABLE sample_support_downloads (
+    name VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    official_url VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    normalized_name VARCHAR(150) NOT NULL,
+    normalized_url VARCHAR(255) NOT NULL
+);
+
+INSERT INTO sample_support_downloads (name, description, official_url, category, normalized_name, normalized_url) VALUES
+    ('Microsoft Support', 'Official Microsoft Support resources for Windows troubleshooting, recovery, updates, and account help.', 'https://support.microsoft.com/', 'Windows', 'microsoft support', 'https://support.microsoft.com'),
+    ('Apple Support', 'Official Apple Support resources for Mac, iPhone, iPad, Apple Account, and device troubleshooting.', 'https://support.apple.com/', 'macOS, iOS, iPadOS', 'apple support', 'https://support.apple.com'),
+    ('Android Help', 'Official Android Help resources for setup, updates, security, and troubleshooting.', 'https://support.google.com/android/', 'Android', 'android help', 'https://support.google.com/android');
+
+CREATE TEMPORARY TABLE sample_support_matches AS
+SELECT normalized.id AS download_id,
+    COALESCE(
+        (
+            SELECT sample.name
+            FROM sample_support_downloads AS sample
+            WHERE normalized.normalized_name = sample.normalized_name
+            LIMIT 1
+        ),
+        (
+            SELECT sample.name
+            FROM sample_support_downloads AS sample
+            WHERE BINARY normalized.normalized_url = BINARY sample.normalized_url
+            LIMIT 1
+        )
+    ) AS sample_name
+FROM (
+    SELECT downloads.id,
+        REGEXP_REPLACE(LOWER(TRIM(downloads.name)), '[[:space:]]+', ' ') AS normalized_name,
+        CONCAT(
+        LOWER(SUBSTRING_INDEX(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), '://', 1)),
+        '://',
+        CASE LOWER(SUBSTRING_INDEX(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), '://', 1))
+            WHEN 'https' THEN REGEXP_REPLACE(LOWER(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), CHAR_LENGTH(SUBSTRING_INDEX(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), '://', 1)) + 4), '/', 1), '?', 1)), ':443$', '')
+            WHEN 'http' THEN REGEXP_REPLACE(LOWER(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), CHAR_LENGTH(SUBSTRING_INDEX(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), '://', 1)) + 4), '/', 1), '?', 1)), ':80$', '')
+            ELSE LOWER(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), CHAR_LENGTH(SUBSTRING_INDEX(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), '://', 1)) + 4), '/', 1), '?', 1))
+        END,
+        REGEXP_REPLACE(
+            SUBSTRING(
+                SUBSTRING(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), CHAR_LENGTH(SUBSTRING_INDEX(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), '://', 1)) + 4),
+                CHAR_LENGTH(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), CHAR_LENGTH(SUBSTRING_INDEX(TRIM(SUBSTRING_INDEX(downloads.official_url, '#', 1)), '://', 1)) + 4), '/', 1), '?', 1)) + 1
+            ),
+            '/+(\\?.*)?$', '\\1'
+        )
+    ) AS normalized_url
+    FROM downloads
+) AS normalized
+WHERE EXISTS (
+    SELECT 1
+    FROM sample_support_downloads AS sample
+    WHERE normalized.normalized_name = sample.normalized_name
+       OR BINARY normalized.normalized_url = BINARY sample.normalized_url
+);
+
+UPDATE downloads
+JOIN sample_support_matches AS matches ON matches.download_id = downloads.id
+JOIN sample_support_downloads AS sample ON sample.name = matches.sample_name
+SET downloads.name = sample.name,
+    downloads.description = sample.description,
+    downloads.official_url = sample.official_url,
+    downloads.category = sample.category,
+    downloads.review_state = 'approved',
+    downloads.is_published = 1,
+    downloads.verified_at = UTC_DATE();
+
+INSERT INTO downloads (name, description, official_url, category, review_state, is_published, verified_at)
+SELECT sample.name, sample.description, sample.official_url, sample.category, 'approved', 1, UTC_DATE()
+FROM sample_support_downloads AS sample
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM sample_support_matches AS matches
+    WHERE matches.sample_name = sample.name
+);
+
+DROP TEMPORARY TABLE sample_support_matches;
+DROP TEMPORARY TABLE sample_support_downloads;
 
 INSERT INTO search_aliases (alias, replacement) VALUES
     ('bsod', 'blue screen'),

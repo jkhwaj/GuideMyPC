@@ -41,6 +41,10 @@ Each feature task owns its schema change. Keep migrations small, reviewable, and
 
 `027_official_download_catalog.sql` is a forward-only catalog migration. It repairs only matching official records by normalized product name or complete normalized official URL, then creates missing records; it does not delete unrelated or custom downloads. `004_official_download_catalog.sql` repeats that safe repair behavior for seeded catalogs.
 
+`028_historical_download_deduplication.sql` is a forward-only data cleanup. It first fails closed when prior migration history has left an orphaned verification-event reference; recover from an approved backup before retrying rather than guessing the deleted record. Generic Download audit targets can legitimately point to deleted history, but are remapped when this cleanup consolidates a live duplicate. Otherwise it ranks known Android Help, Apple Support, Microsoft Support, and Malwarebytes matches by approval, publication, exact official URL, description completeness, then newest ID; it retains one canonical row, updates its approved public data, reassigns verification and generic download-audit references, and deletes only redundant matches. It preserves unrelated Download records, including distinct products on the same domain. Apply it only through the normal runner after a backup; never bypass a migration-ledger checksum failure.
+
+To audit a protected administration page in the local Apache verifier, create a disposable administrator in a distinct `_test` database and supply its password through a named process environment variable. Pass only that variable name through `-AdminPasswordEnvironmentVariable`; never place the password in a command argument, script, `.env`, or source file.
+
 If a migration fails or its checksum does not match the recorded ledger, stop rather than rerunning it blindly. Follow [`recovery.md`](recovery.md) to investigate partial DDL, restore an approved backup, or rehearse a forward recovery migration.
 
 ## Local Admins
