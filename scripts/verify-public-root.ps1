@@ -108,7 +108,7 @@ function Invoke-HttpProbe {
 }
 
 function Invoke-BrowserStyleProbe {
-    param([Parameter(Mandatory)][string]$Url)
+    param([Parameter(Mandatory)][string[]]$Urls)
 
     if (-not (Test-Path -LiteralPath $ChromePath -PathType Leaf)) {
         throw "Chrome is required for the rendered package check: $ChromePath"
@@ -137,27 +137,29 @@ function Invoke-BrowserStyleProbe {
 
             & curl.exe --silent --output NUL "http://127.0.0.1:$BrowserPort/json/version"
             if ($LASTEXITCODE -eq 0) {
-                $previousPort = $env:GUIDEMYPC_CHROME_DEBUG_PORT
-                $previousStyleRequirement = $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES
-                $previousIconRequirement = $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS
-                $env:GUIDEMYPC_CHROME_DEBUG_PORT = $BrowserPort
-                $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES = '1'
-                $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS = if ($RequireCategoryIcons) { '1' } else { '0' }
-                try {
-                    $browserOutput = & node (Join-Path $repositoryRoot 'scripts\check-browser-accessibility.js') $Url 2>&1 | Out-String
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "Rendered package browser check failed.`n$browserOutput"
+                foreach ($Url in $Urls) {
+                    $previousPort = $env:GUIDEMYPC_CHROME_DEBUG_PORT
+                    $previousStyleRequirement = $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES
+                    $previousIconRequirement = $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS
+                    $env:GUIDEMYPC_CHROME_DEBUG_PORT = $BrowserPort
+                    $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES = '1'
+                    $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS = if ($RequireCategoryIcons -and $Url.EndsWith('/')) { '1' } else { '0' }
+                    try {
+                        $browserOutput = & node (Join-Path $repositoryRoot 'scripts\check-browser-accessibility.js') $Url 2>&1 | Out-String
+                        if ($LASTEXITCODE -ne 0) {
+                            throw "Rendered package browser check failed.`n$browserOutput"
+                        }
+                        Write-Host $browserOutput.TrimEnd()
+                        $mobileOutput = & node (Join-Path $repositoryRoot 'scripts\check-mobile-layout.js') $Url 2>&1 | Out-String
+                        if ($LASTEXITCODE -ne 0) {
+                            throw "320px mobile layout check failed.`n$mobileOutput"
+                        }
+                        Write-Host $mobileOutput.TrimEnd()
+                    } finally {
+                        $env:GUIDEMYPC_CHROME_DEBUG_PORT = $previousPort
+                        $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES = $previousStyleRequirement
+                        $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS = $previousIconRequirement
                     }
-                    Write-Host $browserOutput.TrimEnd()
-                    $mobileOutput = & node (Join-Path $repositoryRoot 'scripts\check-mobile-layout.js') $Url 2>&1 | Out-String
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "320px mobile layout check failed.`n$mobileOutput"
-                    }
-                    Write-Host $mobileOutput.TrimEnd()
-                } finally {
-                    $env:GUIDEMYPC_CHROME_DEBUG_PORT = $previousPort
-                    $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES = $previousStyleRequirement
-                    $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS = $previousIconRequirement
                 }
                 return $browserProcess
             }
@@ -321,7 +323,10 @@ DirectoryIndex index.php
             }
         }
     }
-    $browserProcess = Invoke-BrowserStyleProbe -Url "http://127.0.0.1:$Port$urlPrefix/"
+    $browserProcess = Invoke-BrowserStyleProbe -Urls @(
+        "http://127.0.0.1:$Port$urlPrefix/",
+        "http://127.0.0.1:$Port$urlPrefix/downloads.php"
+    )
     Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Excludes 'ai.php' | Out-Null
     if ($Mode -eq 'PublicRoot') {
         Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Contains 'Sitemap: http://guidemypc.test/sitemap.php' | Out-Null

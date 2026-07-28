@@ -54,7 +54,7 @@ The project owner approved the following final-release changes on 2026-07-22:
 | `guides.php` | GET HTML | Published guide/category listing with filtering. |
 | `guide.php` | GET HTML | Guide detail plus view counting, activity, guest-progress merging, and guide action forms. Extract reads before commands. |
 | `knowledge.php`, `knowledge_article.php`, `glossary.php`, `error-code.php` | GET HTML | Knowledge content routes. Migrate as the first database-backed read slice. |
-| `downloads.php` | GET HTML | Public records require `is_published`, `review_state = 'approved'`, and a safe HTTPS URL. Preserve legacy path while centralizing this policy in task `006`. |
+| `downloads.php` | GET HTML | Public records require `is_published`, `review_state = 'approved'`, and a safe HTTPS URL. Official catalog links open in a new tab with `noopener noreferrer`; direct binary URLs are not catalog entries. |
 | `search.php` | GET HTML | Search results and aggregate search event recording. |
 | `search_suggestions.php` | GET JSON | File-rate-limited suggestions endpoint. It rejects other methods and forces bounded JSON success and error envelopes. |
 | `search_event.php` | POST JSON | Search-selection telemetry. It forces bounded JSON envelopes, reports whether privacy filtering actually recorded the event, and is a documented CSRF exception that must not be broken by broad middleware. |
@@ -91,7 +91,8 @@ The active routes use `community_posts`, `community_comments`, and `community_li
 | `admin_guides.php` | GET HTML | Editor/administrator guide listing with bounded search, publication/category filters, allowlisted sorting, and pagination. Delete controls are administrator-only. |
 | `add_guide.php`, `edit_guide.php` | GET/POST HTML | Editor/administrator Guide workflows. Draft/publication, curation, official sources, structured steps, CSRF, audit, and HTTP 303 PRG are required. |
 | `admin.php`, `admin_downloads.php`, `admin_users.php`, `admin_community.php`, `admin_comments.php` | GET HTML | Administrator listings/dashboard. Queries must complete before output. |
-| `add_download.php`, `edit_download.php`, `edit_user.php` | GET/POST HTML | Administrator editor workflows until their feature-specific capability contracts are approved. Preserve validation, CSRF, authorization, and PRG. |
+| `add_download.php`, `edit_download.php` | GET/POST HTML | Administrator Download workflows preserve validation, CSRF, audit, and PRG. Normalized product names and complete official URLs must be unique; URL matching lowercases scheme/host and treats fragments, default ports, and trailing slashes as equivalent, while preserving paths. An edit may retain its own normalized values. |
+| `edit_user.php` | GET/POST HTML | Administrator user workflow. Preserve validation, CSRF, authorization, audit, and PRG. |
 | `delete_category.php` | POST redirect | Administrator-only hard deletion. Block deletion when any known feature references the category; preserve CSRF, flash, audit, and HTTP 303 PRG behavior. |
 | `delete_guide.php` | POST redirect | Administrator-only hard deletion. Block deletion when durable user or knowledge dependencies exist; preserve CSRF, flash, audit, and HTTP 303 PRG behavior. |
 | `delete_comment.php`, `delete_download.php`, `delete_post.php`, `delete_user.php` | POST redirect | Administrator deletion actions. Preserve authorization, CSRF, flash, redirect, and audit behavior. |

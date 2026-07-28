@@ -28,15 +28,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         abort_request(422, 'invalid_download_review_state', 'Choose a valid review state.');
     }
 
-    (new GuideMyPC\Features\Downloads\DownloadAdminService($conn))->update(
-        $id,
-        $name,
-        $description,
-        $official_url,
-        $category,
-        $reviewState,
-        $isPublished
-    );
+    try {
+        (new GuideMyPC\Features\Downloads\DownloadAdminService($conn))->update(
+            $id,
+            $name,
+            $description,
+            $official_url,
+            $category,
+            $reviewState,
+            $isPublished
+        );
+    } catch (DomainException $exception) {
+        abort_request(422, 'duplicate_download', $exception->getMessage());
+    }
 
     redirect('admin_downloads.php');
 }

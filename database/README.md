@@ -39,6 +39,8 @@ Each feature task owns its schema change. Keep migrations small, reviewable, and
 
 `026_remembered_devices.sql` is a forward-only account-security migration. It creates hash-only remembered-browser records and must be applied through the normal migration runner; do not add token values to seeds, exports, fixtures, or logs.
 
+`027_official_download_catalog.sql` is a forward-only catalog migration. It repairs only matching official records by normalized product name or complete normalized official URL, then creates missing records; it does not delete unrelated or custom downloads. `004_official_download_catalog.sql` repeats that safe repair behavior for seeded catalogs.
+
 If a migration fails or its checksum does not match the recorded ledger, stop rather than rerunning it blindly. Follow [`recovery.md`](recovery.md) to investigate partial DDL, restore an approved backup, or rehearse a forward recovery migration.
 
 ## Local Admins

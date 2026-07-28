@@ -20,16 +20,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (!$policy->reviewStateIsValid($reviewState)) {
         $message = 'Choose a valid review state.';
     } else {
-        (new GuideMyPC\Features\Downloads\DownloadAdminService($conn))->create(
-            $name,
-            $description,
-            $official_url,
-            $category,
-            $reviewState,
-            $isPublished
-        );
-
-        redirect('admin_downloads.php');
+        try {
+            (new GuideMyPC\Features\Downloads\DownloadAdminService($conn))->create(
+                $name,
+                $description,
+                $official_url,
+                $category,
+                $reviewState,
+                $isPublished
+            );
+            redirect('admin_downloads.php');
+        } catch (DomainException $exception) {
+            $message = $exception->getMessage();
+        }
     }
 }
 
@@ -43,7 +46,7 @@ include("includes/navbar.php");
         <p>Add trusted official software download links.</p>
 
         <?php if ($message != ""): ?>
-            <div class="auth-message"><?php echo $message; ?></div>
+            <div class="auth-message"><?php echo e($message); ?></div>
         <?php endif; ?>
 
         <form method="POST">

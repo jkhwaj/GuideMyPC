@@ -47,6 +47,12 @@ foreach ($paths as $path) {
 
 $caseMap = [];
 $hashMap = [];
+$intentionalExactDuplicateGroups = [
+    [
+        'database/migrations/027_official_download_catalog.sql',
+        'database/seeds/004_official_download_catalog.sql',
+    ],
+];
 foreach ($paths as $path) {
     $caseKey = strtolower($path);
     $caseMap[$caseKey][] = $path;
@@ -64,7 +70,18 @@ foreach ($caseMap as $matches) {
 
 foreach ($hashMap as $matches) {
     if (count($matches) > 1) {
-        $errors[] = 'Exact duplicate files require an explicit inventory exception: ' . implode(', ', $matches);
+        sort($matches, SORT_STRING);
+        $isApprovedDuplicate = false;
+        foreach ($intentionalExactDuplicateGroups as $approvedGroup) {
+            sort($approvedGroup, SORT_STRING);
+            if ($matches === $approvedGroup) {
+                $isApprovedDuplicate = true;
+                break;
+            }
+        }
+        if (!$isApprovedDuplicate) {
+            $errors[] = 'Exact duplicate files require an explicit inventory exception: ' . implode(', ', $matches);
+        }
     }
 }
 
@@ -185,6 +202,6 @@ if ($errors !== []) {
 }
 
 printf(
-    "PASS: audited %d current source files; no prohibited paths, exact duplicates, case collisions, retired runtime references, obvious secrets, machine-user paths, or historical migration edits; 56 approved routes.\n",
+    "PASS: audited %d current source files; no prohibited paths, unapproved exact duplicates, case collisions, retired runtime references, obvious secrets, machine-user paths, or historical migration edits; 56 approved routes.\n",
     count($paths)
 );
