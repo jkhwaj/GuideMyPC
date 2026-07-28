@@ -19,7 +19,7 @@ final class DownloadPolicy
         $host = strtolower((string) ($parts['host'] ?? ''));
 
         if (
-            ($parts['scheme'] ?? '') !== 'https'
+            strtolower((string) ($parts['scheme'] ?? '')) !== 'https'
             || $host === ''
             || (filter_var($host, FILTER_VALIDATE_IP) && !filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE))
         ) {
@@ -27,6 +27,40 @@ final class DownloadPolicy
         }
 
         return $value;
+    }
+
+    public function normalizedName(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $name = preg_replace('/\s+/u', ' ', trim($value));
+
+        return $name === null || $name === '' ? null : mb_strtolower($name);
+    }
+
+    public function normalizedUrl(mixed $value): ?string
+    {
+        $trustedUrl = $this->trustedUrl($value);
+
+        if ($trustedUrl === null) {
+            return null;
+        }
+
+        $parts = parse_url($trustedUrl);
+        $scheme = strtolower((string) $parts['scheme']);
+        $host = strtolower((string) $parts['host']);
+        $port = isset($parts['port']) ? (int) $parts['port'] : null;
+        $path = rtrim((string) ($parts['path'] ?? ''), '/');
+        $query = isset($parts['query']) ? '?' . $parts['query'] : '';
+
+        $authority = $host;
+        if ($port !== null && !(($scheme === 'https' && $port === 443) || ($scheme === 'http' && $port === 80))) {
+            $authority .= ':' . $port;
+        }
+
+        return $scheme . '://' . $authority . $path . $query;
     }
 
     /**

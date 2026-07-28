@@ -72,8 +72,8 @@ This is the route-by-route companion to [`route-contracts.md`](route-contracts.m
 | `edit_guide.php` | GET/POST HTML/303 | Editor/administrator with refreshed role; POST CSRF; `id`, guide metadata, persistent step IDs/`steps`, `sources`. | Updates guide/steps/sources/search/audit data and deletes progress for intentionally removed steps. Called by Guide admin; guide-admin integration coverage. |
 | `delete_guide.php` | POST redirect | Administrator with refreshed role; CSRF; `id`. | Deletes only when progress, favorites, ratings, and knowledge dependencies permit it. Called by Guide admin form; guide-admin integration coverage. |
 | `admin_downloads.php` | GET~ HTML | Administrator; no inputs. | Reads all downloads. Called by admin dashboard; no direct test. |
-| `add_download.php` | GET~/POST HTML/303 | Administrator; POST CSRF; `name`, `description`, `official_url`, `category`, `review_state`, `is_published`. | Inserts download. Called by Download admin; helper policy coverage only. |
-| `edit_download.php` | GET~/POST HTML/303 | Administrator; POST CSRF; `id` and Download fields. | Reads/updates download. Called by Download admin; helper policy coverage only. |
+| `add_download.php` | GET~/POST HTML/303 | Administrator; POST CSRF; `name`, `description`, `official_url`, `category`, `review_state`, `is_published`. | Inserts a Download after normalized product-name and full official-URL duplicate checks; duplicate errors remain on the form. Catalog/admin integration coverage. |
+| `edit_download.php` | GET~/POST HTML/303 | Administrator; POST CSRF; `id` and Download fields. | Reads/updates a Download; an edit may retain its own normalized name/URL but not another record's. Duplicate requests receive bounded 422 errors. Catalog/admin integration coverage. |
 | `delete_download.php` | POST redirect | Administrator; CSRF; `id`. | Deletes download. Called by Download admin form; no direct test. |
 | `admin_users.php` | GET~ HTML | Administrator; `success`. | Reads users. Called by admin dashboard; no direct test. |
 | `edit_user.php` | GET~/POST HTML/303 | Administrator; POST CSRF; `id`, `full_name`, `email`, `role`. | Updates user, writes admin audit, and may refresh own session. Called by User admin; authorization/account indirect tests. |
@@ -85,7 +85,7 @@ This is the route-by-route companion to [`route-contracts.md`](route-contracts.m
 
 ## Inventory Validation
 
-- The 53 root web entry scripts, excluding `config.php`, exactly match the union of `routes/web.php`, `routes/admin.php`, and `routes/api.php`.
+- The 56 root web entry scripts, excluding `config.php`, exactly match the union of `routes/web.php`, `routes/admin.php`, and `routes/api.php`.
 - `routes/api.php` contains only `search_suggestions.php` and `search_event.php`; it is not a full-resource API.
 - Root route files that are intended to be GET but currently lack a method guard are marked `GET~`. Their method behavior must be characterized before moving them behind centralized method handling.
 - `search_event.php` is the only recorded public POST JSON CSRF exception. Do not apply broad POST middleware without preserving that exception.

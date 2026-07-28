@@ -142,6 +142,9 @@ assert_same(null, knowledge_safe_reference_url('javascript:alert(1)'), 'knowledg
 assert_same('https://support.example.test/', knowledge_safe_reference_url('https://support.example.test/'), 'knowledge sources allow HTTPS references.');
 assert_same('https://downloads.example.test/tool', trusted_download_url('https://downloads.example.test/tool'), 'Download policy permits HTTPS host URLs.');
 assert_same(null, trusted_download_url('http://downloads.example.test/tool'), 'Download policy rejects non-HTTPS URLs.');
+assert_same('malwarebytes', (new GuideMyPC\Features\Downloads\DownloadPolicy())->normalizedName('  Malwarebytes  '), 'Download names normalize whitespace and case.');
+assert_same('https://www.malwarebytes.com/mwb-download', (new GuideMyPC\Features\Downloads\DownloadPolicy())->normalizedUrl('HTTPS://WWW.MALWAREBYTES.COM:443/mwb-download/#fragment'), 'Download URLs normalize scheme, host, default ports, trailing slashes, and fragments.');
+assert_same(false, (new GuideMyPC\Features\Downloads\DownloadPolicy())->normalizedUrl('https://www.cpuid.com/softwares/cpu-z.html') === (new GuideMyPC\Features\Downloads\DownloadPolicy())->normalizedUrl('https://www.cpuid.com/softwares/HWmonitor.html'), 'Download URL normalization preserves distinct paths on the same hostname.');
 assert_same(true, download_is_public(['is_published' => 1, 'review_state' => 'approved', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy permits published, approved HTTPS URLs.');
 assert_same(false, download_is_public(['is_published' => 0, 'review_state' => 'approved', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy rejects unpublished downloads.');
 assert_same(false, download_is_public(['is_published' => 1, 'review_state' => 'pending', 'official_url' => 'https://downloads.example.test/tool']), 'Download policy rejects pending downloads.');
