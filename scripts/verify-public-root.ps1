@@ -323,7 +323,12 @@ DirectoryIndex index.php
         '/Tasks/web-init/README.md',
         '/tests/helpers_test.php'
     )) {
-        Invoke-HttpProbe -Path $privatePath -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot | Out-Null
+        $packageRootBlocked = $Mode -eq 'PackageRoot' -and $privatePath -match '^/(database|docs|frontend|uml)(?:/|$)'
+        if ($packageRootBlocked) {
+            Invoke-HttpProbe -Path $privatePath -ExpectedStatus 403 -Excludes $repositoryRoot | Out-Null
+        } else {
+            Invoke-HttpProbe -Path $privatePath -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot | Out-Null
+        }
     }
 
     if ($Mode -eq 'PackageRoot') {
