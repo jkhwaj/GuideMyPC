@@ -121,6 +121,18 @@ try {
         Copy-RequiredEntry -RelativePath $entry -DestinationRoot $backendDirectory
     }
 
+    $backendHtaccessPath = Join-Path $backendDirectory '.htaccess'
+    $backendHtaccess = [System.IO.File]::ReadAllText($backendHtaccessPath)
+    $backendDirectRequestGuard = @'
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{THE_REQUEST} "\s/+[^\s?]*/backend(?:/|\s)" [NC]
+    RewriteRule ^ - [F,L]
+</IfModule>
+
+'@
+    [System.IO.File]::WriteAllText($backendHtaccessPath, $backendDirectRequestGuard + $backendHtaccess, [System.Text.UTF8Encoding]::new($false))
+
     Get-ChildItem -LiteralPath $sourceDirectory -File -Filter '*.php' | ForEach-Object {
         Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $backendDirectory $_.Name)
     }
@@ -172,8 +184,8 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    RewriteRule ^(?:backend|database|docs|frontend|uml)(?:/|$) - [F,END,NC]
-    RewriteRule ^(?:PACKAGE-MANIFEST\.txt|README\.md)$ - [F,END,NC]
+    RewriteRule ^(?:backend|database|docs|frontend|uml)(?:/|$) - [F,L,NC]
+    RewriteRule ^(?:PACKAGE-MANIFEST\.txt|README\.md)$ - [F,L,NC]
 
     RewriteRule ^assets/(css|js)/([A-Za-z0-9][A-Za-z0-9._-]*)$ backend/public/assets/$1/$2 [END,NC]
     RewriteRule ^(css|js)/([A-Za-z0-9][A-Za-z0-9._-]*)$ backend/public/assets/$1/$2 [END,NC]
