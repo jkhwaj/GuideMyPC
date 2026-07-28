@@ -51,7 +51,7 @@ $result = $conn->query("SELECT * FROM downloads ORDER BY id DESC");
                         <td><?php echo (int) $download['is_published'] === 1 ? 'Published' : 'Private'; ?></td>
 
                         <td>
-                            <a href="<?php echo htmlspecialchars($download["official_url"]); ?>" target="_blank">
+                            <a href="<?php echo htmlspecialchars($download["official_url"]); ?>" target="_blank" rel="noopener noreferrer">
                                 Open Link
                             </a>
                         </td>
