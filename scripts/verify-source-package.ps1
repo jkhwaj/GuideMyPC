@@ -210,6 +210,7 @@ try {
     $mountName = 'FinalProject-' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
     Invoke-CheckedCommand -Command 'powershell.exe' -Arguments @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $publicRootScript, '-Port', ($ApachePort + 2).ToString(), '-RequireCategoryIcons', '-Mode', 'PackageRoot', '-PackageRoot', $packageRoot, '-MountName', $mountName) -FailureMessage 'Package localhost subdirectory verification failed.' -WorkingDirectory $backendDirectory
     Invoke-CheckedCommand -Command 'powershell.exe' -Arguments @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $publicRootScript, '-Port', ($ApachePort + 4).ToString(), '-Mode', 'PackageRoot', '-PackageRoot', $packageRoot, '-MountName', $mountName, '-DisableRewrite') -FailureMessage 'Package root did not fail closed without mod_rewrite.' -WorkingDirectory $backendDirectory
+    Invoke-CheckedCommand -Command 'powershell.exe' -Arguments @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $publicRootScript, '-Port', ($ApachePort + 6).ToString(), '-Mode', 'PackageRoot', '-PackageRoot', $packageRoot, '-MountName', $mountName, '-VerifyNestedBackendGuard') -FailureMessage 'Package backend/public policy did not block direct browser access.' -WorkingDirectory $backendDirectory
     $verificationPassed = $true
 } catch {
     $verificationFailure = $_

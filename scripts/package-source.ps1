@@ -132,6 +132,9 @@ try {
 
 '@
     [System.IO.File]::WriteAllText($backendHtaccessPath, $backendDirectRequestGuard + $backendHtaccess, [System.Text.UTF8Encoding]::new($false))
+    $backendPublicHtaccessPath = Join-Path $backendDirectory 'public\.htaccess'
+    $backendPublicHtaccess = [System.IO.File]::ReadAllText($backendPublicHtaccessPath)
+    [System.IO.File]::WriteAllText($backendPublicHtaccessPath, $backendDirectRequestGuard + $backendPublicHtaccess, [System.Text.UTF8Encoding]::new($false))
 
     Get-ChildItem -LiteralPath $sourceDirectory -File -Filter '*.php' | ForEach-Object {
         Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $backendDirectory $_.Name)

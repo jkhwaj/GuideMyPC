@@ -9,7 +9,8 @@ param(
     [ValidateSet('PublicRoot', 'PackageRoot')][string]$Mode = 'PublicRoot',
     [string]$PackageRoot = '',
     [string]$MountName = '',
-    [switch]$DisableRewrite
+    [switch]$DisableRewrite,
+    [switch]$VerifyNestedBackendGuard
 )
 
 $ErrorActionPreference = 'Stop'
@@ -186,6 +187,10 @@ try {
         $documentRoot = $packageParent
         $servedDirectory = $mountedPackage
         $urlPrefix = '/' + $MountName
+        if ($VerifyNestedBackendGuard) {
+            Remove-Item -LiteralPath (Join-Path $mountedPackage '.htaccess') -Force
+            Remove-Item -LiteralPath (Join-Path $mountedPackage 'backend\.htaccess') -Force
+        }
     }
 
     $documentRootConfig = $documentRoot.Replace('\', '/')
@@ -273,6 +278,14 @@ DirectoryIndex index.php
         Write-Host 'PASS: package-root Apache fails closed when mod_rewrite is unavailable.'
         return
     }
+    if ($VerifyNestedBackendGuard) {
+        if ($Mode -ne 'PackageRoot') {
+            throw 'VerifyNestedBackendGuard is only valid for PackageRoot mode.'
+        }
+        Invoke-HttpProbe -Path '/backend/public/index.php' -ExpectedStatus 403 -Excludes $repositoryRoot | Out-Null
+        Write-Host 'PASS: generated backend/public policy independently blocks direct browser access.'
+        return
+    }
 
     $homeBody = Invoke-HttpProbe -Path '/' -ExpectedStatus 200 -Contains '<title>GuideMyPC' -Excludes 'Index of'
     Invoke-HttpProbe -Path '/guides.php' -ExpectedStatus 200 -Contains '<title>All Guides | GuideMyPC</title>' | Out-Null
@@ -345,7 +358,7 @@ DirectoryIndex index.php
         )) {
             Invoke-HttpProbe -Path $packagePrivatePath -ExpectedStatus 403 -Excludes $repositoryRoot | Out-Null
         }
-        Invoke-HttpProbe -Path '/backend/public/index.php' -ExpectedStatus @(403, 404) -Excludes $repositoryRoot | Out-Null
+        Invoke-HttpProbe -Path '/backend/public/index.php' -ExpectedStatus 403 -Excludes $repositoryRoot | Out-Null
     }
 
     Write-Host "PASS: isolated Apache $Mode exposes only public assets and approved legacy routes; private and retired paths return bounded responses."
