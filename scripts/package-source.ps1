@@ -147,6 +147,8 @@ try {
 
 declare(strict_types=1);
 
+$_SERVER['GUIDEMYPC_ENTRY_SCRIPT_NAME'] = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+
 require __DIR__ . '/backend/public/index.php';
 '@
     [System.IO.File]::WriteAllText((Join-Path $packageRoot 'index.php'), $packageIndex, [System.Text.UTF8Encoding]::new($false))

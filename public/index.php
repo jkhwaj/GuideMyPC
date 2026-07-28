@@ -9,7 +9,8 @@ $routes = array_replace(
     require $root . '/routes/api.php'
 );
 $requestPath = rawurldecode((string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/'));
-$basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
+$entryScriptName = $_SERVER['GUIDEMYPC_ENTRY_SCRIPT_NAME'] ?? $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+$basePath = str_replace('\\', '/', dirname($entryScriptName));
 $basePath = $basePath === '/' ? '' : rtrim($basePath, '/');
 $_SERVER['GUIDEMYPC_BASE_PATH'] = $basePath;
 
