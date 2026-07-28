@@ -35,9 +35,9 @@ declare(strict_types=1);
             <label for="category-description">Description</label>
             <textarea id="category-description" name="description" rows="5" maxlength="5000"><?php echo e($category['description']); ?></textarea>
 
-            <label for="category-icon">Icon class</label>
+            <label for="category-icon">Icon</label>
             <input id="category-icon" type="text" name="icon" maxlength="50" value="<?php echo e($category['icon']); ?>" aria-describedby="category-icon-help">
-            <small id="category-icon-help">Optional existing icon class, for example <code>fa-brands fa-windows</code>.</small>
+            <small id="category-icon-help">Optional emoji or other visible Unicode text, for example 💻.</small>
 
             <label for="category-featured-order">Featured order</label>
             <input id="category-featured-order" type="number" name="featured_order" min="1" max="999" value="<?php echo $category['featured_order'] === null ? '' : (int) $category['featured_order']; ?>" aria-describedby="category-featured-help">

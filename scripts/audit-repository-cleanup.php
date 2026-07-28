@@ -126,11 +126,42 @@ foreach ($paths as $path) {
     }
 }
 
+$headMigrations = [];
+$headMigrationStatus = 0;
+exec('git -C ' . escapeshellarg($root) . ' ls-tree -r --name-only HEAD -- database/migrations', $headMigrations, $headMigrationStatus);
+$highestMigration = 0;
+foreach ($headMigrations as $migration) {
+    if (preg_match('#^database/migrations/(\d+)_#', $migration, $matches) === 1) {
+        $highestMigration = max($highestMigration, (int) $matches[1]);
+    }
+}
 $migrationDiff = [];
 $migrationStatus = 0;
-exec('git -C ' . escapeshellarg($root) . ' diff --name-only HEAD -- database/migrations', $migrationDiff, $migrationStatus);
-if ($migrationStatus !== 0 || $migrationDiff !== []) {
-    $errors[] = 'Historical migrations differ from HEAD: ' . implode(', ', $migrationDiff);
+exec('git -C ' . escapeshellarg($root) . ' diff --no-renames --name-only HEAD -- database/migrations', $migrationDiff, $migrationStatus);
+$untrackedMigrations = [];
+$untrackedMigrationStatus = 0;
+exec('git -C ' . escapeshellarg($root) . ' ls-files --others --exclude-standard -- database/migrations', $untrackedMigrations, $untrackedMigrationStatus);
+$migrationChanges = array_values(array_unique(array_merge($migrationDiff, $untrackedMigrations)));
+if ($headMigrationStatus !== 0 || $migrationStatus !== 0 || $untrackedMigrationStatus !== 0) {
+    $errors[] = 'Unable to inspect migration changes.';
+} else {
+    $forwardMigrations = [];
+    foreach ($migrationChanges as $migration) {
+        if (in_array($migration, $headMigrations, true)) {
+            $errors[] = 'Historical migration differs from HEAD: ' . $migration;
+            continue;
+        }
+
+        if (preg_match('#^database/migrations/(\d+)_[-_a-z0-9]+\.sql$#i', $migration, $matches) !== 1 || (int) $matches[1] !== $highestMigration + 1) {
+            $errors[] = 'Migration must be the next numbered forward SQL migration: ' . $migration;
+            continue;
+        }
+
+        $forwardMigrations[] = $migration;
+    }
+    if (count($forwardMigrations) > 1) {
+        $errors[] = 'Only one next-numbered forward migration is allowed: ' . implode(', ', $forwardMigrations);
+    }
 }
 
 $routeCount = 0;
@@ -154,6 +185,6 @@ if ($errors !== []) {
 }
 
 printf(
-    "PASS: audited %d current source files; no prohibited paths, exact duplicates, case collisions, retired runtime references, obvious secrets, machine-user paths, or migration edits; 53 approved routes.\n",
+    "PASS: audited %d current source files; no prohibited paths, exact duplicates, case collisions, retired runtime references, obvious secrets, machine-user paths, or historical migration edits; 53 approved routes.\n",
     count($paths)
 );

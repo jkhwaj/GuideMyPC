@@ -39,12 +39,13 @@ try {
         'name' => 'Category Test ' . $token,
         'slug' => 'category-test-' . $token,
         'description' => 'A deterministic category integration fixture.',
-        'icon' => 'fa-solid fa-display',
+        'icon' => '💻',
         'is_published' => '0',
         'featured_order' => '',
     ]);
     category_assert($valid['errors'] === [], 'Valid category input passes validation.');
     category_assert($valid['values']['is_published'] === 0 && $valid['values']['featured_order'] === null, 'Draft and empty feature order normalize correctly.');
+    category_assert($valid['values']['icon'] === '💻', 'Unicode emoji category icons pass validation unchanged.');
 
     $invalid = $service->validate([
         'name' => ['invalid'],
@@ -56,20 +57,32 @@ try {
     ]);
     category_assert(count($invalid['errors']) === 6, 'Malformed, oversized, and tampered category fields fail closed.');
 
+    $invisibleIcon = $service->validate([
+        'name' => 'Visible Icon ' . $token,
+        'slug' => 'visible-icon-' . $token,
+        'description' => 'A category fixture with an invalid invisible icon.',
+        'icon' => "\u{200B}",
+        'is_published' => '0',
+        'featured_order' => '',
+    ]);
+    category_assert($invisibleIcon['errors'] === ['Icon must be 50 characters or fewer and contain visible Unicode text only.'], 'Invisible Unicode format characters are rejected from category icons.');
+
     $categoryId = $service->create($valid['values']);
     $created = $repository->find($categoryId);
     category_assert($created !== null && $created['slug'] === $valid['values']['slug'], 'Category create stores normalized fields.');
+    category_assert($created !== null && $created['icon'] === '💻', 'Category create stores Unicode emoji with utf8mb4.');
     category_assert((int) $created['is_published'] === 0 && $created['featured_order'] === null, 'Category create preserves draft and unfeatured state.');
     category_assert($repository->slugExists($valid['values']['slug']), 'Duplicate slug lookup detects an existing category.');
     category_assert(!$repository->slugExists($valid['values']['slug'], $categoryId), 'Duplicate slug lookup excludes the current category during editing.');
 
     $updatedValues = $valid['values'];
     $updatedValues['name'] = 'Updated Category Test ' . $token;
+    $updatedValues['icon'] = '📶';
     $updatedValues['is_published'] = 1;
     $updatedValues['featured_order'] = 3;
     category_assert($service->update($categoryId, $updatedValues), 'Existing category update succeeds.');
     $updated = $repository->find($categoryId);
-    category_assert($updated !== null && (int) $updated['is_published'] === 1 && (int) $updated['featured_order'] === 3, 'Category update stores publication and featured order.');
+    category_assert($updated !== null && (int) $updated['is_published'] === 1 && (int) $updated['featured_order'] === 3 && $updated['icon'] === '📶', 'Category update stores publication, featured order, and Unicode emoji.');
 
     $diagnosticSlug = 'category-diagnostic-' . $token;
     $diagnosticTitle = 'Category Diagnostic ' . $token;

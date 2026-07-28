@@ -1,11 +1,19 @@
 INSERT INTO categories (name, slug, description, icon) VALUES
-    ('Windows', 'windows', 'Practical help for common Windows issues.', 'fa-brands fa-windows'),
-    ('macOS', 'macos', 'Practical help for common Mac issues.', 'fa-brands fa-apple'),
-    ('Linux', 'linux', 'Practical help for common Linux issues.', 'fa-brands fa-linux'),
-    ('Android', 'android', 'Practical help for common Android issues.', 'fa-brands fa-android'),
-    ('iPhone / iPad', 'iphone', 'Practical help for common iPhone and iPad issues.', 'fa-brands fa-apple'),
-    ('Wi-Fi & Routers', 'wifi', 'Practical help for home network troubleshooting.', 'fa-solid fa-wifi')
-ON DUPLICATE KEY UPDATE id = id;
+    ('Windows', 'windows', 'Practical help for common Windows issues.', '💻'),
+    ('macOS', 'macos', 'Practical help for common Mac issues.', '🍎'),
+    ('Linux', 'linux', 'Practical help for common Linux issues.', '🐧'),
+    ('Android', 'android', 'Practical help for common Android issues.', '🤖'),
+    ('iPhone / iPad', 'iphone', 'Practical help for common iPhone and iPad issues.', '📱'),
+    ('Wi-Fi & Routers', 'wifi', 'Practical help for home network troubleshooting.', '📶')
+ON DUPLICATE KEY UPDATE icon = CASE
+    WHEN slug = 'windows' AND icon = 'fa-brands fa-windows' THEN VALUES(icon)
+    WHEN slug = 'macos' AND icon = 'fa-brands fa-apple' THEN VALUES(icon)
+    WHEN slug = 'linux' AND icon = 'fa-brands fa-linux' THEN VALUES(icon)
+    WHEN slug = 'android' AND icon = 'fa-brands fa-android' THEN VALUES(icon)
+    WHEN slug = 'iphone' AND icon = 'fa-brands fa-apple' THEN VALUES(icon)
+    WHEN slug = 'wifi' AND icon = 'fa-solid fa-wifi' THEN VALUES(icon)
+    ELSE icon
+END;
 
 INSERT INTO guides (category_id, title, slug, description, difficulty, estimated_time, risk_level, content)
 SELECT id, 'Check a Windows update issue', 'check-windows-update-issue', 'Start with safe checks before changing system settings.', 'Beginner', '10 minutes', 'Low', 'Use the guide steps below.'

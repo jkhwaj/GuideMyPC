@@ -4,7 +4,8 @@ param(
     [string]$ApacheRoot = 'C:\xampp\apache',
     [string]$PhpRoot = 'C:\xampp\php',
     [string]$ChromePath = 'C:\Program Files\Google\Chrome\Application\chrome.exe',
-    [int]$BrowserPort = 0
+    [int]$BrowserPort = 0,
+    [switch]$RequireCategoryIcons
 )
 
 $ErrorActionPreference = 'Stop'
@@ -121,17 +122,25 @@ function Invoke-BrowserStyleProbe {
             if ($LASTEXITCODE -eq 0) {
                 $previousPort = $env:GUIDEMYPC_CHROME_DEBUG_PORT
                 $previousStyleRequirement = $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES
+                $previousIconRequirement = $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS
                 $env:GUIDEMYPC_CHROME_DEBUG_PORT = $BrowserPort
                 $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES = '1'
+                $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS = if ($RequireCategoryIcons) { '1' } else { '0' }
                 try {
                     $browserOutput = & node (Join-Path $repositoryRoot 'scripts\check-browser-accessibility.js') $Url 2>&1 | Out-String
                     if ($LASTEXITCODE -ne 0) {
                         throw "Rendered package browser check failed.`n$browserOutput"
                     }
                     Write-Host $browserOutput.TrimEnd()
+                    $mobileOutput = & node (Join-Path $repositoryRoot 'scripts\check-mobile-layout.js') $Url 2>&1 | Out-String
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "320px mobile layout check failed.`n$mobileOutput"
+                    }
+                    Write-Host $mobileOutput.TrimEnd()
                 } finally {
                     $env:GUIDEMYPC_CHROME_DEBUG_PORT = $previousPort
                     $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES = $previousStyleRequirement
+                    $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS = $previousIconRequirement
                 }
                 return $browserProcess
             }

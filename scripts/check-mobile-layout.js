@@ -1,17 +1,18 @@
 'use strict';
 
 const urls = process.argv.slice(2);
+const debugPort = Number.parseInt(process.env.GUIDEMYPC_CHROME_DEBUG_PORT || '9222', 10);
 
-if (urls.length === 0) {
+if (urls.length === 0 || !Number.isInteger(debugPort) || debugPort < 1024 || debugPort > 65535) {
     console.error('Usage: node scripts/check-mobile-layout.js <url> [url ...]');
     process.exit(1);
 }
 
 async function createTarget(url) {
-    const response = await fetch('http://127.0.0.1:9222/json/new?' + encodeURIComponent(url), { method: 'PUT' });
+    const response = await fetch('http://127.0.0.1:' + debugPort + '/json/new?' + encodeURIComponent(url), { method: 'PUT' });
 
     if (!response.ok) {
-        throw new Error('Chrome DevTools is unavailable at port 9222.');
+        throw new Error('Chrome DevTools is unavailable at port ' + debugPort + '.');
     }
 
     return response.json();

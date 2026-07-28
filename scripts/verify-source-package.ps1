@@ -201,7 +201,7 @@ try {
     Invoke-CheckedCommand -Command $PhpCommand -Arguments @('database/migrate.php', "--database=$Database") -FailureMessage 'Repeat package migration failed.' -WorkingDirectory $backendDirectory
     Invoke-CheckedCommand -Command $PhpCommand -Arguments @('database/seed.php', "--database=$Database") -FailureMessage 'Package seed failed.' -WorkingDirectory $backendDirectory
     Invoke-CheckedCommand -Command $PhpCommand -Arguments @('scripts/verify.php', "--database=$Database") -FailureMessage 'Package full verification failed.' -WorkingDirectory $backendDirectory
-    Invoke-CheckedCommand -Command 'powershell.exe' -Arguments @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $backendDirectory 'scripts\verify-public-root.ps1'), '-Port', $ApachePort.ToString()) -FailureMessage 'Package public-root verification failed.' -WorkingDirectory $backendDirectory
+    Invoke-CheckedCommand -Command 'powershell.exe' -Arguments @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $backendDirectory 'scripts\verify-public-root.ps1'), '-Port', $ApachePort.ToString(), '-RequireCategoryIcons') -FailureMessage 'Package public-root verification failed.' -WorkingDirectory $backendDirectory
     $verificationPassed = $true
 } catch {
     $verificationFailure = $_
