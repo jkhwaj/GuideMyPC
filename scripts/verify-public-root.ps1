@@ -290,8 +290,8 @@ DirectoryIndex index.php
     if ($Mode -eq 'PackageRoot') {
         foreach ($requiredMountedUrl in @(
             ('href="' + $urlPrefix + '/guides.php"'),
-            ('href="' + $urlPrefix + '/assets/css/style.css'),
-            ('src="' + $urlPrefix + '/assets/js/script.js')
+            ('href="' + $urlPrefix + '/css/style.css'),
+            ('src="' + $urlPrefix + '/js/script.js')
         )) {
             if (-not $homeBody.Contains($requiredMountedUrl)) {
                 throw "Package homepage does not preserve the arbitrary localhost subdirectory URL: $requiredMountedUrl"
