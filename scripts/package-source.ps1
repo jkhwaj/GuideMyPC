@@ -126,7 +126,7 @@ try {
     $backendDirectRequestGuard = @'
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteCond %{THE_REQUEST} "\s/+[^\s?]*/backend(?:/|\s)" [NC]
+    RewriteCond %{REQUEST_URI} (?:^|/)backend(?:/|$) [NC]
     RewriteRule ^ - [F,L]
 </IfModule>
 
@@ -184,7 +184,8 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    RewriteRule ^(?:backend|database|docs|frontend|uml)(?:/|$) - [F,L,NC]
+    RewriteCond %{REQUEST_URI} (?:^|/)(?:backend|database|docs|frontend|uml)(?:/|$) [NC]
+    RewriteRule ^ - [F,L]
     RewriteRule ^(?:PACKAGE-MANIFEST\.txt|README\.md)$ - [F,L,NC]
 
     RewriteRule ^assets/(css|js)/([A-Za-z0-9][A-Za-z0-9._-]*)$ backend/public/assets/$1/$2 [END,NC]
