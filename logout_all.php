@@ -1,14 +1,16 @@
 <?php
+
+declare(strict_types=1);
+
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/includes/accounts.php';
+
 require_post();
+require_login();
 require_csrf();
-
-if (current_user_id() > 0) {
-    record_account_event($conn, current_user_id(), 'logout');
-    revoke_current_remembered_device($conn, current_user_id());
-}
-
+$userId = current_user_id();
+remembered_device_service($conn)->revokeAll($userId, 'logout_all');
+record_account_event($conn, $userId, 'logout');
+clear_remembered_device_cookie();
 session_unset();
 
 if (ini_get('session.use_cookies')) {

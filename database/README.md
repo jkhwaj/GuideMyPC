@@ -37,6 +37,8 @@ Create a new file in `database/migrations/` with the next zero-padded number and
 
 Each feature task owns its schema change. Keep migrations small, reviewable, and compatible with the currently supported MariaDB version. Use a backup and a tested forward-fix or restoration procedure before applying a destructive change. The runner does not provide automatic down migrations because MariaDB DDL can commit implicitly.
 
+`026_remembered_devices.sql` is a forward-only account-security migration. It creates hash-only remembered-browser records and must be applied through the normal migration runner; do not add token values to seeds, exports, fixtures, or logs.
+
 If a migration fails or its checksum does not match the recorded ledger, stop rather than rerunning it blindly. Follow [`recovery.md`](recovery.md) to investigate partial DDL, restore an approved backup, or rehearse a forward recovery migration.
 
 ## Local Admins

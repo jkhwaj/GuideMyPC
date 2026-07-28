@@ -13,6 +13,7 @@ try {
     $database = config_value('DB_NAME', 'guidemypc') ?? 'guidemypc';
     $connection = database_connection($database, false);
     $connection->query('DELETE FROM password_reset_tokens WHERE expires_at < UTC_TIMESTAMP() OR used_at IS NOT NULL');
+    $connection->query('DELETE FROM account_remember_tokens WHERE expires_at < UTC_TIMESTAMP() OR (revoked_at IS NOT NULL AND revoked_at < UTC_TIMESTAMP() - INTERVAL 30 DAY)');
     $connection->query('DELETE FROM user_activity WHERE created_at < UTC_TIMESTAMP() - INTERVAL 90 DAY');
     $connection->query('DELETE FROM account_security_events WHERE created_at < UTC_TIMESTAMP() - INTERVAL 365 DAY');
     $connection->close();

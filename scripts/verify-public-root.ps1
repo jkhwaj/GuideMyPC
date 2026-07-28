@@ -53,9 +53,19 @@ function Stop-ProcessTree {
     param([System.Diagnostics.Process]$RootProcess)
 
     if ($RootProcess -ne $null -and -not $RootProcess.HasExited) {
-        & taskkill.exe /PID $RootProcess.Id /T /F | Out-Null
-        $RootProcess.WaitForExit()
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        & cmd.exe /c "taskkill /PID $($RootProcess.Id) /T /F >NUL 2>&1"
+        $ErrorActionPreference = $previousErrorActionPreference
+        if (-not $RootProcess.HasExited) {
+            $RootProcess.WaitForExit()
+        }
     }
+
+    # Chrome can detach utility children from its root process on Windows.
+    Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe'" |
+        Where-Object { $_.CommandLine -like ('*' + $browserProfile + '*') } |
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 }
 
 function Invoke-HttpProbe {
@@ -386,6 +396,15 @@ DirectoryIndex index.php
     }
 
     if (Test-Path -LiteralPath $temporaryDirectory) {
-        Remove-Item -LiteralPath $temporaryDirectory -Recurse -Force
+        for ($attempt = 0; $attempt -lt 10 -and (Test-Path -LiteralPath $temporaryDirectory); $attempt++) {
+            Start-Sleep -Milliseconds 250
+            try {
+                Remove-Item -LiteralPath $temporaryDirectory -Recurse -Force -ErrorAction Stop
+            } catch [System.IO.IOException] {
+                if ($attempt -eq 9) {
+                    throw
+                }
+            }
+        }
     }
 }

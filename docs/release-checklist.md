@@ -22,6 +22,7 @@ The complete gate discovers all `tests/*_test.php` files, including `diagnostic_
 
 - Product: public Guides and Knowledge, approved Downloads, Search, accounts/progress, Diagnostics, Dashboard KPIs/charts, and canonical legacy Community flows reviewed.
 - Security: CSRF, authorization, trusted-URL/SSRF controls, bounded Search JSON errors, telemetry privacy, private runtime paths, and rate limits reviewed; retired or excluded feature entry points remain absent.
+- v1.1 accounts: remember-me is explicit, persistent validators are hash-only and rotated, device revocation/logout-all/password-change/reset invalidation work, disabled accounts cannot auto-authenticate, and no token appears in logs, pages, or test evidence.
 - Accessibility: keyboard, focus, form errors, status messages, zoom/reflow, and media alternatives reviewed.
 - Content safety: published guides, sources, downloads, diagnostics, and warnings reviewed.
 - Operations: local backup/restore, migration, private storage, logs, source-package inspection, and local public-root checks reviewed. This sign-off does not claim production hosting.

@@ -18,7 +18,7 @@ $expectedRoutes = [
         'index.php', 'about.php', 'contact.php', 'disclaimer.php', 'privacy.php', 'terms.php',
         'guides.php', 'guide.php', 'knowledge.php', 'knowledge_article.php', 'glossary.php', 'error-code.php',
         'downloads.php', 'search.php', 'diagnostic.php', 'diagnostic_action.php', 'login.php', 'register.php',
-        'forgot_password.php', 'reset_password.php', 'settings.php', 'profile.php', 'dashboard.php', 'logout.php',
+        'forgot_password.php', 'reset_password.php', 'settings.php', 'profile.php', 'devices.php', 'revoke_device.php', 'logout_all.php', 'dashboard.php', 'logout.php',
         'account_request.php', 'save_progress.php', 'toggle_favorite.php', 'rate_guide.php', 'community.php',
         'toggle_like.php', 'sitemap.php',
     ],

@@ -22,12 +22,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $user = $result->fetch_assoc();
 
         if ($user && password_verify($password, $user["password"])) {
-            session_regenerate_id(true);
-            $_SESSION["user_id"] = (int) $user["id"];
-            $_SESSION["full_name"] = $user["full_name"];
-            $_SESSION["role"] = $user["role"];
+            if (current_user_id() > 0) {
+                revoke_current_remembered_device($conn, current_user_id());
+            }
+            establish_account_session([
+                'user_id' => (int) $user['id'],
+                'full_name' => (string) $user['full_name'],
+                'role' => (string) $user['role'],
+            ]);
             merge_guest_progress($conn, (int) $user['id']);
             record_account_event($conn, (int) $user['id'], 'login');
+
+            if (($_POST['remember_me'] ?? null) === '1') {
+                issue_remembered_device($conn, (int) $user['id']);
+            }
 
             redirect('index.php');
         } else {
@@ -56,6 +64,8 @@ include("includes/navbar.php");
 
             <label for="login-password">Password</label>
             <input id="login-password" type="password" name="password" autocomplete="current-password" required>
+
+            <label><input type="checkbox" name="remember_me" value="1"> Keep me signed in on this browser for up to 30 days</label>
 
             <button type="submit">Login</button>
         </form>

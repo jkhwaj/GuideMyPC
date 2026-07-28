@@ -33,7 +33,7 @@ The project owner approved the following final-release changes on 2026-07-22:
 | Contract | Current behavior to preserve |
 | --- | --- |
 | Bootstrap | Root routes load `config.php` before output during the transitional state. |
-| Session keys | `user_id`, `full_name`, `role`, `_csrf_token`, `_flash`, `_old_input`, `_guest_progress`, `viewed_guides`, and `_diagnostic_tokens`. |
+| Session keys | `user_id`, `full_name`, `role`, `_remember_selector`, `_csrf_token`, `_flash`, `_old_input`, `_guest_progress`, `viewed_guides`, and `_diagnostic_tokens`. The selector is non-secret device lookup state; the opaque validator remains only in an HttpOnly cookie. |
 | Redirects | Shared redirects use HTTP 303. |
 | JSON | Success: `ok`, `data`, `meta.request_id`; failure: `ok`, bounded `error`, `meta.request_id`. |
 | Errors | `419` has a dedicated invalid-request response; browser errors must not expose internals. |
@@ -65,11 +65,11 @@ The project owner approved the following final-release changes on 2026-07-22:
 
 | Paths | Method and response | Migration contract |
 | --- | --- | --- |
-| `login.php`, `register.php`, `forgot_password.php`, `reset_password.php` | GET/POST HTML | Preserve authentication, validation, reset-link paths, and session behavior. Native mail delivery is not a verified contract. |
-| `settings.php` | GET/POST HTML | Authenticated settings workflow. |
-| `profile.php` | GET HTML | Authenticated profile view. |
+| `login.php`, `register.php`, `forgot_password.php`, `reset_password.php` | GET/POST HTML | Preserve authentication, validation, reset-link paths, and session behavior. Login offers an explicit optional remembered-browser choice; raw persistent tokens are never stored in MariaDB. Native mail delivery is not a verified contract. |
+| `settings.php` | GET/POST HTML | Authenticated settings workflow. A password change revokes remembered browsers. |
+| `profile.php`, `devices.php` | GET HTML | Authenticated profile and owner-scoped remembered-browser inventory. The inventory displays only safe metadata, never selectors, validators, hashes, or raw cookies. |
 | `dashboard.php` | GET HTML or redirect | Authenticated role-aware dashboard. Guests receive the standard HTTP 303 login redirect. Active users receive four personal progress/favorite/rating summaries plus activity; editors and administrators receive six operational KPIs, two bounded charts, and public recent-content projections; only administrators receive user identities and audit details. Account role/status is refreshed before projection selection; unavailable, disabled, or invalid accounts are signed out and redirected to login without receiving a projection. Dashboard is not Reports. |
-| `logout.php`, `account_request.php` | POST redirect | Preserve CSRF, authentication, PRG, and flash behavior. |
+| `logout.php`, `logout_all.php`, `revoke_device.php`, `account_request.php` | POST redirect | Preserve CSRF, authentication, PRG, and flash behavior. `logout.php` revokes the current remembered browser; `revoke_device.php` is owner-scoped; `logout_all.php` revokes every remembered browser and ends the current session. |
 | `save_progress.php` | POST HTML redirect or JSON | Preserve both response modes and ownership checks. |
 | `toggle_favorite.php`, `rate_guide.php` | POST redirect | Preserve CSRF, authorization, redirects, and guide ownership/state rules. |
 

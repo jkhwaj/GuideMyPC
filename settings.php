@@ -25,19 +25,31 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     } elseif ($newPassword !== '' && mb_strlen($newPassword) < 12) {
         $message = 'A new password must be at least 12 characters.';
     } else {
-        if ($newPassword === '') {
-            $update = $conn->prepare('UPDATE users SET full_name = ? WHERE id = ?');
-            $update->bind_param('si', $name, $userId);
-        } else {
-            $hash = password_hash($newPassword, PASSWORD_DEFAULT);
-            $update = $conn->prepare('UPDATE users SET full_name = ?, password = ? WHERE id = ?');
-            $update->bind_param('ssi', $name, $hash, $userId);
+        $conn->begin_transaction();
+        try {
+            if ($newPassword === '') {
+                $update = $conn->prepare('UPDATE users SET full_name = ? WHERE id = ?');
+                $update->bind_param('si', $name, $userId);
+            } else {
+                $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+                $update = $conn->prepare('UPDATE users SET full_name = ?, password = ? WHERE id = ?');
+                $update->bind_param('ssi', $name, $hash, $userId);
+            }
+            $update->execute();
+            $update->close();
+
+            if ($newPassword !== '') {
+                remembered_device_service($conn)->revokeAll($userId, 'password_change');
+            }
+            $conn->commit();
+        } catch (Throwable $exception) {
+            $conn->rollback();
+            throw $exception;
         }
-        $update->execute();
-        $update->close();
         $_SESSION['full_name'] = $name;
         if ($newPassword !== '') {
             session_regenerate_id(true);
+            clear_remembered_device_cookie();
             record_account_event($conn, $userId, 'password_change');
         }
         flash('success', 'Account settings updated.');
@@ -53,5 +65,5 @@ $pageTitle = 'Account Settings | GuideMyPC';
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
 ?>
-<section class="auth-page"><div class="auth-card"><h1>Account settings</h1><p>Your email address remains your sign-in identifier. Email changes require a future verified-email flow.</p><?php if ($message !== ''): ?><div class="auth-message" role="alert"><?php echo e($message); ?></div><?php endif; ?><form method="POST"><?php echo csrf_field(); ?><label for="settings-name">Name</label><input id="settings-name" name="full_name" autocomplete="name" value="<?php echo e($account['full_name']); ?>" required><label for="settings-email">Email</label><input id="settings-email" type="email" value="<?php echo e($account['email']); ?>" disabled><label for="current-password">Current password</label><input id="current-password" name="current_password" type="password" autocomplete="current-password" required><label for="settings-password">New password (optional)</label><input id="settings-password" name="new_password" type="password" autocomplete="new-password" minlength="12"><button type="submit">Save settings</button></form></div></section>
+<section class="auth-page"><div class="auth-card"><h1>Account settings</h1><p>Your email address remains your sign-in identifier. Email changes require a future verified-email flow.</p><?php if ($message !== ''): ?><div class="auth-message" role="alert"><?php echo e($message); ?></div><?php endif; ?><form method="POST"><?php echo csrf_field(); ?><label for="settings-name">Name</label><input id="settings-name" name="full_name" autocomplete="name" value="<?php echo e($account['full_name']); ?>" required><label for="settings-email">Email</label><input id="settings-email" type="email" value="<?php echo e($account['email']); ?>" disabled><label for="current-password">Current password</label><input id="current-password" name="current_password" type="password" autocomplete="current-password" required><label for="settings-password">New password (optional)</label><input id="settings-password" name="new_password" type="password" autocomplete="new-password" minlength="12"><button type="submit">Save settings</button></form><p><a class="secondary-btn" href="<?php echo e(application_url('devices.php')); ?>">Manage signed-in browsers</a></p></div></section>
 <?php include __DIR__ . '/includes/footer.php';

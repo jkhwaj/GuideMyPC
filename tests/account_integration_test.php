@@ -10,6 +10,8 @@ if (PHP_SAPI !== 'cli') {
 require_once __DIR__ . '/bootstrap.php';
 require_once dirname(__DIR__) . '/includes/accounts.php';
 
+use GuideMyPC\Features\Accounts\RememberedDeviceService;
+
 $test = test_database_or_fail();
 $email = 'account-test-' . bin2hex(random_bytes(4)) . '@example.test';
 $name = 'Account Test';
@@ -21,14 +23,16 @@ $userId = $insert->insert_id;
 $insert->close();
 
 try {
+    $rememberedDevices = new RememberedDeviceService($test, 'account-test-pepper');
+    $remembered = $rememberedDevices->issue($userId);
     $token = create_password_reset_token($test, $userId);
     $resetUserId = consume_password_reset_token($test, $token, 'ReplacementPassword1!');
     $reuse = consume_password_reset_token($test, $token, 'AnotherPassword1!');
     $user = $test->query('SELECT password FROM users WHERE id = ' . $userId)->fetch_assoc();
     $step = $test->query("SELECT guide_steps.id FROM guide_steps JOIN guides ON guide_steps.guide_id = guides.id WHERE guides.slug = 'check-windows-update-issue' LIMIT 1")->fetch_assoc();
 
-    if ($resetUserId !== $userId || $reuse !== null || $user === null || !password_verify('ReplacementPassword1!', $user['password']) || $step === null) {
-        throw new RuntimeException('Password reset token was not expiring, single use, or correctly consumed.');
+    if ($resetUserId !== $userId || $reuse !== null || $user === null || !password_verify('ReplacementPassword1!', $user['password']) || $step === null || $rememberedDevices->authenticate($remembered['cookie']) !== null) {
+        throw new RuntimeException('Password reset token or remembered-browser revocation was not correctly applied.');
     }
 
     $_SESSION['_guest_progress'] = [1 => [(int) $step['id'] => true]];
@@ -52,7 +56,7 @@ try {
     fwrite(STDERR, 'FAIL: ' . $exception->getMessage() . PHP_EOL);
     $exitCode = 1;
 } finally {
-    foreach (['password_reset_tokens', 'user_progress', 'user_activity', 'account_security_events'] as $table) {
+    foreach (['password_reset_tokens', 'account_remember_tokens', 'user_progress', 'user_activity', 'account_security_events'] as $table) {
         $deleteRelated = $test->prepare('DELETE FROM ' . $table . ' WHERE user_id = ?');
         $deleteRelated->bind_param('i', $userId);
         $deleteRelated->execute();

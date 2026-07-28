@@ -55,13 +55,21 @@ function configure_session(): void
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
     ini_set('session.cookie_httponly', '1');
-    ini_set('session.cookie_secure', is_https_request() ? '1' : '0');
+    $secureCookie = filter_var(config_value('SESSION_COOKIE_SECURE'), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? is_https_request();
+    $cookieDomain = config_value('SESSION_COOKIE_DOMAIN');
+
+    if (config_value('APP_ENV', 'local') === 'production' && !$secureCookie) {
+        throw new RuntimeException('SESSION_COOKIE_SECURE must be enabled in production.');
+    }
+
+    ini_set('session.cookie_secure', $secureCookie ? '1' : '0');
     ini_set('session.cookie_samesite', 'Lax');
     session_name('guidemypc_session');
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
-        'secure' => is_https_request(),
+        'domain' => is_string($cookieDomain) && $cookieDomain !== '' ? $cookieDomain : '',
+        'secure' => $secureCookie,
         'httponly' => true,
         'samesite' => 'Lax',
     ]);

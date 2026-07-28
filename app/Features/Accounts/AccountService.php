@@ -120,6 +120,13 @@ final class AccountService
             $update->execute();
             $updated = $update->affected_rows === 1;
             $update->close();
+
+            if ($updated) {
+                $revoke = $this->connection->prepare("UPDATE account_remember_tokens SET revoked_at = UTC_TIMESTAMP(), revoked_reason = 'password_reset' WHERE user_id = ? AND revoked_at IS NULL");
+                $revoke->bind_param('i', $userId);
+                $revoke->execute();
+                $revoke->close();
+            }
             $this->connection->commit();
 
             return $updated ? $userId : null;

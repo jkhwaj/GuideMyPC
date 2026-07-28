@@ -143,7 +143,7 @@ The existing session keys, CSRF behavior, flash/old-input behavior, HTTP 303 red
 Feature code owns request coordination, feature validation, business rules, query/command objects, and views for its product area.
 
 - `Pages` owns static and legal pages.
-- `Accounts` owns registration, login, reset, profile, settings, and account data workflows.
+- `Accounts` owns registration, login, reset, profile, settings, remembered-browser tokens, device revocation, and account data workflows. Central MariaDB user IDs connect durable progress, favorites, ratings, activity, and canonical Community data across browsers.
 - `Guides` initially owns categories, guide reads, steps, progress, favorites, and ratings because their current lifecycle is coupled.
 - `Knowledge` owns public articles, glossary, and error-code content. Knowledge administration is not implemented.
 - `Diagnostics` owns the working diagnostic session and transition flow. Both navigation implementations link to it; outcome transitions set `completed_at`, while back and restart clear completion as state is recomputed.

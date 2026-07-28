@@ -173,8 +173,8 @@ foreach (['routes/web.php', 'routes/admin.php', 'routes/api.php'] as $routeMap) 
     }
     $routeCount += count($map);
 }
-if ($routeCount !== 53) {
-    $errors[] = "Expected 53 approved routes, found $routeCount.";
+if ($routeCount !== 56) {
+    $errors[] = "Expected 56 approved routes, found $routeCount.";
 }
 
 if ($errors !== []) {
@@ -185,6 +185,6 @@ if ($errors !== []) {
 }
 
 printf(
-    "PASS: audited %d current source files; no prohibited paths, exact duplicates, case collisions, retired runtime references, obvious secrets, machine-user paths, or historical migration edits; 53 approved routes.\n",
+    "PASS: audited %d current source files; no prohibited paths, exact duplicates, case collisions, retired runtime references, obvious secrets, machine-user paths, or historical migration edits; 56 approved routes.\n",
     count($paths)
 );
