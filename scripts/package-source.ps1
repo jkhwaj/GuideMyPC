@@ -121,6 +121,21 @@ try {
         Copy-RequiredEntry -RelativePath $entry -DestinationRoot $backendDirectory
     }
 
+    $backendHtaccessPath = Join-Path $backendDirectory '.htaccess'
+    $backendHtaccess = [System.IO.File]::ReadAllText($backendHtaccessPath)
+    $backendDirectRequestGuard = @'
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} (?:^|/)backend(?:/|$) [NC]
+    RewriteRule ^ - [F,L]
+</IfModule>
+
+'@
+    [System.IO.File]::WriteAllText($backendHtaccessPath, $backendDirectRequestGuard + $backendHtaccess, [System.Text.UTF8Encoding]::new($false))
+    $backendPublicHtaccessPath = Join-Path $backendDirectory 'public\.htaccess'
+    $backendPublicHtaccess = [System.IO.File]::ReadAllText($backendPublicHtaccessPath)
+    [System.IO.File]::WriteAllText($backendPublicHtaccessPath, $backendDirectRequestGuard + $backendPublicHtaccess, [System.Text.UTF8Encoding]::new($false))
+
     Get-ChildItem -LiteralPath $sourceDirectory -File -Filter '*.php' | ForEach-Object {
         Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $backendDirectory $_.Name)
     }
@@ -141,7 +156,79 @@ try {
     Copy-RequiredEntry -RelativePath 'resources/views' -DestinationRoot $frontendDirectory
     Copy-Item -LiteralPath (Join-Path $sourceDirectory 'database') -Destination $databaseDirectory -Recurse
     Copy-Item -LiteralPath (Join-Path $sourceDirectory 'docs') -Destination $docsDirectory -Recurse
-    Copy-Item -LiteralPath (Join-Path $sourceDirectory 'README.md') -Destination (Join-Path $packageRoot 'README.md')
+
+    $packageIndex = @'
+<?php
+
+declare(strict_types=1);
+
+$_SERVER['GUIDEMYPC_ENTRY_SCRIPT_NAME'] = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+$requestPath = (string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
+$entrySegment = explode('/', ltrim($requestPath, '/'), 2)[0] ?? '';
+$entryBasePath = '/' . $entrySegment;
+if (preg_match('#^/[A-Za-z0-9_-][A-Za-z0-9._~-]*$#', $entryBasePath) === 1) {
+    $_SERVER['GUIDEMYPC_ENTRY_BASE_PATH'] = $entryBasePath;
+}
+
+require __DIR__ . '/backend/public/index.php';
+'@
+    [System.IO.File]::WriteAllText((Join-Path $packageRoot 'index.php'), $packageIndex, [System.Text.UTF8Encoding]::new($false))
+
+    $packageHtaccess = @'
+Options -Indexes
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{REQUEST_URI} (?:^|/)(?:backend|database|docs|frontend|uml)(?:/|$) [NC]
+    RewriteRule ^ - [F,L]
+    RewriteRule ^(?:PACKAGE-MANIFEST\.txt|README\.md)$ - [F,L,NC]
+
+    RewriteRule ^assets/(css|js)/([A-Za-z0-9][A-Za-z0-9._-]*)$ backend/public/assets/$1/$2 [END,NC]
+    RewriteRule ^(css|js)/([A-Za-z0-9][A-Za-z0-9._-]*)$ backend/public/assets/$1/$2 [END,NC]
+    RewriteRule ^robots\.txt$ backend/public/robots.txt [END,NC]
+
+    RewriteRule ^index\.php$ - [END]
+    RewriteRule ^ index.php [END,QSA]
+</IfModule>
+'@
+    [System.IO.File]::WriteAllText((Join-Path $packageRoot '.htaccess'), $packageHtaccess, [System.Text.UTF8Encoding]::new($false))
+
+    $packageEnvironment = (Get-Content -LiteralPath (Join-Path $backendDirectory '.env.example') -Raw)
+    $packageEnvironment = $packageEnvironment.Replace('APP_URL=http://guidemypc.test', 'APP_URL=')
+    $packageEnvironment = $packageEnvironment.Replace(
+        '# Leave unset to use C:\xampp\guidemypc-private, outside Apache''s document root.',
+        '# For package-root localhost use, leave APP_URL blank for safe request-base detection and set APP_PRIVATE_PATH outside htdocs.'
+    )
+    [System.IO.File]::WriteAllText((Join-Path $backendDirectory '.env.example'), $packageEnvironment, [System.Text.UTF8Encoding]::new($false))
+
+    $packageReadme = @'
+# GuideMyPC Source Package
+
+`backend/public` remains the canonical secure application document root. The package-root `index.php` and `.htaccess` are a local XAMPP convenience entry point only; they route public requests to that canonical root and block direct package-source access.
+
+## Local XAMPP Setup
+
+1. Extract this package to `C:\xampp\htdocs\<folder>`.
+2. Open PowerShell in `C:\xampp\htdocs\<folder>\backend`.
+3. Copy `.env.example` to `.env` and keep it private.
+4. Set `APP_PRIVATE_PATH` in `.env` to a directory outside `C:\xampp\htdocs`. Leave `APP_URL` blank to detect the current localhost folder safely. If you set `APP_URL` explicitly, that value is authoritative.
+5. Run `composer install --no-interaction`.
+6. Run `php database\migrate.php` and `php database\seed.php`.
+7. Start Apache and MySQL in XAMPP.
+8. Open `http://localhost/<folder>/`.
+
+Legacy `*.php` routes, `/assets`, `/css`, and `/js` paths continue to work under any folder name. For a production-like local boundary, configure Apache to expose only `backend/public` instead of the package root.
+'@
+    [System.IO.File]::WriteAllText((Join-Path $packageRoot 'README.md'), $packageReadme, [System.Text.UTF8Encoding]::new($false))
 
     $resolvedUmlDirectory = [System.IO.Path]::GetFullPath($UmlDirectory)
 
@@ -207,6 +294,7 @@ try {
     $manifest.Add("Release commit: $commitId")
     $manifest.Add('Layout: frontend/, backend/, database/, uml/, docs/')
     $manifest.Add('Backend document root: backend/public/')
+    $manifest.Add('Package-root local entry point: index.php with .htaccess routing to backend/public/')
     $manifest.Add('UML source: uml/source/GuideMyPC.vpp')
     $manifest.Add("Reviewed screenshots: docs/screenshots/ ($($screenshots.Count) PNG files)")
     $manifest.Add('')

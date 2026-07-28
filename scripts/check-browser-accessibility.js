@@ -3,6 +3,7 @@
 const urls = process.argv.slice(2);
 const debugPort = Number.parseInt(process.env.GUIDEMYPC_CHROME_DEBUG_PORT || '9222', 10);
 const requirePackageStyles = process.env.GUIDEMYPC_REQUIRE_PACKAGE_STYLES === '1';
+const expectCategoryIcons = process.env.GUIDEMYPC_EXPECT_CATEGORY_ICONS === '1';
 
 if (urls.length === 0 || !Number.isInteger(debugPort) || debugPort < 1024 || debugPort > 65535) {
     console.error('Usage: node scripts/check-browser-accessibility.js <url> [url ...]');
@@ -109,6 +110,8 @@ async function audit(url, viewport) {
                         const base = location.origin;
                         return href.indexOf(base) !== href.lastIndexOf(base);
                     }).map((element) => element.getAttribute('href')),
+                    categoryIcons: ['💻', '🍎', '🐧', '🤖', '📱', '📶'].filter((icon) => document.body.innerText.includes(icon)),
+                    legacyCategoryIconText: /fa-(?:brands|solid)/.test(document.body.innerText),
                 };
             })())`,
             returnByValue: true,
@@ -171,6 +174,8 @@ function failuresFor(result, mobile) {
         if (missingStylesheets.length) failures.push(`required stylesheet(s) missing or empty: ${missingStylesheets.map((stylesheet) => stylesheet.requiredPath).join(', ')}`);
         if (result.duplicateBaseNavigation.length) failures.push(`navigation contains duplicated application base URL(s): ${result.duplicateBaseNavigation.join(', ')}`);
     }
+    if (expectCategoryIcons && result.categoryIcons.length !== 6) failures.push('homepage is missing one or more approved category icons');
+    if (expectCategoryIcons && result.legacyCategoryIconText) failures.push('homepage renders legacy Font Awesome category text');
     if (mobile && result.scrollWidth > result.clientWidth) failures.push(`horizontal overflow ${result.scrollWidth}px > ${result.clientWidth}px`);
 
     if (!mobile) {

@@ -67,7 +67,11 @@ if (!is_string($database)) {
 $privatePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'guidemypc-search-endpoint-' . bin2hex(random_bytes(6));
 $rateLimitPath = $privatePath . DIRECTORY_SEPARATOR . 'rate-limits';
 mkdir($rateLimitPath, 0700, true);
-$query = 'endpoint-' . bin2hex(random_bytes(6));
+$queryToken = '';
+for ($index = 0; $index < 12; $index++) {
+    $queryToken .= chr(ord('a') + random_int(0, 25));
+}
+$query = 'endpoint guidance ' . $queryToken;
 $queryHash = search_event_hash($query);
 
 try {

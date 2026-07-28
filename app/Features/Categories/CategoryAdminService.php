@@ -41,8 +41,8 @@ final class CategoryAdminService
             $errors[] = 'Description must be 5,000 characters or fewer.';
         }
 
-        if ($icon === null || ($icon !== '' && preg_match('/^[A-Za-z0-9 _-]+$/', $icon) !== 1)) {
-            $errors[] = 'Icon must be 50 characters or fewer and contain only letters, numbers, spaces, underscores, or hyphens.';
+        if ($icon === null || ($icon !== '' && (preg_match('//u', $icon) !== 1 || preg_match('/[\p{C}<>]/u', $icon) === 1))) {
+            $errors[] = 'Icon must be 50 characters or fewer and contain visible Unicode text only.';
         }
 
         if (!in_array($publication, ['0', '1', 0, 1], true)) {

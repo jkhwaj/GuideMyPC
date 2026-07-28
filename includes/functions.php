@@ -15,7 +15,11 @@ function request_id(): string
 
 function application_url(string $path = ''): string
 {
-    return GuideMyPC\Core\Url::applicationUrl(config_value('APP_URL', ''), $path);
+    return GuideMyPC\Core\Url::applicationUrl(
+        config_value('APP_URL', ''),
+        $path,
+        $_SERVER['GUIDEMYPC_BASE_PATH'] ?? ''
+    );
 }
 
 function asset_url(string $path): string
@@ -23,7 +27,8 @@ function asset_url(string $path): string
     return GuideMyPC\Core\Url::assetUrl(
         config_value('APP_URL', ''),
         config_value('APP_ASSET_VERSION', '1'),
-        $path
+        $path,
+        $_SERVER['GUIDEMYPC_BASE_PATH'] ?? ''
     );
 }
 

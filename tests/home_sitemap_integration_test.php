@@ -19,6 +19,16 @@ function home_sitemap_assert(bool $condition, string $message): void
     }
 }
 
+function render_homepage(): string
+{
+    global $conn;
+
+    ob_start();
+    include dirname(__DIR__) . '/index.php';
+
+    return (string) ob_get_clean();
+}
+
 $test = test_database_or_fail();
 $test->begin_transaction();
 $token = bin2hex(random_bytes(5));
@@ -111,6 +121,15 @@ try {
     home_sitemap_assert(!in_array($hiddenGuideSlug, array_column($home['popularGuides'], 'slug'), true) && !in_array($categoryHiddenGuideSlug, array_column($home['popularGuides'], 'slug'), true), 'Home excludes unpublished and hidden-category guides.');
     home_sitemap_assert(in_array($visibleDownloadName, array_column($home['downloads'], 'name'), true) && !in_array($unsafeDownloadName, array_column($home['downloads'], 'name'), true), 'Home applies the approved Download policy.');
     home_sitemap_assert(in_array($visiblePostTitle, array_column($home['communityPosts'], 'title'), true) && !in_array($hiddenPostTitle, array_column($home['communityPosts'], 'title'), true), 'Home excludes unpublished Community posts.');
+
+    require_once dirname(__DIR__) . '/bootstrap/web.php';
+    $guideMyPcEnvironment['DB_NAME'] = config_value('DB_TEST_NAME');
+    require_once dirname(__DIR__) . '/config.php';
+    $homepage = render_homepage();
+    home_sitemap_assert(!str_contains($homepage, 'fa-brands') && !str_contains($homepage, 'fa-solid'), 'Homepage does not render legacy Font Awesome class text.');
+    foreach (['💻', '🍎', '🐧', '🤖', '📱', '📶'] as $icon) {
+        home_sitemap_assert(str_contains($homepage, $icon), 'Homepage renders every seeded portable category icon.');
+    }
 
     $urls = (new SitemapReadModel($test))->publicUrls('https://example.test/GuideMyPC');
     home_sitemap_assert(in_array('https://example.test/GuideMyPC/index.php', $urls, true), 'Sitemap retains static legacy paths under an application subdirectory.');

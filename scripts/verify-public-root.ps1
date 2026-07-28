@@ -4,7 +4,13 @@ param(
     [string]$ApacheRoot = 'C:\xampp\apache',
     [string]$PhpRoot = 'C:\xampp\php',
     [string]$ChromePath = 'C:\Program Files\Google\Chrome\Application\chrome.exe',
-    [int]$BrowserPort = 0
+    [int]$BrowserPort = 0,
+    [switch]$RequireCategoryIcons,
+    [ValidateSet('PublicRoot', 'PackageRoot')][string]$Mode = 'PublicRoot',
+    [string]$PackageRoot = '',
+    [string]$MountName = '',
+    [switch]$DisableRewrite,
+    [switch]$VerifyNestedBackendGuard
 )
 
 $ErrorActionPreference = 'Stop'
@@ -34,12 +40,14 @@ $stderrLog = Join-Path $temporaryDirectory 'stderr.log'
 $pidFile = Join-Path $temporaryDirectory 'httpd.pid'
 $apacheRootConfig = $ApacheRoot.Replace('\', '/')
 $phpRootConfig = $PhpRoot.Replace('\', '/')
-$publicRootConfig = $publicRoot.Replace('\', '/')
 $errorLogConfig = $errorLog.Replace('\', '/')
 $pidFileConfig = $pidFile.Replace('\', '/')
 $process = $null
 $browserProcess = $null
 $browserProfile = Join-Path $temporaryDirectory 'chrome-profile'
+$documentRoot = $publicRoot
+$servedDirectory = $publicRoot
+$urlPrefix = ''
 
 function Stop-ProcessTree {
     param([System.Diagnostics.Process]$RootProcess)
@@ -53,7 +61,7 @@ function Stop-ProcessTree {
 function Invoke-HttpProbe {
     param(
         [Parameter(Mandatory)][string]$Path,
-        [Parameter(Mandatory)][int]$ExpectedStatus,
+        [Parameter(Mandatory)][int[]]$ExpectedStatus,
         [string]$Method = 'GET',
         [string]$Contains = '',
         [string]$Excludes = '',
@@ -63,12 +71,12 @@ function Invoke-HttpProbe {
     $probeId = [Guid]::NewGuid().ToString('N')
     $bodyPath = Join-Path $temporaryDirectory ($probeId + '.body')
     $headerPath = Join-Path $temporaryDirectory ($probeId + '.headers')
-    $url = "http://127.0.0.1:$Port$Path"
+    $url = "http://127.0.0.1:$Port$urlPrefix$Path"
     $status = & curl.exe --silent --show-error --max-redirs 0 --request $Method --output $bodyPath --dump-header $headerPath --write-out '%{http_code}' $url
 
-    if ($LASTEXITCODE -ne 0 -or [int]$status -ne $ExpectedStatus) {
+    if ($LASTEXITCODE -ne 0 -or [int]$status -notin $ExpectedStatus) {
         $details = if (Test-Path -LiteralPath $bodyPath) { [System.IO.File]::ReadAllText($bodyPath) } else { 'No response body was created.' }
-        throw "HTTP probe failed for $Method $Path. Expected $ExpectedStatus, received $status. $details"
+        throw "HTTP probe failed for $Method $Path. Expected $($ExpectedStatus -join ' or '), received $status. $details"
     }
 
     $body = [System.IO.File]::ReadAllText($bodyPath)
@@ -121,17 +129,25 @@ function Invoke-BrowserStyleProbe {
             if ($LASTEXITCODE -eq 0) {
                 $previousPort = $env:GUIDEMYPC_CHROME_DEBUG_PORT
                 $previousStyleRequirement = $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES
+                $previousIconRequirement = $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS
                 $env:GUIDEMYPC_CHROME_DEBUG_PORT = $BrowserPort
                 $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES = '1'
+                $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS = if ($RequireCategoryIcons) { '1' } else { '0' }
                 try {
                     $browserOutput = & node (Join-Path $repositoryRoot 'scripts\check-browser-accessibility.js') $Url 2>&1 | Out-String
                     if ($LASTEXITCODE -ne 0) {
                         throw "Rendered package browser check failed.`n$browserOutput"
                     }
                     Write-Host $browserOutput.TrimEnd()
+                    $mobileOutput = & node (Join-Path $repositoryRoot 'scripts\check-mobile-layout.js') $Url 2>&1 | Out-String
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "320px mobile layout check failed.`n$mobileOutput"
+                    }
+                    Write-Host $mobileOutput.TrimEnd()
                 } finally {
                     $env:GUIDEMYPC_CHROME_DEBUG_PORT = $previousPort
                     $env:GUIDEMYPC_REQUIRE_PACKAGE_STYLES = $previousStyleRequirement
+                    $env:GUIDEMYPC_EXPECT_CATEGORY_ICONS = $previousIconRequirement
                 }
                 return $browserProcess
             }
@@ -148,6 +164,38 @@ function Invoke-BrowserStyleProbe {
 
 try {
     New-Item -ItemType Directory -Path $temporaryDirectory | Out-Null
+    if ($Mode -eq 'PackageRoot') {
+        if ($PackageRoot -eq '' -or -not (Test-Path -LiteralPath $PackageRoot -PathType Container)) {
+            throw 'PackageRoot must name an extracted package directory in PackageRoot mode.'
+        }
+        if ($MountName -eq '') {
+            $MountName = 'FinalProject-' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
+        }
+        if ($MountName -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$') {
+            throw 'MountName must be a safe arbitrary htdocs folder name.'
+        }
+        foreach ($requiredPackageEntry in @('index.php', '.htaccess', 'backend\public\index.php')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $PackageRoot $requiredPackageEntry) -PathType Leaf)) {
+                throw "PackageRoot is missing required local entry point: $requiredPackageEntry"
+            }
+        }
+
+        $packageParent = Join-Path $temporaryDirectory 'htdocs'
+        $mountedPackage = Join-Path $packageParent $MountName
+        New-Item -ItemType Directory -Path $packageParent | Out-Null
+        Copy-Item -LiteralPath $PackageRoot -Destination $mountedPackage -Recurse
+        $documentRoot = $packageParent
+        $servedDirectory = $mountedPackage
+        $urlPrefix = '/' + $MountName
+        if ($VerifyNestedBackendGuard) {
+            Remove-Item -LiteralPath (Join-Path $mountedPackage '.htaccess') -Force
+            Remove-Item -LiteralPath (Join-Path $mountedPackage 'backend\.htaccess') -Force
+        }
+    }
+
+    $documentRootConfig = $documentRoot.Replace('\', '/')
+    $servedDirectoryConfig = $servedDirectory.Replace('\', '/')
+    $rewriteModule = if ($DisableRewrite) { '' } else { 'LoadModule rewrite_module modules/mod_rewrite.so' }
     $config = @"
 ServerRoot "$apacheRootConfig"
 Listen 127.0.0.1:$Port
@@ -162,7 +210,7 @@ LoadModule dir_module modules/mod_dir.so
 LoadModule env_module modules/mod_env.so
 LoadModule headers_module modules/mod_headers.so
 LoadModule mime_module modules/mod_mime.so
-LoadModule rewrite_module modules/mod_rewrite.so
+$rewriteModule
 LoadFile "$phpRootConfig/php8ts.dll"
 LoadFile "$phpRootConfig/libpq.dll"
 LoadFile "$phpRootConfig/libsqlite3.dll"
@@ -173,7 +221,7 @@ PHPIniDir "$phpRootConfig"
     SetHandler application/x-httpd-php
 </FilesMatch>
 
-DocumentRoot "$publicRootConfig"
+DocumentRoot "$documentRootConfig"
 DirectoryIndex index.php
 
 <Directory />
@@ -181,8 +229,14 @@ DirectoryIndex index.php
     Require all denied
 </Directory>
 
-<Directory "$publicRootConfig">
-    Options FollowSymLinks
+<Directory "$documentRootConfig">
+    Options -Indexes +FollowSymLinks
+    AllowOverride None
+    Require all granted
+</Directory>
+
+<Directory "$servedDirectoryConfig">
+    Options -Indexes +FollowSymLinks
     AllowOverride All
     Require all granted
 </Directory>
@@ -215,7 +269,25 @@ DirectoryIndex index.php
         throw "Temporary Apache did not start. $details"
     }
 
-    $homeBody = Invoke-HttpProbe -Path '/' -ExpectedStatus 200 -Contains '<title>GuideMyPC'
+    if ($DisableRewrite) {
+        if ($Mode -ne 'PackageRoot') {
+            throw 'DisableRewrite is only valid for PackageRoot mode.'
+        }
+        Invoke-HttpProbe -Path '/' -ExpectedStatus 403 -Excludes 'Index of' | Out-Null
+        Invoke-HttpProbe -Path '/database/README.md' -ExpectedStatus 403 | Out-Null
+        Write-Host 'PASS: package-root Apache fails closed when mod_rewrite is unavailable.'
+        return
+    }
+    if ($VerifyNestedBackendGuard) {
+        if ($Mode -ne 'PackageRoot') {
+            throw 'VerifyNestedBackendGuard is only valid for PackageRoot mode.'
+        }
+        Invoke-HttpProbe -Path '/backend/public/index.php' -ExpectedStatus 403 -Excludes $repositoryRoot | Out-Null
+        Write-Host 'PASS: generated backend/public policy independently blocks direct browser access.'
+        return
+    }
+
+    $homeBody = Invoke-HttpProbe -Path '/' -ExpectedStatus 200 -Contains '<title>GuideMyPC' -Excludes 'Index of'
     Invoke-HttpProbe -Path '/guides.php' -ExpectedStatus 200 -Contains '<title>All Guides | GuideMyPC</title>' | Out-Null
     Invoke-HttpProbe -Path '/contact.php' -ExpectedStatus 200 -Contains '<title>Contact | GuideMyPC</title>' | Out-Null
     Invoke-HttpProbe -Path '/assets/css/style.css' -ExpectedStatus 200 -Contains 'box-sizing: border-box' -ContentType 'text/css' | Out-Null
@@ -228,9 +300,22 @@ DirectoryIndex index.php
     if ($homeBody -match 'href="[^"]*https?://[^"]*https?://') {
         throw 'Homepage navigation contains a duplicated application base URL.'
     }
-    $browserProcess = Invoke-BrowserStyleProbe -Url "http://127.0.0.1:$Port/"
+    if ($Mode -eq 'PackageRoot') {
+        foreach ($requiredMountedUrl in @(
+            ('href="' + $urlPrefix + '/guides.php"'),
+            ('href="' + $urlPrefix + '/css/style.css'),
+            ('src="' + $urlPrefix + '/js/script.js')
+        )) {
+            if (-not $homeBody.Contains($requiredMountedUrl)) {
+                throw "Package homepage does not preserve the arbitrary localhost subdirectory URL: $requiredMountedUrl"
+            }
+        }
+    }
+    $browserProcess = Invoke-BrowserStyleProbe -Url "http://127.0.0.1:$Port$urlPrefix/"
     Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Excludes 'ai.php' | Out-Null
-    Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Contains 'Sitemap: http://guidemypc.test/sitemap.php' | Out-Null
+    if ($Mode -eq 'PublicRoot') {
+        Invoke-HttpProbe -Path '/robots.txt' -ExpectedStatus 200 -Contains 'Sitemap: http://guidemypc.test/sitemap.php' | Out-Null
+    }
     Invoke-HttpProbe -Path '/missing-page.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot | Out-Null
     Invoke-HttpProbe -Path '/ai.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' | Out-Null
     Invoke-HttpProbe -Path '/donate.php' -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' | Out-Null
@@ -251,10 +336,32 @@ DirectoryIndex index.php
         '/Tasks/web-init/README.md',
         '/tests/helpers_test.php'
     )) {
-        Invoke-HttpProbe -Path $privatePath -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot | Out-Null
+        $packageRootBlocked = $Mode -eq 'PackageRoot' -and $privatePath -match '^/(database|docs|frontend|uml)(?:/|$)'
+        if ($packageRootBlocked) {
+            Invoke-HttpProbe -Path $privatePath -ExpectedStatus 403 -Excludes $repositoryRoot | Out-Null
+        } else {
+            Invoke-HttpProbe -Path $privatePath -ExpectedStatus 404 -Contains '<title>Page not found | GuideMyPC</title>' -Excludes $repositoryRoot | Out-Null
+        }
     }
 
-    Write-Host 'PASS: isolated Apache exposes only public assets and approved legacy routes; private and retired paths return bounded responses.'
+    if ($Mode -eq 'PackageRoot') {
+        foreach ($packagePrivatePath in @(
+            '/backend/config.php',
+            '/database/README.md',
+            '/docs/project-structure.md',
+            '/frontend/public/assets/css/style.css',
+            '/uml/source/GuideMyPC.vpp',
+            '/PACKAGE-MANIFEST.txt',
+            '/README.md',
+            '/.env',
+            '/backend/.env'
+        )) {
+            Invoke-HttpProbe -Path $packagePrivatePath -ExpectedStatus 403 -Excludes $repositoryRoot | Out-Null
+        }
+        Invoke-HttpProbe -Path '/backend/public/index.php' -ExpectedStatus 403 -Excludes $repositoryRoot | Out-Null
+    }
+
+    Write-Host "PASS: isolated Apache $Mode exposes only public assets and approved legacy routes; private and retired paths return bounded responses."
 } catch {
     $failure = $_
 
