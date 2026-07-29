@@ -1,5 +1,7 @@
 # GuideMyPC
 
+## Project Overview
+
 GuideMyPC is a PHP application for consumer technology support. The verified-core release includes public Guides, Knowledge, approved Downloads, Search, Diagnostics, accounts and progress, role-scoped Dashboard summaries and charts, and the canonical legacy Community post/comment/like workflow. It runs locally with Apache, PHP, and MariaDB from XAMPP.
 
 The release keeps the canonical legacy `*.php` routes and server-rendered workflows. It does not claim AI Assistant, Uploads, Maintenance Center, Knowledge administration, product Reports, full-resource APIs, Donate, Community v2, mail delivery, CSV export, an alternate URL scheme, or production hosting. Do not expose the local XAMPP installation or its database tools to the public internet.
@@ -12,7 +14,22 @@ The release keeps the canonical legacy `*.php` routes and server-rendered workfl
 - `search_suggestions.php` and `search_event.php` are the only dedicated Search JSON endpoints. They use bounded JSON envelopes, stable error statuses, privacy filtering, and file-backed rate limits; they are not a full-resource API.
 - Diagnostics is available from both navigation implementations. Reaching an outcome records completion; back and restart clear completion as the session is recomputed.
 
-## Supported Local Environment
+## Verified Features
+
+- Guides with progress tracking, favorites, and ratings.
+- Public Knowledge and approved official Downloads.
+- Search and guided Diagnostics.
+- User accounts, remembered-device controls, and role-based Dashboard views.
+- Canonical Community posts, comments, and likes.
+
+## Technology Stack
+
+- PHP `^8.2` with `mysqli`, Composer PSR-4 autoloading, and versioned SQL migrations.
+- Apache and MariaDB supplied by the local XAMPP installation.
+- Server-rendered HTML5, CSS3, and progressive vanilla JavaScript.
+- Chart.js `4.5.0`, pinned locally at `public/assets/js/chart.umd.min.js`, for Dashboard charts.
+
+## Requirements
 
 - Windows 10 or Windows 11
 - XAMPP with PHP 8.2.x, Apache 2.4.x, and MariaDB 10.4.x
@@ -72,6 +89,16 @@ C:\xampp\php\php.exe database\seed.php
 ```
 
 The migration command creates the configured database when the local account has permission. The seed command is optional and only adds public sample content. The legacy mutable prototype dump was removed because it contained production-like sample data below the public web root. See [`database/README.md`](database/README.md) for migration naming, idempotence, rollback, and local test-database guidance.
+
+## Create a Local Administrator
+
+Run migrations before creating an administrator, then use the supported interactive command:
+
+```powershell
+C:\xampp\php\php.exe scripts\create-local-admin.php --name="Local Admin" --email=admin@example.test
+```
+
+The script asks for the password in the terminal. It requires a minimum of 12 characters and does not provide a default production password.
 
 ## Configuration
 
@@ -143,11 +170,22 @@ it remains authoritative; use it for a configured virtual host or deployment.
 The package-root mode is local-installation compatibility, not a replacement
 for exposing only `backend/public` in production.
 
+## Project Structure
+
+The repository runtime is the canonical root application with `public/` as its Apache document root. In the generated source package, `backend/public` is the same canonical application document root; `frontend/` and the package-level `database/` are reviewed copies for inspection. The package-root `index.php` exists only for local XAMPP convenience and its rewrite policy blocks direct access to source, documentation, database, and UML paths.
+
 ## Local File Access and Mail
 
 - Keep the checkout readable by the Windows user running Apache; do not grant broad write access such as `Everyone:Full Control`.
 - Do not use public writable directories for logs, backups, or files. Runtime-writable paths belong in private storage outside the repository and web root. No Uploads feature is included in this release.
 - XAMPP does not configure outbound mail safely by default. The password-reset request remains non-enumerating, but outbound delivery is unproven and is not a release capability.
+
+## Security Notes
+
+- Never commit `.env`, credentials, tokens, passwords, or database backups.
+- Keep backups and runtime storage outside the web root.
+- Do not expose XAMPP, phpMyAdmin, or the local database server publicly.
+- Use a disposable local database for migrations and tests.
 
 ## Reset Local Data
 
@@ -196,3 +234,15 @@ reviewed screenshots; validate its ZIP with
 - [`docs/route-inventory.md`](docs/route-inventory.md): route methods, inputs, side effects, callers, and test coverage
 - [`docs/search.md`](docs/search.md): Search behavior and the two narrow JSON endpoints
 - [`docs/project-structure.md`](docs/project-structure.md): current and transitional application boundaries
+
+## Release Information
+
+The exact submitted source commit is recorded only in the generated `PACKAGE-MANIFEST.txt` and private submission documents after the final tracked commit exists.
+
+## Screenshots
+
+![GuideMyPC home](docs/readme-images/home.png)
+
+![GuideMyPC diagnostics](docs/readme-images/diagnostics.png)
+
+![GuideMyPC mobile Downloads](docs/readme-images/mobile-downloads.png)

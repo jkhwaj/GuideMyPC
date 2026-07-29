@@ -1,6 +1,5 @@
 [CmdletBinding()]
 param(
-    [string]$Commit = 'HEAD',
     [Parameter(Mandatory)][string]$OutputPath,
     [Parameter(Mandatory)][string]$UmlDirectory,
     [Parameter(Mandatory)][string]$ScreenshotsDirectory
@@ -13,10 +12,18 @@ if ($LASTEXITCODE -ne 0 -or $repositoryRoot -eq '') {
     throw 'Run this script from a Git working tree.'
 }
 
-$commitId = (& git rev-parse "$Commit^{commit}").Trim()
+$commitId = (& git rev-parse HEAD).Trim()
 
+if ($LASTEXITCODE -ne 0 -or $commitId -notmatch '^[0-9a-f]{40}$') {
+    throw 'Unable to resolve HEAD to a full 40-character commit SHA.'
+}
+
+$dirtyTrackedFiles = & git status --porcelain
 if ($LASTEXITCODE -ne 0) {
-    throw "The commit '$Commit' cannot be resolved."
+    throw 'Unable to inspect the Git working tree.'
+}
+if ($dirtyTrackedFiles) {
+    throw 'Source packaging requires a clean tracked working tree so the archive exactly matches HEAD.'
 }
 
 $output = [System.IO.Path]::GetFullPath($OutputPath)
@@ -156,6 +163,11 @@ try {
     Copy-RequiredEntry -RelativePath 'resources/views' -DestinationRoot $frontendDirectory
     Copy-Item -LiteralPath (Join-Path $sourceDirectory 'database') -Destination $databaseDirectory -Recurse
     Copy-Item -LiteralPath (Join-Path $sourceDirectory 'docs') -Destination $docsDirectory -Recurse
+    # Submission planning sources are review records, not package runtime documentation.
+    $submissionSources = Join-Path $docsDirectory 'submission'
+    if (Test-Path -LiteralPath $submissionSources) {
+        Remove-Item -LiteralPath $submissionSources -Recurse -Force
+    }
 
     $packageIndex = @'
 <?php
@@ -210,12 +222,34 @@ Options -Indexes
     )
     [System.IO.File]::WriteAllText((Join-Path $backendDirectory '.env.example'), $packageEnvironment, [System.Text.UTF8Encoding]::new($false))
 
-    $packageReadme = @'
+    $packageReadme = @"
 # GuideMyPC Source Package
 
-`backend/public` remains the canonical secure application document root. The package-root `index.php` and `.htaccess` are a local XAMPP convenience entry point only; they route public requests to that canonical root and block direct package-source access.
+## Project Overview
+
+GuideMyPC is a local PHP consumer-technology support application for everyday users. This package contains the verified core only and is designed for local XAMPP use.
+
+## Verified Features
+
+- Published Guides with progress, favorites, and ratings.
+- Public Knowledge, approved official Downloads, and bounded Search endpoints.
+- Guided Diagnostics, user accounts, and role-based Dashboard views.
+- Canonical Community posts, comments, and likes.
+
+## Technology Stack
+
+- PHP 8.2 or later, Apache, and MariaDB through XAMPP.
+- Server-rendered HTML5, CSS3, vanilla JavaScript, and locally pinned Chart.js 4.5.0.
+- Composer PSR-4 autoloading and versioned SQL migrations.
+
+## Requirements
+
+- Windows 10 or Windows 11, XAMPP with Apache, MariaDB, and PHP extensions `mysqli`, `mbstring`, `openssl`, `fileinfo`, `json`, and `curl`.
+- Composer and Git.
 
 ## Local XAMPP Setup
+
+`backend/public` remains the canonical secure application document root. The package-root `index.php` and `.htaccess` are a local XAMPP convenience entry point only; they route public requests to that canonical root and block direct package-source access.
 
 1. Extract this package to `C:\xampp\htdocs\<folder>`.
 2. Open PowerShell in `C:\xampp\htdocs\<folder>\backend`.
@@ -227,7 +261,53 @@ Options -Indexes
 8. Open `http://localhost/<folder>/`.
 
 Legacy `*.php` routes, `/assets`, `/css`, and `/js` paths continue to work under any folder name. For a production-like local boundary, configure Apache to expose only `backend/public` instead of the package root.
-'@
+
+## Create a Local Administrator
+
+Run migrations first, then create an administrator interactively:
+
+```
+php scripts/create-local-admin.php --name="Local Admin" --email=admin@example.test
+```
+
+The script requires a password of at least 12 characters and provides no default password.
+
+## Validation Commands
+
+Run these from `backend` after configuring a disposable local database:
+
+```
+composer validate --strict
+composer run verify:fast
+php scripts/verify.php --database=guidemypc_submission_test
+composer run audit:cleanup
+powershell -File scripts/verify-public-root.ps1
+```
+
+## Project Structure
+
+- `backend/`: canonical runnable application; expose only `backend/public` in a virtual host.
+- `frontend/`: reviewed public assets and view copy for inspection.
+- `database/`: reviewed migration and seed copy.
+- `docs/`: useful technical documentation and reviewed screenshots.
+- `uml/`: native Visual Paradigm project and four required PNG exports.
+
+## Screenshots and UML Locations
+
+The ten reviewed screenshots are in `docs/screenshots/`. The UML source is `uml/source/GuideMyPC.vpp`; the four required exports are in `uml/exports/`.
+
+## Known Limitations
+
+This verified release does not include AI Assistant, Uploads, Maintenance Center, Knowledge administration, product Reports, a full-resource API, Donate, Community v2, proven outbound mail, or production hosting.
+
+## Security Notes
+
+Keep `.env` private, never commit credentials or backups, keep `APP_PRIVATE_PATH` outside `htdocs`, do not expose XAMPP or phpMyAdmin publicly, and use disposable databases for tests.
+
+## Release
+
+Source commit: $commitId
+"@
     [System.IO.File]::WriteAllText((Join-Path $packageRoot 'README.md'), $packageReadme, [System.Text.UTF8Encoding]::new($false))
 
     $resolvedUmlDirectory = [System.IO.Path]::GetFullPath($UmlDirectory)
@@ -292,6 +372,7 @@ Legacy `*.php` routes, `/assets`, `/css`, and `/js` paths continue to work under
     $manifest = [System.Collections.Generic.List[string]]::new()
     $manifest.Add('GuideMyPC strict source package')
     $manifest.Add("Release commit: $commitId")
+    $manifest.Add("Generated UTC: $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))")
     $manifest.Add('Layout: frontend/, backend/, database/, uml/, docs/')
     $manifest.Add('Backend document root: backend/public/')
     $manifest.Add('Package-root local entry point: index.php with .htaccess routing to backend/public/')
@@ -310,7 +391,37 @@ Legacy `*.php` routes, `/assets`, `/css`, and `/js` paths continue to work under
         }
 
     [System.IO.File]::WriteAllLines($manifestPath, $manifest, [System.Text.UTF8Encoding]::new($false))
-    Compress-Archive -LiteralPath $packageRoot -DestinationPath $output
+    $outputStream = [System.IO.File]::Open($output, [System.IO.FileMode]::CreateNew)
+    $archive = [System.IO.Compression.ZipArchive]::new(
+        $outputStream,
+        [System.IO.Compression.ZipArchiveMode]::Create,
+        $false
+    )
+    try {
+        Get-ChildItem -LiteralPath $packageParent -File -Force -Recurse | ForEach-Object {
+            $relative = $_.FullName.Substring($packageParent.Length + 1).Replace('\', '/')
+            $entry = $archive.CreateEntry($relative, [System.IO.Compression.CompressionLevel]::Optimal)
+            $entryStream = $entry.Open()
+            $inputStream = [System.IO.File]::OpenRead($_.FullName)
+            try {
+                $inputStream.CopyTo($entryStream)
+            } finally {
+                $inputStream.Dispose()
+                $entryStream.Dispose()
+            }
+        }
+    } finally {
+        $archive.Dispose()
+        $outputStream.Dispose()
+    }
+    $archive = [System.IO.Compression.ZipFile]::OpenRead($output)
+    try {
+        if (@($archive.Entries | Where-Object { $_.FullName.Contains('\') }).Count -gt 0) {
+            throw 'Generated ZIP contains Windows-only path separators.'
+        }
+    } finally {
+        $archive.Dispose()
+    }
 } finally {
     if (Test-Path -LiteralPath $temporaryDirectory) {
         Remove-Item -LiteralPath $temporaryDirectory -Recurse -Force
