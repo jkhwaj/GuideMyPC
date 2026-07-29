@@ -65,7 +65,10 @@ include("includes/navbar.php");
             <label for="login-password">Password</label>
             <input id="login-password" type="password" name="password" autocomplete="current-password" required>
 
-            <label><input type="checkbox" name="remember_me" value="1"> Keep me signed in on this browser for up to 30 days</label>
+            <label class="checkbox-field">
+                <input type="checkbox" name="remember_me" value="1">
+                <span>Keep me signed in on this browser for up to 30 days</span>
+            </label>
 
             <button type="submit">Login</button>
         </form>
