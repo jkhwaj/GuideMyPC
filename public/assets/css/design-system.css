@@ -302,8 +302,9 @@ button:disabled { cursor: not-allowed; opacity: .62; }
 .admin-form-card { max-width: 44rem; }
 .auth-card input:not([type="checkbox"]), .auth-card textarea, .auth-card select { width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-inset); color: var(--text); padding: .8rem; }
 .auth-card small { color: var(--text-muted); }
-.checkbox-field { display: flex; align-items: center; gap: .65rem; }
-.checkbox-field input { width: 1.1rem; height: 1.1rem; }
+.checkbox-field { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: .55rem; line-height: 1.4; }
+.checkbox-field input { width: 1.1rem; height: 1.1rem; margin-top: .15rem; }
+.checkbox-field span { min-width: 0; overflow-wrap: anywhere; }
 .auth-card, .step-editor, .guide-sources, .admin-table td, .admin-table code { overflow-wrap: anywhere; }
 .form-warning { padding: .8rem; border-left: 3px solid var(--warning); background: var(--surface-raised); color: var(--text-muted) !important; }
 .form-actions { display: flex; align-items: center; gap: .75rem; }
@@ -349,11 +350,14 @@ button:disabled { cursor: not-allowed; opacity: .62; }
 }
 
 @media (max-width: 30rem) {
-    .navbar { min-height: 4rem; }
-    .logo h3 { font-size: .92rem; }
-    .auth-buttons { gap: .25rem; }
-    .theme-toggle, .menu-toggle { padding-inline: .45rem; }
-    .login-btn { padding-inline: .25rem; font-size: .78rem; }
+    .navbar { width: calc(100% - 1rem); min-height: 4rem; gap: .3rem; }
+    .logo { min-width: 0; flex-shrink: 1; }
+    .logo-box { flex-shrink: 0; }
+    .logo h3 { white-space: nowrap; font-size: .88rem; }
+    .auth-buttons { flex-shrink: 0; gap: .25rem; margin-left: .2rem; }
+    .theme-toggle { display: none; }
+    .menu-toggle { flex-shrink: 0; padding-inline: .55rem; }
+    .login-btn { padding-inline: .6rem; font-size: .78rem; }
     .guide-content, .profile-card, .auth-card, .dashboard-panel { padding: 1.15rem; }
     .guide-rating form { display: grid; gap: .65rem; }
     .guide-rating button { margin-left: 0; }
