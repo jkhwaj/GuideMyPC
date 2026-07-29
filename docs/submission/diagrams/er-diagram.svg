@@ -1,20 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1200" viewBox="0 0 1900 1200">
-  <style>text{font-family:Arial,sans-serif;fill:#182230}.title{font-size:34px;font-weight:bold}.head{font-size:23px;font-weight:bold}.field{font-size:18px}.entity{fill:#f7f9fc;stroke:#2563a8;stroke-width:3}.line{stroke:#475569;stroke-width:3;fill:none}.card{font-size:18px;font-weight:bold}</style>
-  <text x="950" y="55" text-anchor="middle" class="title">GuideMyPC ER diagram: central active entities</text>
-  <g transform="translate(70 150)"><rect width="250" height="185" rx="10" class="entity"/><text x="125" y="35" text-anchor="middle" class="head">users</text><text x="20" y="70" class="field">PK id : bigint</text><text x="20" y="100" class="field">role_id : bigint FK</text><text x="20" y="130" class="field">email : varchar</text><text x="20" y="160" class="field">status : varchar</text></g>
-  <g transform="translate(70 500)"><rect width="250" height="155" rx="10" class="entity"/><text x="125" y="35" text-anchor="middle" class="head">guide_progress</text><text x="20" y="70" class="field">PK id : bigint</text><text x="20" y="100" class="field">user_id : bigint FK</text><text x="20" y="130" class="field">guide_step_id : bigint FK</text></g>
-  <g transform="translate(70 830)"><rect width="250" height="155" rx="10" class="entity"/><text x="125" y="35" text-anchor="middle" class="head">community_posts</text><text x="20" y="70" class="field">PK id : bigint</text><text x="20" y="100" class="field">user_id : bigint FK</text><text x="20" y="130" class="field">is_published : tinyint</text></g>
-  <g transform="translate(470 110)"><rect width="250" height="125" rx="10" class="entity"/><text x="125" y="35" text-anchor="middle" class="head">roles</text><text x="20" y="70" class="field">PK id : bigint</text><text x="20" y="100" class="field">name : varchar</text></g>
-  <g transform="translate(470 355)"><rect width="270" height="185" rx="10" class="entity"/><text x="135" y="35" text-anchor="middle" class="head">guides</text><text x="20" y="70" class="field">PK id : bigint</text><text x="20" y="100" class="field">category_id : bigint FK</text><text x="20" y="130" class="field">title : varchar</text><text x="20" y="160" class="field">is_published : tinyint</text></g>
-  <g transform="translate(470 670)"><rect width="270" height="155" rx="10" class="entity"/><text x="135" y="35" text-anchor="middle" class="head">guide_steps</text><text x="20" y="70" class="field">PK id : bigint</text><text x="20" y="100" class="field">guide_id : bigint FK</text><text x="20" y="130" class="field">step_order : int</text></g>
-  <g transform="translate(850 355)"><rect width="270" height="155" rx="10" class="entity"/><text x="135" y="35" text-anchor="middle" class="head">categories</text><text x="20" y="70" class="field">PK id : bigint</text><text x="20" y="100" class="field">name : varchar</text><text x="20" y="130" class="field">is_published : tinyint</text></g>
-  <g transform="translate(1260 160)"><rect width="280" height="155" rx="10" class="entity"/><text x="140" y="35" text-anchor="middle" class="head">downloads</text><text x="20" y="70" class="field">PK id : bigint</text><text x="20" y="100" class="field">category_id : bigint FK</text><text x="20" y="130" class="field">review_state : varchar</text></g>
-  <g transform="translate(1260 500)"><rect width="280" height="155" rx="10" class="entity"/><text x="140" y="35" text-anchor="middle" class="head">diagnostic_sessions</text><text x="20" y="70" class="field">PK id : bigint</text><text x="20" y="100" class="field">flow_id : bigint FK</text><text x="20" y="130" class="field">user_id : bigint FK nullable</text></g>
-  <g transform="translate(1260 830)"><rect width="280" height="155" rx="10" class="entity"/><text x="140" y="35" text-anchor="middle" class="head">community_comments</text><text x="20" y="70" class="field">PK id : bigint</text><text x="20" y="100" class="field">post_id : bigint FK</text><text x="20" y="130" class="field">user_id : bigint FK</text></g>
-  <path d="M320 235 L470 185" class="line"/><text x="365" y="185" class="card">0..* : 1</text>
-  <path d="M320 577 L470 747" class="line"/><text x="350" y="680" class="card">0..* : 1</text><path d="M605 540 V670" class="line"/><text x="620" y="620" class="card">1 : 1..*</text>
-  <path d="M740 445 H850" class="line"/><text x="765" y="425" class="card">0..* : 1</text>
-  <path d="M1120 430 L1260 270" class="line"/><text x="1150" y="340" class="card">0..* : 1</text>
-  <path d="M320 905 H1260" class="line"/><text x="790" y="885" class="card">1 : 0..*</text>
-  <path d="M320 915 L1260 580" class="line"/><text x="820" y="700" class="card">0..* : 0..1</text>
+  <style>
+    text { font-family: Arial, sans-serif; fill: #182230; }
+    .title { font-size: 34px; font-weight: bold; }
+    .note { font-size: 18px; fill: #475569; }
+    .head { font-size: 23px; font-weight: bold; }
+    .field { font-size: 18px; }
+    .entity { fill: #f7f9fc; stroke: #2563a8; stroke-width: 3; }
+    .line { stroke: #475569; stroke-width: 3; fill: none; }
+    .card { font-size: 17px; font-weight: bold; fill: #334155; }
+  </style>
+  <text x="950" y="50" text-anchor="middle" class="title">GuideMyPC ER diagram: active central schema</text>
+  <text x="950" y="82" text-anchor="middle" class="note">Only migration-backed tables, fields, and foreign-key relationships are shown.</text>
+
+  <g transform="translate(65 145)"><rect width="290" height="180" rx="10" class="entity"/><text x="145" y="35" text-anchor="middle" class="head">users</text><text x="20" y="70" class="field">PK id : int unsigned</text><text x="20" y="100" class="field">role : enum(user, editor, admin)</text><text x="20" y="130" class="field">email : varchar(150)</text><text x="20" y="160" class="field">status : enum(active, disabled)</text></g>
+  <g transform="translate(65 500)"><rect width="290" height="145" rx="10" class="entity"/><text x="145" y="35" text-anchor="middle" class="head">user_progress</text><text x="20" y="70" class="field">PK id : int unsigned</text><text x="20" y="100" class="field">FK user_id : int unsigned</text><text x="20" y="130" class="field">FK guide_step_id : int unsigned</text></g>
+  <g transform="translate(65 820)"><rect width="290" height="145" rx="10" class="entity"/><text x="145" y="35" text-anchor="middle" class="head">community_posts</text><text x="20" y="70" class="field">PK id : int unsigned</text><text x="20" y="100" class="field">FK user_id : int unsigned</text><text x="20" y="130" class="field">is_published : tinyint(1)</text></g>
+
+  <g transform="translate(475 145)"><rect width="290" height="145" rx="10" class="entity"/><text x="145" y="35" text-anchor="middle" class="head">categories</text><text x="20" y="70" class="field">PK id : int unsigned</text><text x="20" y="100" class="field">name : varchar(100)</text><text x="20" y="130" class="field">is_published : tinyint(1)</text></g>
+  <g transform="translate(475 380)"><rect width="290" height="145" rx="10" class="entity"/><text x="145" y="35" text-anchor="middle" class="head">guides</text><text x="20" y="70" class="field">PK id : int unsigned</text><text x="20" y="100" class="field">FK category_id : int unsigned nullable</text><text x="20" y="130" class="field">is_published : tinyint(1)</text></g>
+  <g transform="translate(475 620)"><rect width="290" height="145" rx="10" class="entity"/><text x="145" y="35" text-anchor="middle" class="head">guide_steps</text><text x="20" y="70" class="field">PK id : int unsigned</text><text x="20" y="100" class="field">FK guide_id : int unsigned</text><text x="20" y="130" class="field">step_number : int unsigned</text></g>
+
+  <g transform="translate(900 145)"><rect width="300" height="145" rx="10" class="entity"/><text x="150" y="35" text-anchor="middle" class="head">diagnostic_flow_versions</text><text x="20" y="70" class="field">PK id : bigint unsigned</text><text x="20" y="100" class="field">FK flow_id : bigint unsigned</text><text x="20" y="130" class="field">version_number : int unsigned</text></g>
+  <g transform="translate(900 380)"><rect width="300" height="145" rx="10" class="entity"/><text x="150" y="35" text-anchor="middle" class="head">diagnostic_sessions</text><text x="20" y="70" class="field">PK id : bigint unsigned</text><text x="20" y="100" class="field">FK version_id : bigint unsigned</text><text x="20" y="130" class="field">user_id : int nullable</text></g>
+  <g transform="translate(900 620)"><rect width="300" height="145" rx="10" class="entity"/><text x="150" y="35" text-anchor="middle" class="head">downloads</text><text x="20" y="70" class="field">PK id : int unsigned</text><text x="20" y="100" class="field">category : varchar(100)</text><text x="20" y="130" class="field">review_state : enum(...)</text></g>
+
+  <g transform="translate(1380 520)"><rect width="310" height="145" rx="10" class="entity"/><text x="155" y="35" text-anchor="middle" class="head">community_comments</text><text x="20" y="70" class="field">PK id : int unsigned</text><text x="20" y="100" class="field">FK post_id : int unsigned</text><text x="20" y="130" class="field">FK user_id : int unsigned</text></g>
+  <g transform="translate(1380 800)"><rect width="310" height="145" rx="10" class="entity"/><text x="155" y="35" text-anchor="middle" class="head">community_likes</text><text x="20" y="70" class="field">PK id : int unsigned</text><text x="20" y="100" class="field">FK post_id : int unsigned</text><text x="20" y="130" class="field">FK user_id : int unsigned</text></g>
+
+  <path d="M355 565 L475 692" class="line"/><text x="370" y="645" class="card">0..* : 1</text>
+  <path d="M620 525 V620" class="line"/><text x="635" y="580" class="card">1 : 1..*</text>
+  <path d="M765 452 H900" class="line"/><text x="795" y="432" class="card">0..* : 1</text>
+  <path d="M765 217 H900" class="line"/><text x="795" y="197" class="card">1 : 0..*</text>
+  <path d="M355 235 L900 450" class="line"/><text x="590" y="325" class="card">0..1 : 0..*</text>
+  <path d="M355 890 L1380 590" class="line"/><text x="850" y="700" class="card">1 : 0..*</text>
+  <path d="M355 900 L1380 870" class="line"/><text x="850" y="910" class="card">1 : 0..*</text>
+  <path d="M355 270 L1380 590" class="line"/><text x="1120" y="385" class="card">1 : 0..*</text>
+  <path d="M355 285 L1380 870" class="line"/><text x="1110" y="625" class="card">1 : 0..*</text>
 </svg>

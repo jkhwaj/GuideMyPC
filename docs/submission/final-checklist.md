@@ -10,7 +10,7 @@ claimed by this document.
 | --- | --- |
 | Repository URL | `https://github.com/jkhwaj/GuideMyPC` |
 | Main branch | `main` |
-| Submitted release commit | Recorded in the ignored DOCX files and generated package manifest after the local commit |
+| Submitted release commit | Record the exact final SHA in ignored DOCX files and the generated package manifest after the release commit |
 | Project type | Individual project; one student; 100% contribution |
 | Human sign-off | Required before submission |
 
@@ -21,15 +21,15 @@ claimed by this document.
 | Student Readme | `Readme.docx` | Exists; private and ignored | Required before submission |
 | Final report | `GuideMyPC-Final-Report.docx` | Exists; private and ignored | Required before submission |
 | UML project | `GuideMyPC.vpp` | Exists with four native diagrams | Required before submission |
-| Source archive | `GuideMyPC-Source.zip` | Must be regenerated after the local commit | Required before submission |
-| Outer archive | `GuideMyPC-Submission.zip` | Must be assembled after source-archive verification | Required before submission |
+| Source archive | `GuideMyPC-Source.zip` | Existing archive must be regenerated and reverified after the release commit | Required before submission |
+| Outer archive | `GuideMyPC-Submission.zip` | Existing archive must be rebuilt after source-archive verification | Required before submission |
 
 ## Content Checks
 
 - [x] The report uses the required sections 1 through 8 and singular project language.
 - [x] The documented scope is limited to verified-core capabilities and the two bounded Search JSON endpoints.
 - [x] The report plan includes architecture and ER diagrams with retained source files.
-- [x] The UML source contains Use Case, Class, Activity, and State Machine diagrams; the Class Diagram was manually updated in Visual Paradigm.
+- [ ] Confirm the Class Diagram terminology in the native VPP and export a matching PNG.
 - [x] Exactly ten screenshot entries are documented, including two 320x800 mobile captures and a safe 404 response.
 - [x] Third-party software is distinguished from first-party application assets.
 - [ ] Run and record current read-only repository validation against the final local commit.
@@ -37,7 +37,7 @@ claimed by this document.
 
 ## Archive And Privacy Checks
 
-- [ ] Run `composer run audit:cleanup` and the existing source-package process.
+- [ ] Run `composer run audit:cleanup` and the existing source-package process for the final release commit.
 - [ ] Inspect `GuideMyPC-Source.zip` for its required root structure and prohibited content.
 - [ ] Validate a clean extraction only if the required disposable database environment is available.
 - [ ] Assemble `GuideMyPC-Submission.zip` with exactly `Readme.docx`, `GuideMyPC-Final-Report.docx`, `GuideMyPC.vpp`, and `GuideMyPC-Source.zip`.

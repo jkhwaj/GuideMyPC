@@ -2,8 +2,8 @@
 
 Artifact update date: 2026-07-29
 Working branch: `report-compliance-fix`
-Release identity: the exact local commit is recorded in the ignored DOCX files
-and generated archive manifest after the one authorized local commit.
+Release identity: the exact final local commit is recorded in the ignored DOCX
+files and generated archive manifest after the authorized release commit.
 
 This record covers ignored private/generated submission artifacts. Word files,
 personal information, UML files, screenshot PNGs, and ZIP files are not added
@@ -14,11 +14,10 @@ personal information, UML files, screenshot PNGs, and ZIP files are not added
   Paradigm project with Use Case, Class, Activity, and State Machine diagrams.
 - The four PNG exports are `use-case.png`, `class-diagram.png`,
   `activity-diagram.png`, and `state-machine.png`.
-- On 2026-07-29, the Class Diagram was manually revised in Visual Paradigm and
-  saved in the VPP project. Its attributes, data types, operations, visibility,
-  multiplicity, relationships, and layout were improved. Visual Paradigm wrote
-  the refreshed raster export as JPEG; `class-diagram.png` is its direct
-  lossless PNG conversion for the required filename and Word embedding.
+- The Class Diagram remains a native-VPP-controlled artifact. Before final
+  packaging, its VPP source and PNG export must be checked together for exact
+  terminology and camelCase consistency; the PNG is never treated as an
+  independent source of truth.
 - The diagrams cover only retained Guest, Member, Editor, and Administrator
   behavior. Excluded product areas are not presented as active capabilities.
 
@@ -28,8 +27,8 @@ personal information, UML files, screenshot PNGs, and ZIP files are not added
   1800x1100 architecture PNG. It depicts browser-to-Apache-to-PHP-to-MariaDB
   request handling and the two bounded Search JSON endpoints.
 - `docs/submission/diagrams/er-diagram.svg` is the retained source for the
-  1900x1200 concise ER PNG. It depicts only central active entities and their
-  documented keys and relationships.
+  1900x1200 concise ER PNG. It depicts only migration-backed central entities,
+  real field names, and real foreign-key relationships.
 
 ## Screenshots
 
@@ -60,7 +59,7 @@ personal information, UML files, screenshot PNGs, and ZIP files are not added
 
 ## Remaining Gate
 
-Run current repository validation, create the one authorized local commit,
-record that exact SHA in ignored generated artifacts, build and inspect the
-source archive, assemble the outer four-file archive, and obtain any required
-human review.
+Correct the native Class Diagram and export it from VPP, run current repository
+validation, create the authorized release commit, record that exact SHA in
+ignored generated artifacts, then rebuild and inspect both archives. Obtain any
+required human review separately.
