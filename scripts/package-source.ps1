@@ -222,7 +222,7 @@ Options -Indexes
     )
     [System.IO.File]::WriteAllText((Join-Path $backendDirectory '.env.example'), $packageEnvironment, [System.Text.UTF8Encoding]::new($false))
 
-    $packageReadme = @"
+    $packageReadmeTemplate = @'
 # GuideMyPC Source Package
 
 ## Project Overview
@@ -306,8 +306,9 @@ Keep `.env` private, never commit credentials or backups, keep `APP_PRIVATE_PATH
 
 ## Release
 
-Source commit: $commitId
-"@
+Source commit: __COMMIT_ID__
+'@
+    $packageReadme = $packageReadmeTemplate.Replace('__COMMIT_ID__', $commitId)
     [System.IO.File]::WriteAllText((Join-Path $packageRoot 'README.md'), $packageReadme, [System.Text.UTF8Encoding]::new($false))
 
     $resolvedUmlDirectory = [System.IO.Path]::GetFullPath($UmlDirectory)
